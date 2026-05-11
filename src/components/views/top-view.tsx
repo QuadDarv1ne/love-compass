@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, Crown, TrendingUp, UserPlus, MapPin, Sparkles } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -347,7 +346,7 @@ export function TopView() {
     },
   ];
 
-  const currentTab = tabConfig.find((t) => t.key === activeTab)!;
+  const currentTab = tabConfig.find((t) => t.key === activeTab) ?? tabConfig[0];
 
   // ─── Loading State ────────────────────────────────────────────────────────
   if (loading) {
@@ -445,7 +444,7 @@ export function TopView() {
               rest={rest}
               scoreLabel={currentTab.scoreLabel}
               scoreGetter={currentTab.scoreGetter}
-              currentUserRank={currentUserRank}
+              _currentUserRank={currentUserRank}
             />
           </TabsContent>
 
@@ -456,7 +455,7 @@ export function TopView() {
               rest={rest}
               scoreLabel={currentTab.scoreLabel}
               scoreGetter={currentTab.scoreGetter}
-              currentUserRank={currentUserRank}
+              _currentUserRank={currentUserRank}
             />
           </TabsContent>
 
@@ -467,7 +466,7 @@ export function TopView() {
               rest={rest}
               scoreLabel={currentTab.scoreLabel}
               scoreGetter={currentTab.scoreGetter}
-              currentUserRank={currentUserRank}
+              _currentUserRank={currentUserRank}
             />
           </TabsContent>
         </Tabs>
@@ -527,13 +526,13 @@ function LeaderboardContent({
   rest,
   scoreLabel,
   scoreGetter,
-  currentUserRank,
+  _currentUserRank,
 }: {
   top3: RankedUser[];
   rest: RankedUser[];
   scoreLabel: string;
   scoreGetter: (r: RankedUser) => number;
-  currentUserRank: { rank: number; total: number; user: RankedUser } | null;
+  _currentUserRank: { rank: number; total: number; user: RankedUser } | null;
 }) {
   // Ensure we have at least 3 entries in podium (pad with undefined if needed)
   const podiumEntries: (RankedUser | null)[] = [

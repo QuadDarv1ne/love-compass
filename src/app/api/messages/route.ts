@@ -24,7 +24,7 @@ export async function GET(request: Request) {
     });
 
     return NextResponse.json(messages);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to fetch messages' }, { status: 500 });
   }
 }
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
     return NextResponse.json(message, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: 'Validation failed', details: error.errors }, { status: 400 });
+      return NextResponse.json({ error: 'Validation failed', details: error.issues }, { status: 400 });
     }
     return NextResponse.json({ error: 'Failed to send message' }, { status: 500 });
   }

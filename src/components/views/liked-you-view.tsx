@@ -13,7 +13,7 @@ import { useAppStore, type User } from '@/lib/store';
 import { OnlineIndicator } from './shared';
 
 export function LikedYouView() {
-  const { currentUser, likedYouProfiles, setLikedYouProfiles, onlineUserIds, setShowMatchAnimation, setMatchAnimationPartner, navigateTo } = useAppStore();
+  const { currentUser, likedYouProfiles, setLikedYouProfiles, setShowMatchAnimation, setMatchAnimationPartner, navigateTo } = useAppStore();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

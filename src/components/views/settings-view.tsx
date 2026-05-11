@@ -47,9 +47,9 @@ const fadeUp = {
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: i * 0.07, duration: 0.45, ease: 'easeOut' },
+    transition: { delay: i * 0.07, duration: 0.45, ease: 'easeOut' as const },
   }),
-};
+} as const;
 
 /* ─── reusable toggle row ─────────────────────────────────────── */
 function SettingRow({
@@ -89,7 +89,7 @@ function SettingRow({
 
 /* ═══════════════════════════════════════════════════════════════ */
 export function SettingsView() {
-  const { setTheme, theme, resolvedTheme } = useTheme();
+  const { setTheme, theme } = useTheme();
   const {
     currentUser,
     logout,
@@ -112,7 +112,7 @@ export function SettingsView() {
 
   /* resolve hydration mismatch — standard next-themes pattern */
   const [mounted, setMounted] = useState(false);
-  // eslint-disable-next-line react-hooks/set-state-in-effect
+   
   useEffect(() => { setMounted(true); }, []);
 
   /* helpers */

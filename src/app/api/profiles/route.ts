@@ -45,7 +45,7 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: 'Invalid query parameters', details: error.errors }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid query parameters', details: error.issues }, { status: 400 });
     }
     return NextResponse.json({ error: 'Failed to fetch profiles' }, { status: 500 });
   }
@@ -73,7 +73,7 @@ export async function POST(request: Request) {
     return NextResponse.json(user, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: 'Validation failed', details: error.errors }, { status: 400 });
+      return NextResponse.json({ error: 'Validation failed', details: error.issues }, { status: 400 });
     }
     const err = error as { code?: string };
     if (err.code === 'P2002') {

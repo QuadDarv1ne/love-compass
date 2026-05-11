@@ -72,7 +72,7 @@ const DEMO_USERS = [
 ];
 
 export function LandingView() {
-  const { login, setProfiles } = useAppStore();
+  const { login } = useAppStore();
   const [isRegister, setIsRegister] = useState(false);
   const [loading, setLoading] = useState(false);
 

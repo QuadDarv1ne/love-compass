@@ -154,9 +154,9 @@ const cardVariants = {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { type: 'spring', stiffness: 260, damping: 20 },
+    transition: { type: 'spring' as const, stiffness: 260, damping: 20 },
   },
-};
+} as const;
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
@@ -182,7 +182,7 @@ export function AchievementsView() {
       map.set(a.id, a.getValue());
     }
     return map;
-  }, [likedUserIds, matches, superLikedUserIds, dislikedUserIds, currentUser]);
+  }, []);
 
   // ── Auto-unlock on mount and on state changes ──
   const checkAndUnlock = useCallback(() => {

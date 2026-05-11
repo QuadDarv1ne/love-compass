@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import {
   Heart, X, Star, LogOut, Edit3, MapPin, Zap, MessageSquare,

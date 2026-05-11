@@ -3,15 +3,14 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, MessageCircle } from 'lucide-react';
+import { Heart } from 'lucide-react';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAppStore, type User, type MatchWithUsers } from '@/lib/store';
 import { OnlineIndicator } from './shared';
 
 export function MatchesView() {
-  const { matches, currentUser, onlineUserIds, navigateTo, setSelectedMatch } = useAppStore();
+  const { matches, currentUser, navigateTo, setSelectedMatch } = useAppStore();
   const [localLoading, setLocalLoading] = useState(true);
 
   useEffect(() => {
@@ -120,7 +119,7 @@ export function MatchesView() {
 
 // ─── Chat List (for desktop sidebar) ────────────────────────────────────────
 export function ChatListView() {
-  const { matches, currentUser, onlineUserIds, setSelectedMatch, chatListMatchId, setChatListMatchId } = useAppStore();
+  const { matches, currentUser, setSelectedMatch, chatListMatchId, setChatListMatchId } = useAppStore();
 
   const getPartner = (match: MatchWithUsers): User => {
     return match.user1.id === currentUser?.id ? match.user2 : match.user1;

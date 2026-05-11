@@ -10,7 +10,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   Select,
@@ -81,7 +80,7 @@ function useHydrated() {
 }
 
 export function DarkModeToggle() {
-  const { theme, setTheme, resolvedTheme } = useTheme();
+  const { setTheme, resolvedTheme } = useTheme();
   const mounted = useHydrated();
   if (!mounted) return <div className="w-9 h-9" />;
   const isDark = resolvedTheme === 'dark';

@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { useAppStore, type User } from '@/lib/store';
 import { FilterPanel } from './shared';
 
@@ -187,7 +187,7 @@ export function BrowseView() {
 
   // Filter and sort profiles
   const filteredProfiles = useMemo(() => {
-    let result = profiles.filter((p) => {
+    const result = profiles.filter((p) => {
       if (blockedUserIds.includes(p.id)) return false;
       if (filterGender !== 'all' && p.gender !== filterGender) return false;
       if (filterAgeMin > 0 && p.age < filterAgeMin) return false;
@@ -310,14 +310,14 @@ export function BrowseView() {
     dragStartPos.current = { x: 0, y: 0 };
   };
 
-  const handleDrag = (_: any, info: any) => {
+  const handleDrag = (_: unknown, info: { offset: { x: number }; point: { x: number; y: number } }) => {
     setDragX(info.offset.x);
     if (!dragStartPos.current) {
       dragStartPos.current = { x: info.point.x, y: info.point.y };
     }
   };
 
-  const handleDragEnd = (profile: User, _: any, info: any) => {
+  const handleDragEnd = (profile: User, _e: unknown, info: { offset: { x: number } }) => {
     const dragDistance = Math.abs(info.offset.x);
 
     // If drag distance is very small, treat as tap → open detail modal

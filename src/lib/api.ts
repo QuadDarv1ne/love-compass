@@ -1,4 +1,4 @@
-import { useAppStore, type User, type MatchWithUsers, type Message } from '@/lib/store';
+import { useAppStore, type User, type MatchWithUsers } from '@/lib/store';
 
 /**
  * Fetch all app data from API and populate the Zustand store.

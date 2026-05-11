@@ -2,9 +2,7 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Heart, MessageCircle, ChevronLeft, Send, Sparkles, CheckCheck, Smile,
-} from 'lucide-react';
+import { MessageCircle, ChevronLeft, Send, Sparkles, CheckCheck, Smile } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -103,7 +101,7 @@ export function ChatView() {
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [partnerTyping, setPartnerTyping] = useState(false);
-  const typingTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const _typingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const autoReplyTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -164,7 +162,7 @@ export function ChatView() {
     return () => {
       if (autoReplyTimerRef.current) clearTimeout(autoReplyTimerRef.current);
     };
-  }, [messages.length > 0 ? messages[messages.length - 1]?.id : null]);
+  }, [messages, selectedMatch, currentUser, addMessage]);
 
   const sendMessage = async () => {
     if (!newMessage.trim() || !selectedMatch || !currentUser || sending) return;

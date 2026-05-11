@@ -24,7 +24,7 @@ export async function GET(request: Request) {
     });
 
     // Filter out likes where the current user has already liked back
-    const pendingLikes = [];
+    const pendingLikes: (typeof receivedLikes)[number]['fromUser'][] = [];
     for (const like of receivedLikes) {
       const reverseLike = await db.like.findUnique({
         where: {
@@ -40,7 +40,7 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json(pendingLikes);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to fetch received likes' }, { status: 500 });
   }
 }

@@ -252,7 +252,7 @@ async function main() {
     await prisma.user.create({ data: user });
   }
 
-  console.log(`✅ Создано ${users.length} пользователей`);
+  console.warn(`✅ Создано ${users.length} пользователей`);
 }
 
 main()
