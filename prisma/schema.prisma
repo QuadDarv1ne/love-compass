@@ -55,6 +55,7 @@ model Message {
   matchId    String
   senderId   String
   content    String
+  read       Boolean  @default(false)
   createdAt  DateTime @default(now())
   match      Match    @relation(fields: [matchId], references: [id])
   sender     User     @relation("SentMessages", fields: [senderId], references: [id])

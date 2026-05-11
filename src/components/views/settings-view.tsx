@@ -398,9 +398,18 @@ export function SettingsView() {
                   className="w-full justify-start gap-2 border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl"
                   onClick={() => {
                     clearAllData();
+                    // Clear all browser storage
                     try { localStorage.clear(); } catch { /* ignore */ }
+                    try { sessionStorage.clear(); } catch { /* ignore */ }
+                    // Clear cookies by setting them with past expiration
+                    try {
+                      document.cookie.split(';').forEach((c) => {
+                        const name = c.split('=')[0].trim();
+                        document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
+                      });
+                    } catch { /* ignore */ }
                     toast.success('Кэш очищен', {
-                      description: 'Данные приложения успешно удалены',
+                      description: 'Данные приложения успешно удалены. Перезагрузите страницу.',
                     });
                   }}
                 >
@@ -411,12 +420,31 @@ export function SettingsView() {
                 <Button
                   variant="outline"
                   className="w-full justify-start gap-2 border-destructive/40 text-destructive hover:bg-destructive/10 rounded-xl"
-                  onClick={() =>
-                    toast.error('Удаление аккаунта', {
-                      description:
-                        'Это действие необратимо. Для подтверждения обратитесь в поддержку.',
-                    })
-                  }
+                  onClick={async () => {
+                    if (!currentUser?.id) return;
+                    const confirmed = window.confirm(
+                      'Вы уверены? Все ваши данные, мэтчи и переписки будут удалены безвозвратно.'
+                    );
+                    if (!confirmed) return;
+
+                    try {
+                      const res = await fetch(`/api/account?id=${currentUser.id}`, {
+                        method: 'DELETE',
+                      });
+                      if (!res.ok) {
+                        const data = await res.json();
+                        throw new Error(data.error || 'Failed to delete account');
+                      }
+                      toast.success('Аккаунт удалён', {
+                        description: 'Все ваши данные были удалены',
+                      });
+                      clearAllData();
+                      try { localStorage.clear(); } catch { /* ignore */ }
+                    } catch (error: unknown) {
+                      const message = error instanceof Error ? error.message : 'Ошибка при удалении';
+                      toast.error('Ошибка', { description: message });
+                    }
+                  }}
                 >
                   <Trash2 className="w-4 h-4" />
                   Удалить аккаунт

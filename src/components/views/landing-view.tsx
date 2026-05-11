@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useAppStore, type User } from '@/lib/store';
+import { hydrateAppData } from '@/lib/api';
 import { FloatingHearts, AvatarPicker } from './shared';
 
 // ─── Features data ──────────────────────────────────────────────────────────
@@ -88,20 +89,13 @@ export function LandingView() {
   const quickLogin = async (avatarIndex: number) => {
     setLoading(true);
     try {
-      const res = await fetch('/api/profiles');
-      const users: User[] = await res.json();
+      const res = await fetch('/api/profiles?limit=100');
+      const body = await res.json();
+      const users: User[] = body.data ?? body;
       const selectedUser = users[avatarIndex];
       if (selectedUser) {
-        const allProfiles = users.filter((u) => u.id !== selectedUser.id);
-        setProfiles(allProfiles);
-
-        // Randomly assign online users
-        const otherIds = allProfiles.map(p => p.id);
-        const shuffled = otherIds.sort(() => Math.random() - 0.5);
-        const onlineIds = shuffled.slice(0, Math.ceil(shuffled.length * 0.4));
-
-        useAppStore.getState().setOnlineUserIds(onlineIds);
         login(selectedUser);
+        await hydrateAppData(selectedUser);
       }
     } catch {
       console.error('Login failed');
@@ -133,17 +127,8 @@ export function LandingView() {
         toast.success('Добро пожаловать!', {
           description: `Регистрация прошла успешно. Привет, ${user.name}!`,
         });
-        const profilesRes = await fetch('/api/profiles');
-        const allUsers: User[] = await profilesRes.json();
-        const allProfiles = allUsers.filter((u) => u.id !== user.id);
-        setProfiles(allProfiles);
-
-        const otherIds = allProfiles.map(p => p.id);
-        const shuffled = otherIds.sort(() => Math.random() - 0.5);
-        const onlineIds = shuffled.slice(0, Math.ceil(shuffled.length * 0.4));
-        useAppStore.getState().setOnlineUserIds(onlineIds);
-
         login(user);
+        await hydrateAppData(user);
       }
     } catch {
       console.error('Registration failed');

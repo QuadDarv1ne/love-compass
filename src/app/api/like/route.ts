@@ -1,14 +1,16 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { z } from 'zod';
+
+const likeSchema = z.object({
+  fromUserId: z.string().min(1),
+  toUserId: z.string().min(1),
+});
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { fromUserId, toUserId } = body;
-
-    if (!fromUserId || !toUserId) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
-    }
+    const { fromUserId, toUserId } = likeSchema.parse(body);
 
     if (fromUserId === toUserId) {
       return NextResponse.json({ error: 'Cannot like yourself' }, { status: 400 });
@@ -70,6 +72,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ like, match, isMutual: !!match });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: 'Validation failed', details: error.errors }, { status: 400 });
+    }
     return NextResponse.json({ error: 'Failed to create like' }, { status: 500 });
   }
 }

@@ -1,5 +1,14 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { z } from 'zod';
+
+const updateProfileSchema = z.object({
+  name: z.string().min(1).max(100).optional(),
+  bio: z.string().max(500).optional(),
+  city: z.string().max(100).optional(),
+  interests: z.string().max(500).optional(),
+  lookingFor: z.enum(['all', 'male', 'female']).optional(),
+});
 
 export async function GET(request: Request) {
   try {
@@ -34,21 +43,18 @@ export async function PUT(request: Request) {
     }
 
     const body = await request.json();
-    const { name, bio, city, interests, lookingFor } = body;
+    const validated = updateProfileSchema.parse(body);
 
     const user = await db.user.update({
       where: { id },
-      data: {
-        ...(name !== undefined && { name }),
-        ...(bio !== undefined && { bio }),
-        ...(city !== undefined && { city }),
-        ...(interests !== undefined && { interests }),
-        ...(lookingFor !== undefined && { lookingFor }),
-      },
+      data: validated,
     });
 
     return NextResponse.json(user);
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: 'Validation failed', details: error.errors }, { status: 400 });
+    }
     return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 });
   }
 }
