@@ -50,5 +50,12 @@ test
 prompt
 
 server.log
+
+# deploy artifacts
+/deploy/backups/
+*.db
+*.db-journal
+traefik/acme.json
+
 # Skills directory
 /skills/

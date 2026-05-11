@@ -1,0 +1,19 @@
+{
+  "admin": {
+    "email": "admin@example.com"
+  },
+  "logging": {
+    "level": "INFO"
+  },
+  "apps": {
+    "love-compass": {
+      "match": "love-compass",
+      "serve": {
+        "proxy": {
+          "domain": "app",
+          "port": "3000"
+        }
+      }
+    }
+  }
+}

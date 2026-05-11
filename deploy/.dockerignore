@@ -1,0 +1,42 @@
+# Dependencies
+node_modules
+.git
+.gitignore
+
+# Build
+.next
+out
+dist
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs
+
+# Database (don't ship production data)
+*.db
+*.db-journal
+
+# Testing
+coverage
+.nyc_output
+
+# Misc
+README.md
+LICENSE
+TODO.md
+seed.ts

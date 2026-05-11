@@ -1,0 +1,20 @@
+name: love-compass
+
+build:
+  image: oven/bun:1
+
+deploy:
+  image: oven/bun:1
+
+  readinessPath: /
+
+  scaling:
+    min: 1
+    max: 3
+
+  health:
+    httpPath: /
+    initialDelay: 30
+
+env:
+  NODE_ENV: production

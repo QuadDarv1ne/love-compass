@@ -1,0 +1,21 @@
+name: love-compass
+description: Dating app built with Next.js
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile
+    env:
+      DATABASE_URL: "file:/app/db/custom.db"
+      NODE_ENV: "production"
+    ports:
+      - 3000:3000
+    volumes:
+      - db_data:/app/db
+    healthcheck:
+      path: /
+      port: 3000
+
+volumes:
+  db_data:

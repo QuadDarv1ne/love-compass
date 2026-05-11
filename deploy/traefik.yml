@@ -1,0 +1,34 @@
+http:
+  routers:
+    love-compass:
+      rule: "Host(`your-domain.com`)"
+      service: love-compass
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+
+  services:
+    love-compass:
+      loadBalancer:
+        servers:
+          - url: "http://app:3000"
+
+entryPoints:
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: admin@example.com
+      storage: /etc/traefik/acme.json
+      httpChallenge:
+        entryPoint: web
+
+providers:
+  file:
+    filename: /etc/traefik/traefik.yml
+    watch: true

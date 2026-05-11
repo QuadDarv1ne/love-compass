@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: love-compass
+  labels:
+    app: love-compass
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: love-compass
+  template:
+    metadata:
+      labels:
+        app: love-compass
+    spec:
+      containers:
+        - name: app
+          image: love-compass:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+              protocol: TCP
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: love-compass-secret
+                  key: database-url
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 5
+          volumeMounts:
+            - name: db-storage
+              mountPath: /app/db
+      volumes:
+        - name: db-storage
+          persistentVolumeClaim:
+            claimName: love-compass-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: love-compass-service
+spec:
+  selector:
+    app: love-compass
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+  type: ClusterIP
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: love-compass-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: love-compass-secret
+type: Opaque
+stringData:
+  database-url: "file:/app/db/custom.db"
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: love-compass-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - your-domain.com
+      secretName: love-compass-tls
+  rules:
+    - host: your-domain.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: love-compass-service
+                port:
+                  number: 80

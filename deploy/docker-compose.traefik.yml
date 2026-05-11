@@ -1,0 +1,55 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/lovecompass?schema=public
+      - NODE_ENV=production
+    depends_on:
+      - db
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.love-compass.rule=Host(`your-domain.com`)"
+      - "traefik.http.routers.love-compass.entrypoints=websecure"
+      - "traefik.http.routers.love-compass.tls.certresolver=letsencrypt"
+      - "traefik.http.services.love-compass.loadbalancer.server.port=3000"
+    restart: unless-stopped
+    networks:
+      - traefik-net
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=lovecompass
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - traefik-net
+
+  traefik:
+    image: traefik:v3.0
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik.yml:/etc/traefik/traefik.yml:ro
+      - traefik-acme:/etc/traefik/acme
+    restart: unless-stopped
+    networks:
+      - traefik-net
+
+volumes:
+  pg_data:
+  traefik-acme:
+
+networks:
+  traefik-net:
+    driver: bridge
