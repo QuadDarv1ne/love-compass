@@ -45,6 +45,14 @@ export async function hydrateAppData(currentUser: User) {
         store.addLikedUserId(like.toUserId);
       }
     }
+
+    // Fetch blocked users
+    const blockedRes = await fetch(`/api/block?userId=${currentUser.id}`);
+    if (blockedRes.ok) {
+      const { blocks } = await blockedRes.json();
+      const blockedIds: string[] = blocks.map((b: { blockedId: string }) => b.blockedId);
+      useAppStore.setState({ blockedUserIds: blockedIds });
+    }
   } catch (error) {
     console.error('Failed to hydrate app data:', error);
   } finally {

@@ -177,16 +177,21 @@ export function AvatarPicker({ selected, onSelect }: { selected: string; onSelec
 
 // ─── Filter Panel ────────────────────────────────────────────────────────────
 export function FilterPanel() {
-  const { filterGender, filterAgeMin, filterAgeMax, filterCity, setFilterGender, setFilterAgeMin, setFilterAgeMax, setFilterCity } = useAppStore();
+  const {
+    searchQuery, sortBy, filterGender, filterAgeMin, filterAgeMax, filterCity,
+    setSearchQuery, setSortBy, setFilterGender, setFilterAgeMin, setFilterAgeMax, setFilterCity,
+  } = useAppStore();
 
   const clearFilters = () => {
+    setSearchQuery('');
+    setSortBy('new');
     setFilterGender('all');
     setFilterAgeMin(0);
     setFilterAgeMax(99);
     setFilterCity('');
   };
 
-  const hasActiveFilters = filterGender !== 'all' || filterAgeMin > 0 || filterAgeMax < 99 || filterCity !== '';
+  const hasActiveFilters = searchQuery !== '' || sortBy !== 'new' || filterGender !== 'all' || filterAgeMin > 0 || filterAgeMax < 99 || filterCity !== '';
 
   return (
     <motion.div
@@ -206,6 +211,39 @@ export function FilterPanel() {
               </Button>
             )}
           </div>
+
+          {/* Search */}
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Поиск по имени</Label>
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Введите имя..."
+              className="h-9 text-sm"
+            />
+          </div>
+
+          {/* Sort */}
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Сортировка</Label>
+            <div className="flex gap-1">
+              {([['new', 'Новые'], ['name', 'По имени'], ['popular', 'Популярные']] as const).map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setSortBy(value)}
+                  className={`flex-1 h-8 text-xs rounded-lg font-medium transition-all ${
+                    sortBy === value
+                      ? 'bg-rose-500 text-white shadow-sm'
+                      : 'bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/40'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Пол</Label>

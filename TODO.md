@@ -66,17 +66,20 @@
 - [ ] **Add geolocation** — Settings has "show distance" toggle but User model has no coordinates. Add lat/lng fields and distance calculation
 - [ ] **Добавить геолокацию** — В настройках есть переключатель "показать расстояние", но у User нет координат. Добавить поля lat/lng и расчёт расстояния
 
-- [ ] **Add block/report** — No way to block or report abusive users. Add DB models and UI
-- [ ] **Добавить блокировку/жалобы** — Нет способа заблокировать или пожаловаться на пользователя. Добавить модели БД и UI
+- [x] **Add block/report** — Block and report users from profile detail modal; `Block` and `Report` DB models with API routes; blocked users filtered from browse
+- [x] **Добавить блокировку/жалобы** — Блокировка и жалобы из модального окна профиля; модели БД `Block` и `Report` с API-маршрутами; заблокированные фильтруются
 
 - [ ] **Add profile verification** — No verification badge or process. Add email/photo verification flow
 - [ ] **Добавить верификацию профиля** — Нет бейджа верификации или процесса. Добавить верификацию по email/фото
 
-- [ ] **Add search by name** — No search functionality in browse view
-- [ ] **Добавить поиск по имени** — Нет функционала поиска в режиме просмотра анкет
+- [x] **Add search by name** — Search input in filter panel filters profiles by name in real-time
+- [x] **Добавить поиск по имени** — Поле поиска в панели фильтров фильтрует анкеты по имени в реальном времени
 
-- [ ] **Add sorting** — No sort options (popularity, distance, new) for browse view
-- [ ] **Добавить сортировку** — Нет опций сортировки (популярность, расстояние, новизна) в режиме просмотра
+- [x] **Add sorting** — Sort profiles by new, name, or popularity in browse view
+- [x] **Добавить сортировку** — Сортировка анкет по новизне, имени или популярности
+
+- [x] **Hydrate client state from DB** — `hydrateAppData()` fetches profiles, matches, likes, and blocked users on login; blocked users are filtered from browse results
+- [x] **Восстанавливать клиентское состояние из БД** — `hydrateAppData()` загружает анкеты, мэтчи, лайки и заблокированных пользователей при входе
 
 - [ ] **Add super-like API** — Super likes use same `/api/like` endpoint. Add separate endpoint with daily limit tracking
 - [ ] **Добавить API для супер-лайков** — Супер-лайки используют тот же эндпоинт `/api/like`. Добавить отдельный эндпоинт с дневным лимитом

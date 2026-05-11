@@ -76,11 +76,16 @@ interface AppState {
   likedYouCount: number;
 
   // Search filters
+  searchQuery: string;
+  sortBy: 'new' | 'name' | 'popular';
   filterGender: 'all' | 'male' | 'female';
   filterAgeMin: number;
   filterAgeMax: number;
   filterCity: string;
   showFilters: boolean;
+
+  // Blocked users
+  blockedUserIds: string[];
 
   // Online & notifications
   onlineUserIds: string[];
@@ -128,11 +133,17 @@ interface AppState {
   setChatListMatchId: (matchId: string | null) => void;
 
   // Filter actions
+  setSearchQuery: (query: string) => void;
+  setSortBy: (sort: 'new' | 'name' | 'popular') => void;
   setFilterGender: (gender: 'all' | 'male' | 'female') => void;
   setFilterAgeMin: (age: number) => void;
   setFilterAgeMax: (age: number) => void;
   setFilterCity: (city: string) => void;
   setShowFilters: (show: boolean) => void;
+
+  // Blocked users
+  blockUser: (userId: string) => void;
+  unblockUser: (userId: string) => void;
 
   // Online & notifications
   setOnlineUserIds: (ids: string[]) => void;
@@ -180,11 +191,15 @@ export const useAppStore = create<AppState>((set, get) => ({
   chatListMatchId: null,
   likedYouCount: 0,
 
+  searchQuery: '',
+  sortBy: 'new',
   filterGender: 'all',
   filterAgeMin: 0,
   filterAgeMax: 99,
   filterCity: '',
   showFilters: false,
+
+  blockedUserIds: [],
 
   onlineUserIds: [],
   unreadMatchIds: [],
@@ -239,11 +254,14 @@ export const useAppStore = create<AppState>((set, get) => ({
     superLikedUserIds: [],
     likedYouCount: 0,
     likedYouProfiles: [],
+    searchQuery: '',
+    sortBy: 'new',
     filterGender: 'all',
     filterAgeMin: 0,
     filterAgeMax: 99,
     filterCity: '',
     showFilters: false,
+    blockedUserIds: [],
   }),
 
   clearAllData: () => set({
@@ -262,11 +280,14 @@ export const useAppStore = create<AppState>((set, get) => ({
     superLikedUserIds: [],
     likedYouCount: 0,
     likedYouProfiles: [],
+    searchQuery: '',
+    sortBy: 'new',
     filterGender: 'all',
     filterAgeMin: 0,
     filterAgeMax: 99,
     filterCity: '',
     showFilters: false,
+    blockedUserIds: [],
     moments: [],
     currentMomentIndex: 0,
     notificationEnabled: true,
@@ -294,11 +315,21 @@ export const useAppStore = create<AppState>((set, get) => ({
   setIsLoading: (loading) => set({ isLoading: loading }),
   setChatListMatchId: (matchId) => set({ chatListMatchId: matchId }),
 
+  setSearchQuery: (query) => set({ searchQuery: query }),
+  setSortBy: (sort) => set({ sortBy: sort }),
   setFilterGender: (gender) => set({ filterGender: gender }),
   setFilterAgeMin: (age) => set({ filterAgeMin: age }),
   setFilterAgeMax: (age) => set({ filterAgeMax: age }),
   setFilterCity: (city) => set({ filterCity: city }),
   setShowFilters: (show) => set({ showFilters: show }),
+
+  blockUser: (userId) => set((state) => ({
+    blockedUserIds: [...state.blockedUserIds, userId],
+    profiles: state.profiles.filter((p) => p.id !== userId),
+  })),
+  unblockUser: (userId) => set((state) => ({
+    blockedUserIds: state.blockedUserIds.filter((id) => id !== userId),
+  })),
 
   setOnlineUserIds: (ids) => set({ onlineUserIds: ids }),
   setUnreadMatchIds: (ids) => set({ unreadMatchIds: ids }),

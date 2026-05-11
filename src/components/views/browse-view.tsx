@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import {
-  Heart, X, Star, MapPin, SlidersHorizontal, Undo2,
+  Heart, X, Star, MapPin, SlidersHorizontal, Undo2, ShieldAlert, Flag,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -29,12 +29,16 @@ function ProfileDetailModal({
   onLike,
   onDislike,
   onSuperLike,
+  onBlock,
+  onReport,
 }: {
   profile: User;
   onClose: () => void;
   onLike: () => void;
   onDislike: () => void;
   onSuperLike: () => void;
+  onBlock: () => void;
+  onReport: () => void;
 }) {
   return (
     <motion.div
@@ -126,6 +130,26 @@ function ProfileDetailModal({
             </Button>
           </motion.div>
         </div>
+
+        {/* Block / Report */}
+        <div className="p-4 border-t border-rose-100 dark:border-rose-900/50 flex items-center justify-center gap-4">
+          <button
+            type="button"
+            onClick={() => { onBlock(); onClose(); }}
+            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-red-500 transition-colors"
+          >
+            <ShieldAlert className="w-3.5 h-3.5" />
+            Заблокировать
+          </button>
+          <button
+            type="button"
+            onClick={() => { onReport(); onClose(); }}
+            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-amber-500 transition-colors"
+          >
+            <Flag className="w-3.5 h-3.5" />
+            Пожаловаться
+          </button>
+        </div>
       </motion.div>
     </motion.div>
   );
@@ -138,6 +162,7 @@ export function BrowseView() {
     removeProfile, addLikedUserId, addDislikedUserId, addSuperLikedUserId,
     setShowMatchAnimation, setMatchAnimationPartner, showFilters, setShowFilters,
     filterGender, filterAgeMin, filterAgeMax, filterCity, setProfiles,
+    searchQuery, sortBy, blockedUserIds,
   } = useAppStore();
   const [swipeDir, setSwipeDir] = useState<'left' | 'right' | null>(null);
   const [showHeartBurst, setShowHeartBurst] = useState(false);
@@ -150,20 +175,44 @@ export function BrowseView() {
   const dragStartPos = useRef<{ x: number; y: number } | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
-  // Filter profiles
+  // Build a popularity map from likedYouProfiles (users who liked you are "popular")
+  const likedYouProfiles = useAppStore((s) => s.likedYouProfiles);
+  const popularityMap = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const p of likedYouProfiles) {
+      map[p.id] = (map[p.id] || 0) + 1;
+    }
+    return map;
+  }, [likedYouProfiles]);
+
+  // Filter and sort profiles
   const filteredProfiles = useMemo(() => {
-    return profiles.filter((p) => {
+    let result = profiles.filter((p) => {
+      if (blockedUserIds.includes(p.id)) return false;
       if (filterGender !== 'all' && p.gender !== filterGender) return false;
       if (filterAgeMin > 0 && p.age < filterAgeMin) return false;
       if (filterAgeMax < 99 && p.age > filterAgeMax) return false;
       if (filterCity && !p.city.toLowerCase().includes(filterCity.toLowerCase())) return false;
+      if (searchQuery && !p.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
       return true;
     });
-  }, [profiles, filterGender, filterAgeMin, filterAgeMax, filterCity]);
+
+    // Sort
+    if (sortBy === 'name') {
+      result.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (sortBy === 'popular') {
+      result.sort((a, b) => (popularityMap[b.id] || 0) - (popularityMap[a.id] || 0));
+    } else {
+      // 'new' — sort by createdAt descending
+      result.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+    }
+
+    return result;
+  }, [profiles, filterGender, filterAgeMin, filterAgeMax, filterCity, searchQuery, sortBy, blockedUserIds, popularityMap]);
 
   const currentProfile = filteredProfiles.length > 0 ? filteredProfiles[0] : null;
 
-  const activeFilterCount = (filterGender !== 'all' ? 1 : 0) + (filterAgeMin > 0 ? 1 : 0) + (filterAgeMax < 99 ? 1 : 0) + (filterCity ? 1 : 0);
+  const activeFilterCount = (searchQuery ? 1 : 0) + (filterGender !== 'all' ? 1 : 0) + (filterAgeMin > 0 ? 1 : 0) + (filterAgeMax < 99 ? 1 : 0) + (filterCity ? 1 : 0);
 
   const canUndo = (lastSwipedProfile !== null && lastSwipeAction !== null);
 
@@ -467,6 +516,39 @@ export function BrowseView() {
             onLike={() => handleLike(detailProfile)}
             onDislike={() => handleDislike(detailProfile)}
             onSuperLike={() => handleSuperLike(detailProfile)}
+            onBlock={async () => {
+              const state = useAppStore.getState();
+              if (!state.currentUser) return;
+              try {
+                await fetch('/api/block', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    blockerId: state.currentUser.id,
+                    blockedId: detailProfile.id,
+                    reason: 'Blocked from profile detail',
+                  }),
+                });
+              } catch { /* silent fail — user is still blocked client-side */ }
+              state.blockUser(detailProfile.id);
+              toast.success(`${detailProfile.name} заблокирован(а)`, { description: 'Вы больше не увидите этого пользователя' });
+            }}
+            onReport={async () => {
+              const state = useAppStore.getState();
+              if (!state.currentUser) return;
+              try {
+                await fetch('/api/report', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    reporterId: state.currentUser.id,
+                    reportedId: detailProfile.id,
+                    reason: 'Inappropriate behavior',
+                  }),
+                });
+              } catch { /* silent fail */ }
+              toast.info(`Жалоба на ${detailProfile.name} отправлена`, { description: 'Мы рассмотрим вашу жалобу' });
+            }}
           />
         )}
       </AnimatePresence>
