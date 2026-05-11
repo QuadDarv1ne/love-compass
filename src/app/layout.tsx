@@ -15,13 +15,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Love Compas — Найди свою вторую половинку",
+  title: "Love Compass — Найди свою вторую половинку",
   description: "Международный сайт знакомств. Компас, который ведёт к любви.",
   icons: {
     icon: "/logo.png",
   },
   openGraph: {
-    title: "Love Compas — Международный сайт знакомств",
+    title: "Love Compass — Международный сайт знакомств",
     description: "Компас, который ведёт к любви. Знакомься с людьми со всего мира!",
     type: "website",
   },

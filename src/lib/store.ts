@@ -109,6 +109,7 @@ interface AppState {
   setView: (view: ViewType) => void;
   login: (user: User) => void;
   logout: () => void;
+  clearAllData: () => void;
   setCurrentUser: (user: User | null) => void;
   setProfiles: (profiles: User[]) => void;
   setMatches: (matches: MatchWithUsers[]) => void;
@@ -243,6 +244,36 @@ export const useAppStore = create<AppState>((set, get) => ({
     filterAgeMax: 99,
     filterCity: '',
     showFilters: false,
+  }),
+
+  clearAllData: () => set({
+    currentUser: null,
+    currentView: 'landing',
+    previousView: null,
+    profiles: [],
+    matches: [],
+    messages: [],
+    selectedMatch: null,
+    selectedProfile: null,
+    likedUserIds: [],
+    onlineUserIds: [],
+    unreadMatchIds: [],
+    dislikedUserIds: [],
+    superLikedUserIds: [],
+    likedYouCount: 0,
+    likedYouProfiles: [],
+    filterGender: 'all',
+    filterAgeMin: 0,
+    filterAgeMax: 99,
+    filterCity: '',
+    showFilters: false,
+    moments: [],
+    currentMomentIndex: 0,
+    notificationEnabled: true,
+    profileVisible: true,
+    showOnlineStatus: true,
+    language: 'ru',
+    unlockedAchievements: [],
   }),
 
   setCurrentUser: (user) => set({ currentUser: user }),

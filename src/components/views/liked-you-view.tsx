@@ -108,7 +108,7 @@ export function LikedYouView() {
             >
               <Card className="overflow-hidden border-rose-100 dark:border-rose-900/50 shadow-md hover:shadow-xl transition-shadow rounded-2xl bg-card">
                 <div className="relative aspect-square">
-                  <Image src={profile.avatar || '/avatar-woman1.jpg'} alt={profile.name} fill className="object-cover" />
+                  <Image src={profile.avatar || 'https://api.dicebear.com/9.x/notionists/svg?seed=Default'} alt={profile.name} fill className="object-cover" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                   <OnlineIndicator userId={profile.id} size="md" />
                   {/* Heart icon */}

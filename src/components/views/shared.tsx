@@ -23,12 +23,12 @@ import { useAppStore } from '@/lib/store';
 
 // ─── Avatar Options ──────────────────────────────────────────────────────────
 export const ALL_AVATARS = [
-  '/avatar-woman1.jpg', '/avatar-woman2.jpg', '/avatar-woman3.jpg', '/avatar-woman4.jpg',
-  '/avatar-woman5.jpg', '/avatar-woman6.jpg', '/avatar-woman7.jpg', '/avatar-woman8.jpg',
-  '/avatar-woman9.jpg', '/avatar-woman10.jpg',
-  '/avatar-man1.jpg', '/avatar-man2.jpg', '/avatar-man3.jpg', '/avatar-man4.jpg',
-  '/avatar-man5.jpg', '/avatar-man6.jpg', '/avatar-man7.jpg', '/avatar-man8.jpg',
-  '/avatar-man9.jpg', '/avatar-man10.jpg',
+  'https://api.dicebear.com/9.x/notionists/svg?seed=Anastasia', 'https://api.dicebear.com/9.x/notionists/svg?seed=Viktoria', 'https://api.dicebear.com/9.x/notionists/svg?seed=Ekaterina', 'https://api.dicebear.com/9.x/notionists/svg?seed=Maria',
+  'https://api.dicebear.com/9.x/notionists/svg?seed=Olga', 'https://api.dicebear.com/9.x/notionists/svg?seed=Sofia', 'https://api.dicebear.com/9.x/notionists/svg?seed=Natalia', 'https://api.dicebear.com/9.x/notionists/svg?seed=Alina',
+  'https://api.dicebear.com/9.x/notionists/svg?seed=Diana', 'https://api.dicebear.com/9.x/notionists/svg?seed=Polina',
+  'https://api.dicebear.com/9.x/notionists/svg?seed=Alexander', 'https://api.dicebear.com/9.x/notionists/svg?seed=Dmitry', 'https://api.dicebear.com/9.x/notionists/svg?seed=Maxim', 'https://api.dicebear.com/9.x/notionists/svg?seed=Artem',
+  'https://api.dicebear.com/9.x/notionists/svg?seed=Ivan', 'https://api.dicebear.com/9.x/notionists/svg?seed=Nikita', 'https://api.dicebear.com/9.x/notionists/svg?seed=Andrey', 'https://api.dicebear.com/9.x/notionists/svg?seed=Sergey',
+  'https://api.dicebear.com/9.x/notionists/svg?seed=Kirill', 'https://api.dicebear.com/9.x/notionists/svg?seed=Roman',
 ];
 
 // ─── View Transition Variants ────────────────────────────────────────────────

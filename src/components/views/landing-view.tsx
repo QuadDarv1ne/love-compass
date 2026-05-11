@@ -48,26 +48,26 @@ const FEATURES = [
 
 // ─── Demo users ──────────────────────────────────────────────────────────────
 const DEMO_USERS = [
-  { name: 'Анна', avatar: '/avatar-woman1.jpg' },
-  { name: 'Дмитрий', avatar: '/avatar-man1.jpg' },
-  { name: 'Екатерина', avatar: '/avatar-woman2.jpg' },
-  { name: 'Максим', avatar: '/avatar-man2.jpg' },
-  { name: 'Ольга', avatar: '/avatar-woman3.jpg' },
-  { name: 'Артём', avatar: '/avatar-man3.jpg' },
-  { name: 'Мария', avatar: '/avatar-woman4.jpg' },
-  { name: 'Никита', avatar: '/avatar-man4.jpg' },
-  { name: 'Наташа', avatar: '/avatar-woman5.jpg' },
-  { name: 'Минджун', avatar: '/avatar-man5.jpg' },
-  { name: 'София', avatar: '/avatar-woman6.jpg' },
-  { name: 'Радж', avatar: '/avatar-man6.jpg' },
-  { name: 'Амара', avatar: '/avatar-woman7.jpg' },
-  { name: 'Эйдан', avatar: '/avatar-man7.jpg' },
-  { name: 'Сакура', avatar: '/avatar-woman8.jpg' },
-  { name: 'Кваме', avatar: '/avatar-man8.jpg' },
-  { name: 'Камилла', avatar: '/avatar-woman9.jpg' },
-  { name: 'Эрик', avatar: '/avatar-man9.jpg' },
-  { name: 'Лейла', avatar: '/avatar-woman10.jpg' },
-  { name: 'Лукас', avatar: '/avatar-man10.jpg' },
+  { name: 'Анна', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Anastasia' },
+  { name: 'Дмитрий', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Dmitry' },
+  { name: 'Екатерина', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Ekaterina' },
+  { name: 'Максим', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Maxim' },
+  { name: 'Ольга', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Olga' },
+  { name: 'Артём', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Artem' },
+  { name: 'Мария', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Maria' },
+  { name: 'Никита', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Nikita' },
+  { name: 'Наташа', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Natalia' },
+  { name: 'Минджун', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Ivan' },
+  { name: 'София', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Sofia' },
+  { name: 'Радж', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Andrey' },
+  { name: 'Амара', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Alina' },
+  { name: 'Эйдан', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Sergey' },
+  { name: 'Сакура', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Diana' },
+  { name: 'Кваме', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Kirill' },
+  { name: 'Камилла', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Polina' },
+  { name: 'Эрик', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Roman' },
+  { name: 'Лейла', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Viktoria' },
+  { name: 'Лукас', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Alexander' },
 ];
 
 export function LandingView() {
@@ -83,7 +83,7 @@ export function LandingView() {
   const [regBio, setRegBio] = useState('');
   const [regInterests, setRegInterests] = useState('');
   const [regLookingFor, setRegLookingFor] = useState('all');
-  const [regAvatar, setRegAvatar] = useState('/avatar-woman1.jpg');
+  const [regAvatar, setRegAvatar] = useState('https://api.dicebear.com/9.x/notionists/svg?seed=Anastasia');
 
   const quickLogin = async (avatarIndex: number) => {
     setLoading(true);
@@ -168,7 +168,7 @@ export function LandingView() {
         >
           <Compass className="w-16 h-16 md:w-20 md:h-20 text-rose-500 mx-auto" strokeWidth={1.5} />
         </motion.div>
-        <h1 className="text-5xl md:text-7xl font-bold gradient-text mb-4">Love Compas</h1>
+        <h1 className="text-5xl md:text-7xl font-bold gradient-text mb-4">Love Compass</h1>
         <p className="text-lg md:text-xl text-rose-400 font-medium mb-2">Твой компас к любви</p>
         <p className="text-sm md:text-base text-muted-foreground max-w-md mx-auto">
           Знакомься с людьми со всего мира. Сотни тысяч уже нашли друг друга!
@@ -313,7 +313,7 @@ export function LandingView() {
         transition={{ duration: 0.7, delay: 0.2 }}
         className="w-full max-w-3xl z-10 mt-16 mb-12"
       >
-        <h2 className="text-2xl md:text-3xl font-bold text-center gradient-text mb-8">Почему Love Compas?</h2>
+        <h2 className="text-2xl md:text-3xl font-bold text-center gradient-text mb-8">Почему Love Compass?</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {FEATURES.map((feature, idx) => (
             <motion.div

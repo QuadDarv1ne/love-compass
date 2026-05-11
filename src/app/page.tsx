@@ -59,7 +59,7 @@ export default function HomePage() {
             <div className="flex items-center justify-between p-4 border-b border-rose-100 dark:border-rose-900/50">
               <div className="flex items-center gap-2">
                 <Compass className="w-6 h-6 text-rose-500" strokeWidth={1.5} />
-                <span className="text-lg font-bold gradient-text">Love Compas</span>
+                <span className="text-lg font-bold gradient-text">Love Compass</span>
               </div>
               <DarkModeToggle />
             </div>

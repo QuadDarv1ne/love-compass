@@ -94,7 +94,7 @@ export function MatchesView() {
                 <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => openChat(match)} className="cursor-pointer">
                   <Card className="overflow-hidden border-rose-100 dark:border-rose-900/50 shadow-md hover:shadow-xl transition-shadow rounded-2xl bg-card">
                     <div className="relative aspect-square">
-                      <Image src={partner.avatar || '/avatar-woman1.jpg'} alt={partner.name} fill className="object-cover" />
+                      <Image src={partner.avatar || 'https://api.dicebear.com/9.x/notionists/svg?seed=Default'} alt={partner.name} fill className="object-cover" />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                       {/* Online indicator */}
                       <OnlineIndicator userId={partner.id} size="md" />
@@ -176,7 +176,7 @@ export function ChatListView() {
           >
             <div className="relative flex-shrink-0">
               <Avatar className="h-12 w-12 border-2 border-rose-200 dark:border-rose-800">
-                <AvatarImage src={partner.avatar || '/avatar-woman1.jpg'} alt={partner.name} />
+                <AvatarImage src={partner.avatar || 'https://api.dicebear.com/9.x/notionists/svg?seed=Default'} alt={partner.name} />
                 <AvatarFallback className="bg-rose-100 text-rose-600 dark:bg-rose-900 dark:text-rose-300">{partner.name[0]}</AvatarFallback>
               </Avatar>
               <OnlineIndicator userId={partner.id} size="sm" />

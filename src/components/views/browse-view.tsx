@@ -54,7 +54,7 @@ function ProfileDetailModal({
 
         {/* Photo */}
         <div className="relative w-full aspect-[4/3] overflow-hidden rounded-t-3xl md:rounded-t-3xl">
-          <Image src={profile.avatar || '/avatar-woman1.jpg'} alt={profile.name} fill className="object-cover" priority />
+          <Image src={profile.avatar || 'https://api.dicebear.com/9.x/notionists/svg?seed=Default'} alt={profile.name} fill className="object-cover" priority />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
           <div className="absolute bottom-4 left-4">
             <h2 className="text-2xl md:text-3xl font-bold text-white">{profile.name}, {profile.age}</h2>
@@ -226,18 +226,21 @@ export function BrowseView() {
 
   const handleUndo = useCallback(() => {
     if (!lastSwipedProfile || !lastSwipeAction) return;
-    // Add profile back to front of profiles array
-    setProfiles([lastSwipedProfile, ...profiles]);
+    // Add profile back only if not already present (avoids duplicates with filters)
+    const alreadyExists = profiles.some((p) => p.id === lastSwipedProfile.id);
+    if (!alreadyExists) {
+      setProfiles([lastSwipedProfile, ...profiles]);
+    }
     // Remove from the appropriate list
     if (lastSwipeAction === 'dislike') {
-      const newIds = dislikedUserIds.filter(id => id !== lastSwipedProfile.id);
+      const newIds = dislikedUserIds.filter((id) => id !== lastSwipedProfile.id);
       useAppStore.setState({ dislikedUserIds: newIds });
     } else if (lastSwipeAction === 'like') {
-      const newIds = likedUserIds.filter(id => id !== lastSwipedProfile.id);
+      const newIds = likedUserIds.filter((id) => id !== lastSwipedProfile.id);
       useAppStore.setState({ likedUserIds: newIds });
     } else if (lastSwipeAction === 'superLike') {
-      const newLikeIds = likedUserIds.filter(id => id !== lastSwipedProfile.id);
-      const newSuperIds = superLikedUserIds.filter(id => id !== lastSwipedProfile.id);
+      const newLikeIds = likedUserIds.filter((id) => id !== lastSwipedProfile.id);
+      const newSuperIds = superLikedUserIds.filter((id) => id !== lastSwipedProfile.id);
       useAppStore.setState({ likedUserIds: newLikeIds, superLikedUserIds: newSuperIds });
     }
     setLastSwipedProfile(null);
@@ -382,7 +385,7 @@ export function BrowseView() {
         >
           <Card className="overflow-hidden border-0 shadow-2xl rounded-3xl bg-card">
             <div className="relative aspect-[3/4]">
-              <Image src={currentProfile.avatar || '/avatar-woman1.jpg'} alt={currentProfile.name} fill className="object-cover" priority />
+              <Image src={currentProfile.avatar || 'https://api.dicebear.com/9.x/notionists/svg?seed=Default'} alt={currentProfile.name} fill className="object-cover" priority />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
               {/* Swipe labels during drag */}
               {dragX > 60 && (

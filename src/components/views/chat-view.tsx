@@ -241,7 +241,7 @@ export function ChatView() {
         </Button>
         <div className="relative">
           <Avatar className="h-10 w-10 border-2 border-rose-200 dark:border-rose-800">
-            <AvatarImage src={partner.avatar || '/avatar-woman1.jpg'} alt={partner.name} />
+            <AvatarImage src={partner.avatar || 'https://api.dicebear.com/9.x/notionists/svg?seed=Default'} alt={partner.name} />
             <AvatarFallback className="bg-rose-100 text-rose-600 dark:bg-rose-900 dark:text-rose-300">{partner.name[0]}</AvatarFallback>
           </Avatar>
           <OnlineIndicator userId={partner.id} size="sm" />
@@ -296,7 +296,7 @@ export function ChatView() {
                   {!isMine && (
                     <div className="flex-shrink-0">
                       <Avatar className="h-7 w-7 border border-rose-200 dark:border-rose-800">
-                        <AvatarImage src={partner.avatar || '/avatar-woman1.jpg'} alt={partner.name} />
+                        <AvatarImage src={partner.avatar || 'https://api.dicebear.com/9.x/notionists/svg?seed=Default'} alt={partner.name} />
                         <AvatarFallback className="bg-rose-100 text-rose-600 dark:bg-rose-900 dark:text-rose-300 text-[10px]">{partner.name[0]}</AvatarFallback>
                       </Avatar>
                     </div>

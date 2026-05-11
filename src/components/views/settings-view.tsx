@@ -93,6 +93,7 @@ export function SettingsView() {
   const {
     currentUser,
     logout,
+    clearAllData,
     notificationEnabled,
     setNotificationEnabled,
     profileVisible,
@@ -395,11 +396,13 @@ export function SettingsView() {
                 <Button
                   variant="outline"
                   className="w-full justify-start gap-2 border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl"
-                  onClick={() =>
+                  onClick={() => {
+                    clearAllData();
+                    try { localStorage.clear(); } catch { /* ignore */ }
                     toast.success('Кэш очищен', {
                       description: 'Данные приложения успешно удалены',
-                    })
-                  }
+                    });
+                  }}
                 >
                   <Trash2 className="w-4 h-4" />
                   Очистить кэш
@@ -457,7 +460,7 @@ export function SettingsView() {
                 <div className="inline-flex items-center gap-2 mb-1">
                   <Sparkles className="w-5 h-5 text-rose-500" />
                   <span className="text-lg font-bold gradient-text">
-                    Love Compas
+                    Love Compass
                   </span>
                 </div>
                 <Badge
@@ -467,7 +470,7 @@ export function SettingsView() {
                   версия 2.0.0
                 </Badge>
                 <p className="text-xs text-muted-foreground mt-2 max-w-[260px] mx-auto leading-relaxed">
-                  Love Compas — ваш надёжный путеводитель в мире знакомств. Мы помогаем
+                  Love Compass — ваш надёжный путеводитель в мире знакомств. Мы помогаем
                   находить людей, с которыми хочется общаться.
                 </p>
               </div>

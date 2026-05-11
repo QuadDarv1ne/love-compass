@@ -79,13 +79,13 @@ export function MatchAnimationOverlay() {
           className="flex justify-center items-center gap-4 mb-8"
         >
           <div className="relative w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden border-4 border-white shadow-lg">
-            <Image src={currentUser.avatar || '/avatar-woman1.jpg'} alt={currentUser.name} fill className="object-cover" />
+            <Image src={currentUser.avatar || 'https://api.dicebear.com/9.x/notionists/svg?seed=Default'} alt={currentUser.name} fill className="object-cover" />
           </div>
           <div className="match-pulse">
             <Heart className="w-10 h-10 fill-white text-white" />
           </div>
           <div className="relative w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden border-4 border-white shadow-lg">
-            <Image src={matchAnimationPartner.avatar || '/avatar-man1.jpg'} alt={matchAnimationPartner.name} fill className="object-cover" />
+            <Image src={matchAnimationPartner.avatar || 'https://api.dicebear.com/9.x/notionists/svg?seed=Default'} alt={matchAnimationPartner.name} fill className="object-cover" />
           </div>
         </motion.div>
 
