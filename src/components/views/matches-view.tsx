@@ -121,20 +121,6 @@ export function MatchesView() {
 // ─── Chat List (for desktop sidebar) ────────────────────────────────────────
 export function ChatListView() {
   const { matches, currentUser, onlineUserIds, setSelectedMatch, chatListMatchId, setChatListMatchId } = useAppStore();
-  const [localLoading, setLocalLoading] = useState(true);
-
-  useEffect(() => {
-    const loadMatches = async () => {
-      if (!currentUser) return;
-      try {
-        const res = await fetch(`/api/matches?userId=${currentUser.id}`);
-        const data = await res.json();
-        useAppStore.getState().setMatches(data);
-      } catch { console.error('Failed to load matches'); }
-      setLocalLoading(false);
-    };
-    loadMatches();
-  }, [currentUser]);
 
   const getPartner = (match: MatchWithUsers): User => {
     return match.user1.id === currentUser?.id ? match.user2 : match.user1;
@@ -153,8 +139,6 @@ export function ChatListView() {
     setSelectedMatch(match);
     setChatListMatchId(match.id);
   };
-
-  if (localLoading) return null;
 
   if (matches.length === 0) {
     return <div className="p-4 text-center text-muted-foreground text-sm">Нет мэтчей</div>;

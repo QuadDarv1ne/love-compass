@@ -39,12 +39,17 @@ const AUTO_REPLIES = [
 const POPULAR_EMOJIS = [
   '❤️', '🔥', '😘', '😂', '👍', '😍',
   '🥰', '✨', '😊', '🤗', '💋', '💕',
-  '😘', '🌟', '😎', '🤩', ' Cupid 💘', '😇',
-  ' 🎉', '💯', '🙈', '🤭', '😜', '🥂',
+  '🌟', '😎', '🤩', '💘', '😇',
+  '🎉', '💯', '🙈', '🤭', '😜', '🥂',
 ];
 
-// Clean up emojis (some have leading spaces due to editing)
-const EMOJI_LIST = POPULAR_EMOJIS.map(e => e.trim()).filter(e => e.length > 0 && e.length <= 4);
+// ─── Auto-Reply Constants ────────────────────────────────────────────────────
+const AUTO_REPLY_MIN_DELAY = 1500;
+const AUTO_REPLY_MAX_DELAY = 2500;
+const TYPING_MIN_DELAY = 800;
+const TYPING_MAX_DELAY = 700;
+
+const EMOJI_LIST = POPULAR_EMOJIS;
 
 // ─── Emoji Picker ────────────────────────────────────────────────────────────
 function EmojiPicker({ onSelect }: { onSelect: (emoji: string) => void }) {
@@ -134,9 +139,9 @@ export function ChatView() {
     const lastMsg = messages[messages.length - 1];
     // Only simulate reply if the last message is from current user and there's an odd number of messages
     if (lastMsg.senderId === currentUser.id) {
-      const replyDelay = 1500 + Math.random() * 2500; // 1.5-4 seconds
+      const replyDelay = AUTO_REPLY_MIN_DELAY + Math.random() * AUTO_REPLY_MAX_DELAY;
       // Show partner typing after 1 second
-      const typingDelay = 800 + Math.random() * 700;
+      const typingDelay = TYPING_MIN_DELAY + Math.random() * TYPING_MAX_DELAY;
       autoReplyTimerRef.current = setTimeout(() => {
         setPartnerTyping(true);
         // Send reply after typing

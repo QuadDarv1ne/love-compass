@@ -23,24 +23,12 @@ export function LikedYouView() {
         const res = await fetch(`/api/likes/received?userId=${currentUser.id}`);
         const data = await res.json();
         setLikedYouProfiles(data);
+        useAppStore.getState().setLikedYouCount(data.length);
       } catch { console.error('Failed to load liked you'); }
       setLoading(false);
     };
     loadLikedYou();
   }, [currentUser, setLikedYouProfiles]);
-
-  // Load likedYouCount on mount for badge
-  useEffect(() => {
-    const loadCount = async () => {
-      if (!currentUser) return;
-      try {
-        const res = await fetch(`/api/likes/received?userId=${currentUser.id}`);
-        const data = await res.json();
-        useAppStore.getState().setLikedYouCount(data.length);
-      } catch { /* silent */ }
-    };
-    loadCount();
-  }, [currentUser]);
 
   const handleLikeBack = async (profile: User) => {
     if (!currentUser) return;

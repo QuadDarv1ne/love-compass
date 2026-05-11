@@ -13,6 +13,15 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useAppStore, type User } from '@/lib/store';
 import { FilterPanel } from './shared';
 
+// ─── Swipe & Animation Constants ─────────────────────────────────────────────
+const SWIPE_THRESHOLD = 120;
+const SWIPE_LABEL_THRESHOLD = 60;
+const TAP_DISTANCE = 10;
+const ANIMATION_DURATION = 500;
+const SUPER_LIKE_DURATION = 800;
+const CARD_REMOVAL_DELAY = 400;
+const MATCH_ANIMATION_DELAY = 600;
+
 // ─── Profile Detail Modal ────────────────────────────────────────────────────
 function ProfileDetailModal({
   profile,
@@ -166,7 +175,7 @@ export function BrowseView() {
     setLastSwipedProfile(profile);
     setLastSwipeAction('like');
 
-    setTimeout(() => { setSwipeDir(null); setShowHeartBurst(false); }, 500);
+    setTimeout(() => { setSwipeDir(null); setShowHeartBurst(false); }, ANIMATION_DURATION);
 
     try {
       const res = await fetch('/api/like', {
@@ -181,10 +190,10 @@ export function BrowseView() {
           className: 'toast-match',
         });
         setMatchAnimationPartner(profile);
-        setTimeout(() => { setShowMatchAnimation(true); }, 600);
+        setTimeout(() => { setShowMatchAnimation(true); }, MATCH_ANIMATION_DELAY);
       }
     } catch { console.error('Like failed'); }
-    setTimeout(() => removeProfile(profile.id), 400);
+    setTimeout(() => removeProfile(profile.id), CARD_REMOVAL_DELAY);
   }, [currentUser, addLikedUserId, setMatchAnimationPartner, setShowMatchAnimation, removeProfile]);
 
   const handleDislike = useCallback((profile: User) => {
@@ -193,8 +202,8 @@ export function BrowseView() {
     addDislikedUserId(profile.id);
     setLastSwipedProfile(profile);
     setLastSwipeAction('dislike');
-    setTimeout(() => { setSwipeDir(null); setShowX(false); }, 500);
-    setTimeout(() => removeProfile(profile.id), 400);
+    setTimeout(() => { setSwipeDir(null); setShowX(false); }, ANIMATION_DURATION);
+    setTimeout(() => removeProfile(profile.id), CARD_REMOVAL_DELAY);
   }, [addDislikedUserId, removeProfile]);
 
   const handleSuperLike = useCallback(async (profile: User) => {
@@ -204,7 +213,7 @@ export function BrowseView() {
     addLikedUserId(profile.id);
     setLastSwipedProfile(profile);
     setLastSwipeAction('superLike');
-    setTimeout(() => { setShowSuperLike(false); }, 800);
+    setTimeout(() => { setShowSuperLike(false); }, SUPER_LIKE_DURATION);
     try {
       const res = await fetch('/api/like', {
         method: 'POST',
@@ -218,10 +227,10 @@ export function BrowseView() {
           className: 'toast-match',
         });
         setMatchAnimationPartner(profile);
-        setTimeout(() => { setShowMatchAnimation(true); }, 600);
+        setTimeout(() => { setShowMatchAnimation(true); }, MATCH_ANIMATION_DELAY);
       }
     } catch { console.error('Super Like failed'); }
-    setTimeout(() => removeProfile(profile.id), 400);
+    setTimeout(() => removeProfile(profile.id), CARD_REMOVAL_DELAY);
   }, [currentUser, addSuperLikedUserId, addLikedUserId, setMatchAnimationPartner, setShowMatchAnimation, removeProfile]);
 
   const handleUndo = useCallback(() => {
@@ -261,19 +270,18 @@ export function BrowseView() {
 
   const handleDragEnd = (profile: User, _: any, info: any) => {
     const dragDistance = Math.abs(info.offset.x);
-    const threshold = 120;
 
     // If drag distance is very small, treat as tap → open detail modal
-    if (dragDistance < 10) {
+    if (dragDistance < TAP_DISTANCE) {
       setDragX(0);
       dragStartPos.current = null;
       setDetailProfile(profile);
       return;
     }
 
-    if (info.offset.x > threshold) {
+    if (info.offset.x > SWIPE_THRESHOLD) {
       handleLike(profile);
-    } else if (info.offset.x < -threshold) {
+    } else if (info.offset.x < -SWIPE_THRESHOLD) {
       handleDislike(profile);
     }
     setDragX(0);
@@ -388,11 +396,11 @@ export function BrowseView() {
               <Image src={currentProfile.avatar || 'https://api.dicebear.com/9.x/notionists/svg?seed=Default'} alt={currentProfile.name} fill className="object-cover" priority />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
               {/* Swipe labels during drag */}
-              {dragX > 60 && (
-                <div className="absolute top-8 left-6 bg-green-500 text-white px-4 py-2 rounded-lg text-xl font-bold transform -rotate-12 border-3 border-green-400 shadow-lg" style={{ opacity: Math.min(dragX / 120, 1) }}>НРАВИТСЯ</div>
+              {dragX > SWIPE_LABEL_THRESHOLD && (
+                <div className="absolute top-8 left-6 bg-green-500 text-white px-4 py-2 rounded-lg text-xl font-bold transform -rotate-12 border-3 border-green-400 shadow-lg" style={{ opacity: Math.min(dragX / SWIPE_THRESHOLD, 1) }}>НРАВИТСЯ</div>
               )}
-              {dragX < -60 && (
-                <div className="absolute top-8 right-6 bg-red-500 text-white px-4 py-2 rounded-lg text-xl font-bold transform rotate-12 border-3 border-red-400 shadow-lg" style={{ opacity: Math.min(Math.abs(dragX) / 120, 1) }}>НЕТ</div>
+              {dragX < -SWIPE_LABEL_THRESHOLD && (
+                <div className="absolute top-8 right-6 bg-red-500 text-white px-4 py-2 rounded-lg text-xl font-bold transform rotate-12 border-3 border-red-400 shadow-lg" style={{ opacity: Math.min(Math.abs(dragX) / SWIPE_THRESHOLD, 1) }}>НЕТ</div>
               )}
               {swipeDir === 'right' && (
                 <div className="absolute top-8 left-6 bg-green-500 text-white px-4 py-2 rounded-lg text-xl font-bold transform -rotate-12 border-3 border-green-400 shadow-lg">НРАВИТСЯ</div>
