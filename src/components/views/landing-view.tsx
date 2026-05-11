@@ -1,0 +1,355 @@
+'use client';
+
+import React, { useState } from 'react';
+import Image from 'next/image';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Heart, ArrowRight, Compass, MessageCircle, Shield,
+} from 'lucide-react';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent } from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { useAppStore, type User } from '@/lib/store';
+import { FloatingHearts, AvatarPicker } from './shared';
+
+// ─── Features data ──────────────────────────────────────────────────────────
+const FEATURES = [
+  {
+    icon: Compass,
+    title: 'Умные рекомендации',
+    description: 'Наш алгоритм подбирает идеальных кандидатов',
+  },
+  {
+    icon: Heart,
+    title: 'Мэтчи',
+    description: 'Двусторонний лайк создает мэтч мгновенно',
+  },
+  {
+    icon: MessageCircle,
+    title: 'Чат',
+    description: 'Общайтесь в реальном времени с собеседником',
+  },
+  {
+    icon: Shield,
+    title: 'Безопасность',
+    description: 'Ваши данные под надёжной защитой',
+  },
+];
+
+// ─── Demo users ──────────────────────────────────────────────────────────────
+const DEMO_USERS = [
+  { name: 'Анна', avatar: '/avatar-woman1.jpg' },
+  { name: 'Дмитрий', avatar: '/avatar-man1.jpg' },
+  { name: 'Екатерина', avatar: '/avatar-woman2.jpg' },
+  { name: 'Максим', avatar: '/avatar-man2.jpg' },
+  { name: 'Ольга', avatar: '/avatar-woman3.jpg' },
+  { name: 'Артём', avatar: '/avatar-man3.jpg' },
+  { name: 'Мария', avatar: '/avatar-woman4.jpg' },
+  { name: 'Никита', avatar: '/avatar-man4.jpg' },
+  { name: 'Наташа', avatar: '/avatar-woman5.jpg' },
+  { name: 'Минджун', avatar: '/avatar-man5.jpg' },
+  { name: 'София', avatar: '/avatar-woman6.jpg' },
+  { name: 'Радж', avatar: '/avatar-man6.jpg' },
+  { name: 'Амара', avatar: '/avatar-woman7.jpg' },
+  { name: 'Эйдан', avatar: '/avatar-man7.jpg' },
+  { name: 'Сакура', avatar: '/avatar-woman8.jpg' },
+  { name: 'Кваме', avatar: '/avatar-man8.jpg' },
+  { name: 'Камилла', avatar: '/avatar-woman9.jpg' },
+  { name: 'Эрик', avatar: '/avatar-man9.jpg' },
+  { name: 'Лейла', avatar: '/avatar-woman10.jpg' },
+  { name: 'Лукас', avatar: '/avatar-man10.jpg' },
+];
+
+export function LandingView() {
+  const { login, setProfiles } = useAppStore();
+  const [isRegister, setIsRegister] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const [regName, setRegName] = useState('');
+  const [regEmail, setRegEmail] = useState('');
+  const [regAge, setRegAge] = useState('');
+  const [regGender, setRegGender] = useState('');
+  const [regCity, setRegCity] = useState('');
+  const [regBio, setRegBio] = useState('');
+  const [regInterests, setRegInterests] = useState('');
+  const [regLookingFor, setRegLookingFor] = useState('all');
+  const [regAvatar, setRegAvatar] = useState('/avatar-woman1.jpg');
+
+  const quickLogin = async (avatarIndex: number) => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/profiles');
+      const users: User[] = await res.json();
+      const selectedUser = users[avatarIndex];
+      if (selectedUser) {
+        const allProfiles = users.filter((u) => u.id !== selectedUser.id);
+        setProfiles(allProfiles);
+
+        // Randomly assign online users
+        const otherIds = allProfiles.map(p => p.id);
+        const shuffled = otherIds.sort(() => Math.random() - 0.5);
+        const onlineIds = shuffled.slice(0, Math.ceil(shuffled.length * 0.4));
+
+        useAppStore.getState().setOnlineUserIds(onlineIds);
+        login(selectedUser);
+      }
+    } catch {
+      console.error('Login failed');
+    }
+    setLoading(false);
+  };
+
+  const handleRegister = async () => {
+    if (!regName || !regEmail || !regAge || !regGender) return;
+    setLoading(true);
+    try {
+      const res = await fetch('/api/profiles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: regName,
+          email: regEmail,
+          age: regAge,
+          gender: regGender,
+          city: regCity,
+          bio: regBio,
+          interests: regInterests,
+          lookingFor: regLookingFor,
+          avatar: regAvatar,
+        }),
+      });
+      const user = await res.json();
+      if (user.id) {
+        toast.success('Добро пожаловать!', {
+          description: `Регистрация прошла успешно. Привет, ${user.name}!`,
+        });
+        const profilesRes = await fetch('/api/profiles');
+        const allUsers: User[] = await profilesRes.json();
+        const allProfiles = allUsers.filter((u) => u.id !== user.id);
+        setProfiles(allProfiles);
+
+        const otherIds = allProfiles.map(p => p.id);
+        const shuffled = otherIds.sort(() => Math.random() - 0.5);
+        const onlineIds = shuffled.slice(0, Math.ceil(shuffled.length * 0.4));
+        useAppStore.getState().setOnlineUserIds(onlineIds);
+
+        login(user);
+      }
+    } catch {
+      console.error('Registration failed');
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col items-center px-4 py-12 relative">
+      <FloatingHearts />
+
+      <motion.div
+        initial={{ opacity: 0, y: -30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+        className="text-center mb-8 md:mb-12 z-10"
+      >
+        <motion.div
+          animate={{ scale: [1, 1.1, 1] }}
+          transition={{ duration: 2, repeat: Infinity }}
+          className="inline-block mb-4"
+        >
+          <Compass className="w-16 h-16 md:w-20 md:h-20 text-rose-500 mx-auto" strokeWidth={1.5} />
+        </motion.div>
+        <h1 className="text-5xl md:text-7xl font-bold gradient-text mb-4">Love Compas</h1>
+        <p className="text-lg md:text-xl text-rose-400 font-medium mb-2">Твой компас к любви</p>
+        <p className="text-sm md:text-base text-muted-foreground max-w-md mx-auto">
+          Знакомься с людьми со всего мира. Сотни тысяч уже нашли друг друга!
+        </p>
+      </motion.div>
+
+      {/* Quick Login */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.3 }}
+        className="w-full max-w-2xl z-10 mb-8"
+      >
+        <Card className="border-rose-200 dark:border-rose-900/50 bg-card/80 backdrop-blur-sm shadow-xl">
+          <CardContent className="p-6">
+            <h3 className="text-center font-semibold text-rose-700 dark:text-rose-300 mb-1">Войти как пользователь (демо)</h3>
+            <p className="text-center text-xs text-muted-foreground mb-4">20 профилей из разных стран мира</p>
+            <div className="grid grid-cols-5 gap-2 md:gap-3">
+              {DEMO_USERS.map((user, idx) => (
+                <motion.button
+                  key={user.name}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.92 }}
+                  onClick={() => quickLogin(idx)}
+                  disabled={loading}
+                  className="flex flex-col items-center gap-1 p-1.5 md:p-2 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors"
+                >
+                  <div className="relative w-12 h-12 md:w-14 md:h-14 rounded-full overflow-hidden border-2 border-rose-200 dark:border-rose-800 shadow-sm">
+                    <Image src={user.avatar} alt={user.name} fill className="object-cover" />
+                  </div>
+                  <span className="text-[10px] md:text-xs font-medium text-rose-700 dark:text-rose-300 truncate w-full text-center">{user.name}</span>
+                </motion.button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Register Toggle */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5 }}
+        className="text-center z-10"
+      >
+        <Button variant="ghost" onClick={() => setIsRegister(!isRegister)} className="text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20">
+          {isRegister ? '← Назад' : 'Или зарегистрируйтесь'}
+          {!isRegister && <ArrowRight className="w-4 h-4 ml-1" />}
+        </Button>
+      </motion.div>
+
+      {/* Register Form */}
+      <AnimatePresence>
+        {isRegister && (
+          <motion.div
+            initial={{ opacity: 0, height: 0, y: 20 }}
+            animate={{ opacity: 1, height: 'auto', y: 0 }}
+            exit={{ opacity: 0, height: 0, y: 20 }}
+            transition={{ duration: 0.4 }}
+            className="w-full max-w-lg z-10 mt-4 overflow-hidden"
+          >
+            <Card className="border-rose-200 dark:border-rose-900/50 bg-card/90 backdrop-blur-sm shadow-xl">
+              <CardContent className="p-6">
+                <h3 className="text-xl font-bold text-center text-rose-700 dark:text-rose-300 mb-6">Регистрация</h3>
+
+                {/* Avatar Picker */}
+                <div className="mb-4">
+                  <AvatarPicker selected={regAvatar} onSelect={setRegAvatar} />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="reg-name">Имя *</Label>
+                    <Input id="reg-name" value={regName} onChange={(e) => setRegName(e.target.value)} placeholder="Ваше имя" className="border-rose-200 dark:border-rose-800 focus:border-rose-400" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="reg-email">Email *</Label>
+                    <Input id="reg-email" type="email" value={regEmail} onChange={(e) => setRegEmail(e.target.value)} placeholder="email@example.com" className="border-rose-200 dark:border-rose-800 focus:border-rose-400" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="reg-age">Возраст *</Label>
+                    <Input id="reg-age" type="number" min="18" max="99" value={regAge} onChange={(e) => setRegAge(e.target.value)} placeholder="25" className="border-rose-200 dark:border-rose-800 focus:border-rose-400" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="reg-gender">Пол *</Label>
+                    <Select value={regGender} onValueChange={setRegGender}>
+                      <SelectTrigger className="border-rose-200 dark:border-rose-800"><SelectValue placeholder="Выберите пол" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="male">Мужской</SelectItem>
+                        <SelectItem value="female">Женский</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="reg-city">Город</Label>
+                    <Input id="reg-city" value={regCity} onChange={(e) => setRegCity(e.target.value)} placeholder="Москва" className="border-rose-200 dark:border-rose-800 focus:border-rose-400" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="reg-looking">Ищу</Label>
+                    <Select value={regLookingFor} onValueChange={setRegLookingFor}>
+                      <SelectTrigger className="border-rose-200 dark:border-rose-800"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Всех</SelectItem>
+                        <SelectItem value="male">Мужчин</SelectItem>
+                        <SelectItem value="female">Женщин</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="reg-bio">О себе</Label>
+                    <Textarea id="reg-bio" value={regBio} onChange={(e) => setRegBio(e.target.value)} placeholder="Расскажите о себе..." className="border-rose-200 dark:border-rose-800 focus:border-rose-400 min-h-[80px]" />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="reg-interests">Интересы (через запятую)</Label>
+                    <Input id="reg-interests" value={regInterests} onChange={(e) => setRegInterests(e.target.value)} placeholder="музыка, путешествия, кино" className="border-rose-200 dark:border-rose-800 focus:border-rose-400" />
+                  </div>
+                </div>
+                <Button
+                  onClick={handleRegister}
+                  disabled={!regName || !regEmail || !regAge || !regGender || loading}
+                  className="w-full mt-6 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white py-5 text-lg font-semibold rounded-xl"
+                >
+                  {loading ? (
+                    <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
+                      <Heart className="w-5 h-5 fill-white" />
+                    </motion.div>
+                  ) : (
+                    <><Heart className="w-5 h-5 mr-2 fill-white" />Начать знакомства</>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Features Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: '-50px' }}
+        transition={{ duration: 0.7, delay: 0.2 }}
+        className="w-full max-w-3xl z-10 mt-16 mb-12"
+      >
+        <h2 className="text-2xl md:text-3xl font-bold text-center gradient-text mb-8">Почему Love Compas?</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {FEATURES.map((feature, idx) => (
+            <motion.div
+              key={feature.title}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.1 * idx }}
+            >
+              <Card className="border-rose-100 dark:border-rose-900/50 bg-card/80 backdrop-blur-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 rounded-2xl h-full">
+                <CardContent className="p-5 text-center flex flex-col items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-100 to-pink-100 dark:from-rose-900/40 dark:to-pink-900/40 flex items-center justify-center">
+                    <feature.icon className="w-6 h-6 text-rose-500" />
+                  </div>
+                  <h3 className="text-sm font-bold text-rose-700 dark:text-rose-300">{feature.title}</h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{feature.description}</p>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* Footer stats */}
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }} className="flex gap-8 mt-8 z-10 text-center">
+        {[
+          { num: '10K+', label: 'Пользователей' },
+          { num: '5K+', label: 'Мэтчей' },
+          { num: '98%', label: 'Довольны' },
+        ].map((stat) => (
+          <div key={stat.label}>
+            <div className="text-2xl font-bold gradient-text">{stat.num}</div>
+            <div className="text-xs text-muted-foreground">{stat.label}</div>
+          </div>
+        ))}
+      </motion.div>
+    </div>
+  );
+}
