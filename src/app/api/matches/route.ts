@@ -1,18 +1,17 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { requireAuth } from '@/lib/auth/guard';
 
 export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
 
-    if (!userId) {
-      return NextResponse.json({ error: 'Missing userId parameter' }, { status: 400 });
-    }
+    const { user } = auth;
 
     const matches = await db.match.findMany({
       where: {
-        OR: [{ user1Id: userId }, { user2Id: userId }],
+        OR: [{ user1Id: user.id }, { user2Id: user.id }],
       },
       include: {
         user1: true,

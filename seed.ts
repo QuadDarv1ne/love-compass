@@ -1,18 +1,28 @@
 import { PrismaClient } from '@prisma/client';
+import { hashPassword } from './src/lib/auth/password';
 
 const prisma = new PrismaClient();
+
+const DEFAULT_PASSWORD = 'Test1234!';
 
 async function main() {
   // Clear existing data
   await prisma.message.deleteMany();
   await prisma.match.deleteMany();
   await prisma.like.deleteMany();
+  await prisma.block.deleteMany();
+  await prisma.report.deleteMany();
+  await prisma.session.deleteMany();
+  await prisma.rateLimit.deleteMany();
   await prisma.user.deleteMany();
+
+  const passwordHash = await hashPassword(DEFAULT_PASSWORD);
 
   const users = [
     // ─── Русские ────────────────────────────────────────────
     {
       email: "anna@example.com",
+      passwordHash,
       name: "Анна",
       age: 24,
       gender: "female",
@@ -21,9 +31,11 @@ async function main() {
       avatar: "https://api.dicebear.com/9.x/notionists/svg?seed=Anastasia",
       city: "Москва",
       lookingFor: "all",
+      emailVerified: true,
     },
     {
       email: "dmitry@example.com",
+      passwordHash,
       name: "Дмитрий",
       age: 27,
       gender: "male",
@@ -32,9 +44,11 @@ async function main() {
       avatar: "https://api.dicebear.com/9.x/notionists/svg?seed=Dmitry",
       city: "Санкт-Петербург",
       lookingFor: "all",
+      emailVerified: true,
     },
     {
       email: "ekaterina@example.com",
+      passwordHash,
       name: "Екатерина",
       age: 22,
       gender: "female",
@@ -43,9 +57,11 @@ async function main() {
       avatar: "https://api.dicebear.com/9.x/notionists/svg?seed=Ekaterina",
       city: "Москва",
       lookingFor: "all",
+      emailVerified: true,
     },
     {
       email: "maxim@example.com",
+      passwordHash,
       name: "Максим",
       age: 29,
       gender: "male",
@@ -54,9 +70,11 @@ async function main() {
       avatar: "https://api.dicebear.com/9.x/notionists/svg?seed=Maxim",
       city: "Казань",
       lookingFor: "all",
+      emailVerified: true,
     },
     {
       email: "olga@example.com",
+      passwordHash,
       name: "Ольга",
       age: 26,
       gender: "female",
@@ -65,9 +83,11 @@ async function main() {
       avatar: "https://api.dicebear.com/9.x/notionists/svg?seed=Olga",
       city: "Санкт-Петербург",
       lookingFor: "all",
+      emailVerified: true,
     },
     {
       email: "artem@example.com",
+      passwordHash,
       name: "Артём",
       age: 25,
       gender: "male",
@@ -76,9 +96,11 @@ async function main() {
       avatar: "https://api.dicebear.com/9.x/notionists/svg?seed=Artem",
       city: "Новосибирск",
       lookingFor: "all",
+      emailVerified: true,
     },
     {
       email: "maria@example.com",
+      passwordHash,
       name: "Мария",
       age: 23,
       gender: "female",
@@ -87,9 +109,11 @@ async function main() {
       avatar: "https://api.dicebear.com/9.x/notionists/svg?seed=Maria",
       city: "Екатеринбург",
       lookingFor: "all",
+      emailVerified: true,
     },
     {
       email: "nikita@example.com",
+      passwordHash,
       name: "Никита",
       age: 28,
       gender: "male",
@@ -98,6 +122,7 @@ async function main() {
       avatar: "https://api.dicebear.com/9.x/notionists/svg?seed=Nikita",
       city: "Москва",
       lookingFor: "all",
+      emailVerified: true,
     },
 
     // ─── Новые: разные национальности ────────────────────────
@@ -105,6 +130,7 @@ async function main() {
     // Славянка (блондинка)
     {
       email: "natasha@example.com",
+      passwordHash,
       name: "Наташа",
       age: 25,
       gender: "female",
@@ -113,10 +139,12 @@ async function main() {
       avatar: "https://api.dicebear.com/9.x/notionists/svg?seed=Natalia",
       city: "Санкт-Петербург",
       lookingFor: "all",
+      emailVerified: true,
     },
     // Кореец
     {
       email: "minjun@example.com",
+      passwordHash,
       name: "Минджун",
       age: 26,
       gender: "male",
@@ -125,10 +153,12 @@ async function main() {
       avatar: "https://api.dicebear.com/9.x/notionists/svg?seed=Minjun",
       city: "Сеул",
       lookingFor: "all",
+      emailVerified: true,
     },
     // Латиноамериканка
     {
       email: "sofia@example.com",
+      passwordHash,
       name: "София",
       age: 24,
       gender: "female",
@@ -137,10 +167,12 @@ async function main() {
       avatar: "https://api.dicebear.com/9.x/notionists/svg?seed=Sofia",
       city: "Богота",
       lookingFor: "all",
+      emailVerified: true,
     },
     // Индиец
     {
       email: "raj@example.com",
+      passwordHash,
       name: "Радж",
       age: 28,
       gender: "male",
@@ -149,10 +181,12 @@ async function main() {
       avatar: "https://api.dicebear.com/9.x/notionists/svg?seed=Raj",
       city: "Мумбаи",
       lookingFor: "all",
+      emailVerified: true,
     },
     // Метиска
     {
       email: "amara@example.com",
+      passwordHash,
       name: "Амара",
       age: 23,
       gender: "female",
@@ -161,10 +195,12 @@ async function main() {
       avatar: "https://api.dicebear.com/9.x/notionists/svg?seed=Amara",
       city: "Лондон",
       lookingFor: "all",
+      emailVerified: true,
     },
     // Шотландец (рыжий)
     {
       email: "aidan@example.com",
+      passwordHash,
       name: "Эйдан",
       age: 27,
       gender: "male",
@@ -173,10 +209,12 @@ async function main() {
       avatar: "https://api.dicebear.com/9.x/notionists/svg?seed=Aidan",
       city: "Эдинбург",
       lookingFor: "all",
+      emailVerified: true,
     },
     // Японка
     {
       email: "sakura@example.com",
+      passwordHash,
       name: "Сакура",
       age: 22,
       gender: "female",
@@ -185,10 +223,12 @@ async function main() {
       avatar: "https://api.dicebear.com/9.x/notionists/svg?seed=Sakura",
       city: "Токио",
       lookingFor: "all",
+      emailVerified: true,
     },
     // Африканец
     {
       email: "kwame@example.com",
+      passwordHash,
       name: "Кваме",
       age: 26,
       gender: "male",
@@ -197,10 +237,12 @@ async function main() {
       avatar: "https://api.dicebear.com/9.x/notionists/svg?seed=Kwame",
       city: "Аккра",
       lookingFor: "all",
+      emailVerified: true,
     },
     // Француженка
     {
       email: "camille@example.com",
+      passwordHash,
       name: "Камилла",
       age: 25,
       gender: "female",
@@ -209,10 +251,12 @@ async function main() {
       avatar: "https://api.dicebear.com/9.x/notionists/svg?seed=Camille",
       city: "Лион",
       lookingFor: "all",
+      emailVerified: true,
     },
     // Скандинав (светлый)
     {
       email: "erik@example.com",
+      passwordHash,
       name: "Эрик",
       age: 24,
       gender: "male",
@@ -221,10 +265,12 @@ async function main() {
       avatar: "https://api.dicebear.com/9.x/notionists/svg?seed=Erik",
       city: "Осло",
       lookingFor: "all",
+      emailVerified: true,
     },
     // Арабка
     {
       email: "layla@example.com",
+      passwordHash,
       name: "Лейла",
       age: 27,
       gender: "female",
@@ -233,10 +279,12 @@ async function main() {
       avatar: "https://api.dicebear.com/9.x/notionists/svg?seed=Layla",
       city: "Дубай",
       lookingFor: "all",
+      emailVerified: true,
     },
     // Бразилец
     {
       email: "lucas@example.com",
+      passwordHash,
       name: "Лукас",
       age: 26,
       gender: "male",
@@ -245,6 +293,7 @@ async function main() {
       avatar: "https://api.dicebear.com/9.x/notionists/svg?seed=Lucas",
       city: "Рио-де-Жанейро",
       lookingFor: "all",
+      emailVerified: true,
     },
   ];
 
@@ -253,6 +302,7 @@ async function main() {
   }
 
   console.warn(`✅ Создано ${users.length} пользователей`);
+  console.warn(`🔑 Пароль для входа: ${DEFAULT_PASSWORD}`);
 }
 
 main()

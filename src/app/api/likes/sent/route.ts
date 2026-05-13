@@ -1,17 +1,16 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { requireAuth } from '@/lib/auth/guard';
 
 export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
 
-    if (!userId) {
-      return NextResponse.json({ error: 'Missing userId parameter' }, { status: 400 });
-    }
+    const { user } = auth;
 
     const likes = await db.like.findMany({
-      where: { fromUserId: userId },
+      where: { fromUserId: user.id },
       select: { toUserId: true },
     });
 

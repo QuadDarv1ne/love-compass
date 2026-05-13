@@ -1,27 +1,17 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Image from 'next/image';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
-  Heart, ArrowRight, Compass, MessageCircle, Shield,
+  Heart, Compass, MessageCircle, Shield,
 } from 'lucide-react';
-import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { useAppStore, type User } from '@/lib/store';
 import { hydrateAppData } from '@/lib/api';
-import { FloatingHearts, AvatarPicker } from './shared';
+import { FloatingHearts } from './shared';
+import Link from 'next/link';
 
 // ─── Features data ──────────────────────────────────────────────────────────
 const FEATURES = [
@@ -47,7 +37,7 @@ const FEATURES = [
   },
 ];
 
-// ─── Demo users ──────────────────────────────────────────────────────────────
+// ─── Demo users (only in dev mode) ──────────────────────────────────────────
 const DEMO_USERS = [
   { name: 'Анна', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Anastasia' },
   { name: 'Дмитрий', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Dmitry' },
@@ -71,20 +61,11 @@ const DEMO_USERS = [
   { name: 'Лукас', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Alexander' },
 ];
 
+const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
+
 export function LandingView() {
   const { login } = useAppStore();
-  const [isRegister, setIsRegister] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  const [regName, setRegName] = useState('');
-  const [regEmail, setRegEmail] = useState('');
-  const [regAge, setRegAge] = useState('');
-  const [regGender, setRegGender] = useState('');
-  const [regCity, setRegCity] = useState('');
-  const [regBio, setRegBio] = useState('');
-  const [regInterests, setRegInterests] = useState('');
-  const [regLookingFor, setRegLookingFor] = useState('all');
-  const [regAvatar, setRegAvatar] = useState('https://api.dicebear.com/9.x/notionists/svg?seed=Anastasia');
+  const [loading, setLoading] = React.useState(false);
 
   const quickLogin = async (avatarIndex: number) => {
     setLoading(true);
@@ -95,43 +76,10 @@ export function LandingView() {
       const selectedUser = users[avatarIndex];
       if (selectedUser) {
         login(selectedUser);
-        await hydrateAppData(selectedUser);
+        await hydrateAppData();
       }
     } catch {
       console.error('Login failed');
-    }
-    setLoading(false);
-  };
-
-  const handleRegister = async () => {
-    if (!regName || !regEmail || !regAge || !regGender) return;
-    setLoading(true);
-    try {
-      const res = await fetch('/api/profiles', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: regName,
-          email: regEmail,
-          age: regAge,
-          gender: regGender,
-          city: regCity,
-          bio: regBio,
-          interests: regInterests,
-          lookingFor: regLookingFor,
-          avatar: regAvatar,
-        }),
-      });
-      const user = await res.json();
-      if (user.id) {
-        toast.success('Добро пожаловать!', {
-          description: `Регистрация прошла успешно. Привет, ${user.name}!`,
-        });
-        login(user);
-        await hydrateAppData(user);
-      }
-    } catch {
-      console.error('Registration failed');
     }
     setLoading(false);
   };
@@ -160,135 +108,58 @@ export function LandingView() {
         </p>
       </motion.div>
 
-      {/* Quick Login */}
+      {/* Auth Buttons */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.3 }}
-        className="w-full max-w-2xl z-10 mb-8"
+        className="w-full max-w-sm z-10 mb-8 space-y-3"
       >
-        <Card className="border-rose-200 dark:border-rose-900/50 bg-card/80 backdrop-blur-sm shadow-xl">
-          <CardContent className="p-6">
-            <h3 className="text-center font-semibold text-rose-700 dark:text-rose-300 mb-1">Войти как пользователь (демо)</h3>
-            <p className="text-center text-xs text-muted-foreground mb-4">20 профилей из разных стран мира</p>
-            <div className="grid grid-cols-5 gap-2 md:gap-3">
-              {DEMO_USERS.map((user, idx) => (
-                <motion.button
-                  key={user.name}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.92 }}
-                  onClick={() => quickLogin(idx)}
-                  disabled={loading}
-                  className="flex flex-col items-center gap-1 p-1.5 md:p-2 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors"
-                >
-                  <div className="relative w-12 h-12 md:w-14 md:h-14 rounded-full overflow-hidden border-2 border-rose-200 dark:border-rose-800 shadow-sm">
-                    <Image src={user.avatar} alt={user.name} fill className="object-cover" />
-                  </div>
-                  <span className="text-[10px] md:text-xs font-medium text-rose-700 dark:text-rose-300 truncate w-full text-center">{user.name}</span>
-                </motion.button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <Link href="/login" className="block">
+          <Button className="w-full bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white py-6 text-lg font-semibold rounded-xl">
+            Войти
+          </Button>
+        </Link>
+        <Link href="/register" className="block">
+          <Button variant="outline" className="w-full py-6 text-lg font-semibold rounded-xl border-rose-300 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20">
+            Зарегистрироваться
+          </Button>
+        </Link>
       </motion.div>
 
-      {/* Register Toggle */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-        className="text-center z-10"
-      >
-        <Button variant="ghost" onClick={() => setIsRegister(!isRegister)} className="text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20">
-          {isRegister ? '← Назад' : 'Или зарегистрируйтесь'}
-          {!isRegister && <ArrowRight className="w-4 h-4 ml-1" />}
-        </Button>
-      </motion.div>
-
-      {/* Register Form */}
-      <AnimatePresence>
-        {isRegister && (
-          <motion.div
-            initial={{ opacity: 0, height: 0, y: 20 }}
-            animate={{ opacity: 1, height: 'auto', y: 0 }}
-            exit={{ opacity: 0, height: 0, y: 20 }}
-            transition={{ duration: 0.4 }}
-            className="w-full max-w-lg z-10 mt-4 overflow-hidden"
-          >
-            <Card className="border-rose-200 dark:border-rose-900/50 bg-card/90 backdrop-blur-sm shadow-xl">
-              <CardContent className="p-6">
-                <h3 className="text-xl font-bold text-center text-rose-700 dark:text-rose-300 mb-6">Регистрация</h3>
-
-                {/* Avatar Picker */}
-                <div className="mb-4">
-                  <AvatarPicker selected={regAvatar} onSelect={setRegAvatar} />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="reg-name">Имя *</Label>
-                    <Input id="reg-name" value={regName} onChange={(e) => setRegName(e.target.value)} placeholder="Ваше имя" className="border-rose-200 dark:border-rose-800 focus:border-rose-400" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="reg-email">Email *</Label>
-                    <Input id="reg-email" type="email" value={regEmail} onChange={(e) => setRegEmail(e.target.value)} placeholder="email@example.com" className="border-rose-200 dark:border-rose-800 focus:border-rose-400" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="reg-age">Возраст *</Label>
-                    <Input id="reg-age" type="number" min="18" max="99" value={regAge} onChange={(e) => setRegAge(e.target.value)} placeholder="25" className="border-rose-200 dark:border-rose-800 focus:border-rose-400" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="reg-gender">Пол *</Label>
-                    <Select value={regGender} onValueChange={setRegGender}>
-                      <SelectTrigger className="border-rose-200 dark:border-rose-800"><SelectValue placeholder="Выберите пол" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="male">Мужской</SelectItem>
-                        <SelectItem value="female">Женский</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="reg-city">Город</Label>
-                    <Input id="reg-city" value={regCity} onChange={(e) => setRegCity(e.target.value)} placeholder="Москва" className="border-rose-200 dark:border-rose-800 focus:border-rose-400" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="reg-looking">Ищу</Label>
-                    <Select value={regLookingFor} onValueChange={setRegLookingFor}>
-                      <SelectTrigger className="border-rose-200 dark:border-rose-800"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Всех</SelectItem>
-                        <SelectItem value="male">Мужчин</SelectItem>
-                        <SelectItem value="female">Женщин</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="reg-bio">О себе</Label>
-                    <Textarea id="reg-bio" value={regBio} onChange={(e) => setRegBio(e.target.value)} placeholder="Расскажите о себе..." className="border-rose-200 dark:border-rose-800 focus:border-rose-400 min-h-[80px]" />
-                  </div>
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="reg-interests">Интересы (через запятую)</Label>
-                    <Input id="reg-interests" value={regInterests} onChange={(e) => setRegInterests(e.target.value)} placeholder="музыка, путешествия, кино" className="border-rose-200 dark:border-rose-800 focus:border-rose-400" />
-                  </div>
-                </div>
-                <Button
-                  onClick={handleRegister}
-                  disabled={!regName || !regEmail || !regAge || !regGender || loading}
-                  className="w-full mt-6 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white py-5 text-lg font-semibold rounded-xl"
-                >
-                  {loading ? (
-                    <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
-                      <Heart className="w-5 h-5 fill-white" />
-                    </motion.div>
-                  ) : (
-                    <><Heart className="w-5 h-5 mr-2 fill-white" />Начать знакомства</>
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Demo Login (dev mode only) */}
+      {DEMO_MODE && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="w-full max-w-2xl z-10 mb-8"
+        >
+          <Card className="border-rose-200 dark:border-rose-900/50 bg-card/80 backdrop-blur-sm shadow-xl">
+            <CardContent className="p-6">
+              <h3 className="text-center font-semibold text-rose-700 dark:text-rose-300 mb-1">Войти как пользователь (демо)</h3>
+              <p className="text-center text-xs text-muted-foreground mb-4">20 профилей из разных стран мира</p>
+              <div className="grid grid-cols-5 gap-2 md:gap-3">
+                {DEMO_USERS.map((user, idx) => (
+                  <motion.button
+                    key={user.name}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.92 }}
+                    onClick={() => quickLogin(idx)}
+                    disabled={loading}
+                    className="flex flex-col items-center gap-1 p-1.5 md:p-2 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors"
+                  >
+                    <div className="relative w-12 h-12 md:w-14 md:h-14 rounded-full overflow-hidden border-2 border-rose-200 dark:border-rose-800 shadow-sm">
+                      <Image src={user.avatar} alt={user.name} fill className="object-cover" />
+                    </div>
+                    <span className="text-[10px] md:text-xs font-medium text-rose-700 dark:text-rose-300 truncate w-full text-center">{user.name}</span>
+                  </motion.button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
 
       {/* Features Section */}
       <motion.div

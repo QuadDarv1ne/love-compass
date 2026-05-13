@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Heart, Search, User, Eye, Compass, Camera, Trophy, Settings as SettingsIcon,
@@ -22,7 +22,14 @@ import { Separator } from '@/components/ui/separator';
 
 // ─── Main Page ──────────────────────────────────────────────────────────────
 export default function HomePage() {
-  const { currentView, matches, likedYouCount, viewDirection } = useAppStore();
+  const { currentView, matches, likedYouCount, viewDirection, authStatus, checkAuth } = useAppStore();
+
+  // Check auth session on mount
+  useEffect(() => {
+    if (authStatus === 'idle') {
+      checkAuth();
+    }
+  }, [authStatus, checkAuth]);
 
   const matchCount = matches.length;
 

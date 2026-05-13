@@ -1,23 +1,27 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@/lib/db';
+import { requireAuth } from '@/lib/auth/guard';
 
 const blockSchema = z.object({
-  blockerId: z.string().min(1),
   blockedId: z.string().min(1),
   reason: z.string().optional(),
 });
 
 export async function POST(request: Request) {
   try {
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+
+    const { user } = auth;
     const body = await request.json();
-    const { blockerId, blockedId, reason } = blockSchema.parse(body);
+    const { blockedId, reason } = blockSchema.parse(body);
+    const blockerId = user.id;
 
     if (blockerId === blockedId) {
       return NextResponse.json({ error: 'Cannot block yourself' }, { status: 400 });
     }
 
-    // Check if already blocked
     const existing = await db.block.findUnique({
       where: { blockerId_blockedId: { blockerId, blockedId } },
     });
@@ -40,15 +44,13 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
 
-    if (!userId) {
-      return NextResponse.json({ error: 'userId is required' }, { status: 400 });
-    }
+    const { user } = auth;
 
     const blocks = await db.block.findMany({
-      where: { blockerId: userId },
+      where: { blockerId: user.id },
       include: { blocked: true },
       orderBy: { createdAt: 'desc' },
     });
@@ -61,14 +63,17 @@ export async function GET(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+
+    const { user } = auth;
     const body = await request.json();
-    const { blockerId, blockedId } = z.object({
-      blockerId: z.string().min(1),
+    const { blockedId } = z.object({
       blockedId: z.string().min(1),
     }).parse(body);
 
     await db.block.deleteMany({
-      where: { blockerId, blockedId },
+      where: { blockerId: user.id, blockedId },
     });
 
     return NextResponse.json({ success: true });

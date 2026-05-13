@@ -11,6 +11,8 @@ export interface User {
   avatar: string;
   city: string;
   lookingFor: string;
+  emailVerified: boolean;
+  totpEnabled: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -58,9 +60,12 @@ export interface MomentComment {
 
 type ViewType = 'landing' | 'browse' | 'matches' | 'chat' | 'profile' | 'likedYou' | 'moments' | 'top' | 'settings' | 'achievements';
 
+type AuthStatus = 'idle' | 'loading' | 'authenticated' | 'unauthenticated';
+
 interface AppState {
   currentView: ViewType;
   currentUser: User | null;
+  authStatus: AuthStatus;
   selectedMatch: MatchWithUsers | null;
   selectedProfile: User | null;
   profiles: User[];
@@ -113,7 +118,8 @@ interface AppState {
 
   setView: (view: ViewType) => void;
   login: (user: User) => void;
-  logout: () => void;
+  logout: () => Promise<void>;
+  checkAuth: () => Promise<void>;
   clearAllData: () => void;
   setCurrentUser: (user: User | null) => void;
   setProfiles: (profiles: User[]) => void;
@@ -174,9 +180,43 @@ interface AppState {
   navigateTo: (view: ViewType) => void;
 }
 
+const clearState = {
+  currentUser: null,
+  currentView: 'landing' as ViewType,
+  previousView: null,
+  profiles: [],
+  matches: [],
+  messages: [],
+  selectedMatch: null,
+  selectedProfile: null,
+  likedUserIds: [],
+  onlineUserIds: [],
+  unreadMatchIds: [],
+  dislikedUserIds: [],
+  superLikedUserIds: [],
+  likedYouCount: 0,
+  likedYouProfiles: [],
+  searchQuery: '',
+  sortBy: 'new' as const,
+  filterGender: 'all' as const,
+  filterAgeMin: 0,
+  filterAgeMax: 99,
+  filterCity: '',
+  showFilters: false,
+  blockedUserIds: [],
+  moments: [],
+  currentMomentIndex: 0,
+  notificationEnabled: true,
+  profileVisible: true,
+  showOnlineStatus: true,
+  language: 'ru',
+  unlockedAchievements: [],
+};
+
 export const useAppStore = create<AppState>((set, get) => ({
   currentView: 'landing',
   currentUser: null,
+  authStatus: 'idle',
   selectedMatch: null,
   selectedProfile: null,
   profiles: [],
@@ -226,76 +266,99 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   login: (user) => {
-    // Randomly assign ~40% of other profiles as online
     const onlineIds: string[] = [];
     for (let i = 0; i < 7; i++) {
       onlineIds.push(`online-seed-${i}`);
     }
     set({
       currentUser: user,
+      authStatus: 'authenticated',
       currentView: 'browse',
       previousView: 'landing',
       viewDirection: 'forward',
     });
   },
 
-  logout: () => set({
-    currentUser: null,
-    currentView: 'landing',
-    previousView: null,
-    profiles: [],
-    matches: [],
-    messages: [],
-    selectedMatch: null,
-    likedUserIds: [],
-    onlineUserIds: [],
-    unreadMatchIds: [],
-    dislikedUserIds: [],
-    superLikedUserIds: [],
-    likedYouCount: 0,
-    likedYouProfiles: [],
-    searchQuery: '',
-    sortBy: 'new',
-    filterGender: 'all',
-    filterAgeMin: 0,
-    filterAgeMax: 99,
-    filterCity: '',
-    showFilters: false,
-    blockedUserIds: [],
-  }),
+  logout: async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch {
+      // Ignore errors during logout
+    }
+    set({ ...clearState, authStatus: 'unauthenticated' });
+  },
 
-  clearAllData: () => set({
-    currentUser: null,
-    currentView: 'landing',
-    previousView: null,
-    profiles: [],
-    matches: [],
-    messages: [],
-    selectedMatch: null,
-    selectedProfile: null,
-    likedUserIds: [],
-    onlineUserIds: [],
-    unreadMatchIds: [],
-    dislikedUserIds: [],
-    superLikedUserIds: [],
-    likedYouCount: 0,
-    likedYouProfiles: [],
-    searchQuery: '',
-    sortBy: 'new',
-    filterGender: 'all',
-    filterAgeMin: 0,
-    filterAgeMax: 99,
-    filterCity: '',
-    showFilters: false,
-    blockedUserIds: [],
-    moments: [],
-    currentMomentIndex: 0,
-    notificationEnabled: true,
-    profileVisible: true,
-    showOnlineStatus: true,
-    language: 'ru',
-    unlockedAchievements: [],
-  }),
+  checkAuth: async () => {
+    set({ authStatus: 'loading' });
+    try {
+      const res = await fetch('/api/auth/session');
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.user) {
+          set({
+            currentUser: data.user,
+            authStatus: 'authenticated',
+            currentView: 'browse',
+          });
+          // Hydrate app data
+          const store = useAppStore.getState();
+          store.setIsLoading(true);
+
+          try {
+            const profilesRes = await fetch('/api/profiles?limit=100');
+            if (profilesRes.ok) {
+              const profilesBody = await profilesRes.json();
+              const allUsers: User[] = profilesBody.data ?? profilesBody;
+              const otherProfiles = allUsers.filter((u) => u.id !== data.user.id);
+              store.setProfiles(otherProfiles);
+
+              const otherIds = otherProfiles.map((p) => p.id);
+              const shuffled = otherIds.sort(() => Math.random() - 0.5);
+              const onlineIds = shuffled.slice(0, Math.ceil(shuffled.length * 0.4));
+              store.setOnlineUserIds(onlineIds);
+            }
+
+            const matchesRes = await fetch('/api/matches');
+            if (matchesRes.ok) {
+              const matches: MatchWithUsers[] = await matchesRes.json();
+              store.setMatches(matches);
+            }
+
+            const likedYouRes = await fetch('/api/likes/received');
+            if (likedYouRes.ok) {
+              const likedYouUsers: User[] = await likedYouRes.json();
+              store.setLikedYouProfiles(likedYouUsers);
+            }
+
+            const likeSentRes = await fetch('/api/likes/sent');
+            if (likeSentRes.ok) {
+              const likes: { toUserId: string }[] = await likeSentRes.json();
+              for (const like of likes) {
+                store.addLikedUserId(like.toUserId);
+              }
+            }
+
+            const blockedRes = await fetch('/api/block');
+            if (blockedRes.ok) {
+              const { blocks } = await blockedRes.json();
+              const blockedIds: string[] = blocks.map((b: { blockedId: string }) => b.blockedId);
+              useAppStore.setState({ blockedUserIds: blockedIds });
+            }
+          } catch (error) {
+            console.error('Failed to hydrate app data:', error);
+          } finally {
+            store.setIsLoading(false);
+          }
+          return;
+        }
+      }
+    } catch {
+      // Ignore errors
+    }
+    set({ authStatus: 'unauthenticated', currentView: 'landing' });
+  },
+
+  clearAllData: () => set({ ...clearState, authStatus: 'unauthenticated' }),
 
   setCurrentUser: (user) => set({ currentUser: user }),
   setProfiles: (profiles) => set({ profiles }),

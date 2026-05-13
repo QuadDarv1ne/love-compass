@@ -1,24 +1,15 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { requireAuth } from '@/lib/auth/guard';
+import { invalidateAllUserSessions, deleteSessionCookie, getSessionTokenFromCookie } from '@/lib/auth/session';
 
 export async function DELETE(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
 
-    if (!id) {
-      return NextResponse.json({ error: 'Missing id parameter' }, { status: 400 });
-    }
-
-    // Verify user exists
-    const user = await db.user.findUnique({ where: { id } });
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    // Delete in order: messages → likes → matches → user
-    // Prisma will handle cascading if relations are set up properly,
-    // but since we have explicit relations, delete dependent records first
+    const { user } = auth;
+    const id = user.id;
 
     // Get all matches for this user
     const matches = await db.match.findMany({
@@ -49,13 +40,27 @@ export async function DELETE(request: Request) {
       });
     }
 
-    // Delete any remaining messages sent by user (edge case)
+    // Delete any remaining messages
     await db.message.deleteMany({
       where: { senderId: id },
     });
 
+    // Delete blocks and reports
+    await db.block.deleteMany({
+      where: { OR: [{ blockerId: id }, { blockedId: id }] },
+    });
+    await db.report.deleteMany({
+      where: { OR: [{ reporterId: id }, { reportedId: id }] },
+    });
+
+    // Delete all sessions
+    await invalidateAllUserSessions(id);
+
     // Finally delete the user
     await db.user.delete({ where: { id } });
+
+    // Clear session cookie
+    await deleteSessionCookie();
 
     return NextResponse.json({ success: true });
   } catch (error) {

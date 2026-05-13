@@ -8,27 +8,39 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String
-  age       Int
-  gender    String
-  bio       String   @default("")
-  interests String   @default("")
-  avatar    String   @default("")
-  city      String   @default("")
-  lookingFor String  @default("all")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  sentLikes     Like[]     @relation("SentLikes")
-  receivedLikes Like[]     @relation("ReceivedLikes")
-  sentMessages Message[] @relation("SentMessages")
-  match1 Match[] @relation("User1Matches")
-  match2 Match[] @relation("User2Matches")
-  blockedBy Block[] @relation("BlockedBy")
-  blocked Block[] @relation("Blocked")
-  reportedBy Report[] @relation("ReportedBy")
-  reported Report[] @relation("Reported")
+  id                     String    @id @default(cuid())
+  email                  String    @unique
+  passwordHash           String    @default("")
+  name                   String
+  age                    Int
+  gender                 String
+  bio                    String    @default("")
+  interests              String    @default("")
+  avatar                 String    @default("")
+  city                   String    @default("")
+  lookingFor             String    @default("all")
+  emailVerified          Boolean   @default(false)
+  emailVerificationToken String?   @unique
+  emailVerificationExpiry DateTime?
+  passwordResetToken     String?   @unique
+  passwordResetExpiry    DateTime?
+  totpSecret             String?
+  totpEnabled            Boolean   @default(false)
+  totpBackupCodes        String    @default("[]")
+  loginAttempts          Int       @default(0)
+  lockedUntil            DateTime?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+  sentLikes              Like[]     @relation("SentLikes")
+  receivedLikes          Like[]     @relation("ReceivedLikes")
+  sentMessages           Message[]  @relation("SentMessages")
+  match1                 Match[]    @relation("User1Matches")
+  match2                 Match[]    @relation("User2Matches")
+  blockedBy              Block[]    @relation("BlockedBy")
+  blocked                Block[]    @relation("Blocked")
+  reportedBy             Report[]   @relation("ReportedBy")
+  reported               Report[]   @relation("Reported")
+  sessions               Session[]
 }
 
 model Like {
@@ -86,4 +98,28 @@ model Report {
   createdAt  DateTime @default(now())
   reporter   User     @relation("ReportedBy", fields: [reporterId], references: [id])
   reported   User     @relation("Reported", fields: [reportedId], references: [id])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  userAgent String?
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  @@index([token])
+  @@index([userId])
+}
+
+model RateLimit {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  count     Int      @default(1)
+  resetAt   DateTime
+
+  @@index([key])
+  @@index([resetAt])
 }

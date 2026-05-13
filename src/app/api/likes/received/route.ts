@@ -1,19 +1,17 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { requireAuth } from '@/lib/auth/guard';
 
 export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
 
-    if (!userId) {
-      return NextResponse.json({ error: 'Missing userId' }, { status: 400 });
-    }
+    const { user } = auth;
 
-    // Find all likes where someone liked the current user
     const receivedLikes = await db.like.findMany({
       where: {
-        toUserId: userId,
+        toUserId: user.id,
       },
       include: {
         fromUser: true,
@@ -23,13 +21,12 @@ export async function GET(request: Request) {
       },
     });
 
-    // Filter out likes where the current user has already liked back
     const pendingLikes: (typeof receivedLikes)[number]['fromUser'][] = [];
     for (const like of receivedLikes) {
       const reverseLike = await db.like.findUnique({
         where: {
           fromUserId_toUserId: {
-            fromUserId: userId,
+            fromUserId: user.id,
             toUserId: like.fromUserId,
           },
         },

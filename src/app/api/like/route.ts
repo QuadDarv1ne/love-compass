@@ -1,16 +1,21 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { z } from 'zod';
+import { requireAuth } from '@/lib/auth/guard';
 
 const likeSchema = z.object({
-  fromUserId: z.string().min(1),
   toUserId: z.string().min(1),
 });
 
 export async function POST(request: Request) {
   try {
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+
+    const { user } = auth;
     const body = await request.json();
-    const { fromUserId, toUserId } = likeSchema.parse(body);
+    const { toUserId } = likeSchema.parse(body);
+    const fromUserId = user.id;
 
     if (fromUserId === toUserId) {
       return NextResponse.json({ error: 'Cannot like yourself' }, { status: 400 });
@@ -53,7 +58,6 @@ export async function POST(request: Request) {
     } | null = null;
 
     if (reverseLike) {
-      // Check if match already exists
       const existingMatch = await db.match.findFirst({
         where: {
           OR: [

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { z } from 'zod';
+import { requireAuth } from '@/lib/auth/guard';
 
 const updateProfileSchema = z.object({
   name: z.string().min(1).max(100).optional(),
@@ -12,22 +13,26 @@ const updateProfileSchema = z.object({
 
 export async function GET(request: Request) {
   try {
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+
+    const { user: sessionUser } = auth;
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
-    if (!id) {
-      return NextResponse.json({ error: 'Missing id parameter' }, { status: 400 });
-    }
+    // If no id provided, return own profile
+    const targetId = id || sessionUser.id;
 
     const user = await db.user.findUnique({
-      where: { id },
+      where: { id: targetId },
     });
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    return NextResponse.json(user);
+    const { passwordHash, ...safeUser } = user;
+    return NextResponse.json(safeUser);
   } catch {
     return NextResponse.json({ error: 'Failed to fetch profile' }, { status: 500 });
   }
@@ -35,22 +40,21 @@ export async function GET(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
 
-    if (!id) {
-      return NextResponse.json({ error: 'Missing id parameter' }, { status: 400 });
-    }
+    const { user } = auth;
 
     const body = await request.json();
     const validated = updateProfileSchema.parse(body);
 
-    const user = await db.user.update({
-      where: { id },
+    const updatedUser = await db.user.update({
+      where: { id: user.id },
       data: validated,
     });
 
-    return NextResponse.json(user);
+    const { passwordHash, ...safeUser } = updatedUser;
+    return NextResponse.json(safeUser);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: 'Validation failed', details: error.issues }, { status: 400 });

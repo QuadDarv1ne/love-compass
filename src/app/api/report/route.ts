@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@/lib/db';
+import { requireAuth } from '@/lib/auth/guard';
 
 const reportSchema = z.object({
-  reporterId: z.string().min(1),
   reportedId: z.string().min(1),
   reason: z.string().min(1),
   details: z.string().optional(),
@@ -11,8 +11,13 @@ const reportSchema = z.object({
 
 export async function POST(request: Request) {
   try {
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+
+    const { user } = auth;
     const body = await request.json();
-    const { reporterId, reportedId, reason, details } = reportSchema.parse(body);
+    const { reportedId, reason, details } = reportSchema.parse(body);
+    const reporterId = user.id;
 
     if (reporterId === reportedId) {
       return NextResponse.json({ error: 'Cannot report yourself' }, { status: 400 });

@@ -25,6 +25,11 @@ import {
   Headphones,
   Info,
   Sparkles,
+  Smartphone,
+  Key,
+  Loader2,
+  CheckCircle,
+  XCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -39,7 +44,10 @@ import {
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useAppStore } from '@/lib/store';
+import { QRCodeCanvas } from 'qrcode.react';
 
 /* ─── shared animation ────────────────────────────────────────── */
 const fadeUp = {
@@ -87,6 +95,136 @@ function SettingRow({
   );
 }
 
+/* ─── 2FA Setup Dialog ────────────────────────────────────────── */
+function TwoFASetupDialog({
+  open,
+  onOpenChange,
+  onEnabled,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  onEnabled: () => void;
+}) {
+  const [step, setStep] = useState<'setup' | 'verify'>('setup');
+  const [secret, setSecret] = useState('');
+  const [uri, setUri] = useState('');
+  const [backupCodes, setBackupCodes] = useState<string[]>([]);
+  const [code, setCode] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSetup = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/auth/2fa/setup', { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error);
+        return;
+      }
+      setSecret(data.secret);
+      setUri(data.uri);
+      setBackupCodes(data.backupCodes);
+      setStep('verify');
+    } catch {
+      toast.error('Ошибка сервера');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerify = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/auth/2fa/enable', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: code }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error);
+        return;
+      }
+      toast.success('2FA включён!');
+      onEnabled();
+      onOpenChange(false);
+      setStep('setup');
+      setCode('');
+    } catch {
+      toast.error('Ошибка сервера');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>
+            {step === 'setup' ? 'Настройка 2FA' : 'Подтверждение 2FA'}
+          </DialogTitle>
+          <DialogDescription>
+            {step === 'setup'
+              ? 'Отсканируйте QR-код в приложении-аутентификаторе'
+              : 'Введите 6-значный код из приложения'}
+          </DialogDescription>
+        </DialogHeader>
+
+        {step === 'setup' ? (
+          <div className="space-y-4">
+            <div className="flex justify-center p-4 bg-white rounded-xl">
+              {uri && <QRCodeCanvas value={uri} size={200} />}
+            </div>
+            <div className="text-xs text-muted-foreground text-center">
+              Или введите секрет вручную:
+            </div>
+            <code className="block text-center text-sm bg-gray-100 dark:bg-gray-800 p-2 rounded">
+              {secret}
+            </code>
+            <Button onClick={handleSetup} className="w-full" disabled={loading}>
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Далее'}
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {/* Backup codes display */}
+            <div>
+              <Label className="text-sm font-medium">Резервные коды</Label>
+              <div className="grid grid-cols-2 gap-1 mt-2">
+                {backupCodes.map((c) => (
+                  <code key={c} className="text-xs bg-gray-100 dark:bg-gray-800 p-1.5 rounded text-center">
+                    {c}
+                  </code>
+                ))}
+              </div>
+              <p className="text-xs text-rose-500 mt-1">Сохраните эти коды! Они показываются один раз.</p>
+            </div>
+
+            <Separator />
+
+            <div>
+              <Label htmlFor="totp-code">6-значный код</Label>
+              <Input
+                id="totp-code"
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                placeholder="000000"
+                maxLength={6}
+                className="mt-1 text-center text-2xl tracking-widest"
+              />
+            </div>
+
+            <Button onClick={handleVerify} className="w-full" disabled={code.length !== 6 || loading}>
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Включить 2FA'}
+            </Button>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 /* ═══════════════════════════════════════════════════════════════ */
 export function SettingsView() {
   const { setTheme, theme } = useTheme();
@@ -110,13 +248,78 @@ export function SettingsView() {
   const [likeNotif, setLikeNotif] = useState(true);
   const [showDistance, setShowDistance] = useState(false);
 
+  /* 2FA & password state */
+  const [twoFADialogOpen, setTwoFADialogOpen] = useState(false);
+  const [disabling2FA, setDisabling2FA] = useState(false);
+  const [disable2FACode, setDisable2FACode] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [changingPassword, setChangingPassword] = useState(false);
+
   /* resolve hydration mismatch — standard next-themes pattern */
   const [mounted, setMounted] = useState(false);
-   
+
   useEffect(() => { setMounted(true); }, []);
 
   /* helpers */
   const handleSaveToast = () => toast.success('Настройки сохранены');
+
+  const handleDisable2FA = async () => {
+    if (disable2FACode.length !== 6) {
+      toast.error('Введите 6-значный код');
+      return;
+    }
+    setDisabling2FA(true);
+    try {
+      const res = await fetch('/api/auth/2fa/disable', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: disable2FACode }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error);
+        return;
+      }
+      toast.success('2FA отключён');
+      setDisable2FACode('');
+      // Refresh to update UI
+      window.location.reload();
+    } catch {
+      toast.error('Ошибка сервера');
+    } finally {
+      setDisabling2FA(false);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (newPassword !== confirmNewPassword) {
+      toast.error('Пароли не совпадают');
+      return;
+    }
+    setChangingPassword(true);
+    try {
+      const res = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error, { description: data.details?.join(', ') });
+        return;
+      }
+      toast.success('Пароль изменён');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmNewPassword('');
+    } catch {
+      toast.error('Ошибка сервера');
+    } finally {
+      setChangingPassword(false);
+    }
+  };
 
   const formatCreatedDate = (dateStr?: string) => {
     if (!dateStr) return '—';
@@ -201,7 +404,6 @@ export function SettingsView() {
                 </Select>
               </div>
 
-              {/* preview indicator */}
               <div className="mt-4 flex items-center gap-2">
                 <span className="text-xs text-muted-foreground">Текущая тема:</span>
                 <Badge
@@ -321,8 +523,101 @@ export function SettingsView() {
           </Card>
         </motion.div>
 
-        {/* ════════════ 4. ЯЗЫК ═══════════════════════════════ */}
+        {/* ════════════ 4. БЕЗОПАСНОСТЬ ═══════════════════════ */}
         <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={3}>
+          <Card className="border-rose-100 dark:border-rose-900/50 bg-card rounded-2xl shadow-md">
+            <CardContent className="p-5">
+              <h3 className="text-sm font-bold text-rose-600 dark:text-rose-400 flex items-center gap-2 mb-2">
+                <Key className="w-4 h-4" />
+                Безопасность
+              </h3>
+
+              <Separator className="bg-rose-100 dark:bg-rose-900/50 mb-4" />
+
+              {/* 2FA Status */}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <Smartphone className="w-4 h-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm font-medium">Двухфакторная аутентификация</p>
+                    <p className="text-xs text-muted-foreground">Дополнительная защита аккаунта</p>
+                  </div>
+                </div>
+                {currentUser?.totpEnabled ? (
+                  <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-green-200 dark:border-green-800">
+                    <CheckCircle className="w-3 h-3 mr-1" /> Включена
+                  </Badge>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setTwoFADialogOpen(true)}
+                    className="border-rose-200 text-rose-600 hover:bg-rose-50"
+                  >
+                    Включить
+                  </Button>
+                )}
+              </div>
+
+              {/* Disable 2FA */}
+              {currentUser?.totpEnabled && (
+                <div className="space-y-2 mb-4 p-3 bg-rose-50 dark:bg-rose-900/10 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={disable2FACode}
+                      onChange={(e) => setDisable2FACode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      placeholder="Код для отключения"
+                      maxLength={6}
+                      className="text-center tracking-widest"
+                    />
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={handleDisable2FA}
+                      disabled={disabling2FA}
+                    >
+                      {disabling2FA ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Отключить'}
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Change Password */}
+              <Separator className="bg-rose-100 dark:bg-rose-900/50 mb-4" />
+              <h4 className="text-sm font-medium mb-3">Сменить пароль</h4>
+              <div className="space-y-3">
+                <Input
+                  type="password"
+                  placeholder="Текущий пароль"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                />
+                <Input
+                  type="password"
+                  placeholder="Новый пароль"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                />
+                <Input
+                  type="password"
+                  placeholder="Подтвердите новый пароль"
+                  value={confirmNewPassword}
+                  onChange={(e) => setConfirmNewPassword(e.target.value)}
+                />
+                <Button
+                  onClick={handleChangePassword}
+                  disabled={changingPassword || !currentPassword || !newPassword || !confirmNewPassword}
+                  className="w-full"
+                >
+                  {changingPassword ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Сменить пароль'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* ════════════ 5. ЯЗЫК ═══════════════════════════════ */}
+        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={4}>
           <Card className="border-rose-100 dark:border-rose-900/50 bg-card rounded-2xl shadow-md">
             <CardContent className="p-5">
               <h3 className="text-sm font-bold text-rose-600 dark:text-rose-400 flex items-center gap-2 mb-4">
@@ -356,8 +651,8 @@ export function SettingsView() {
           </Card>
         </motion.div>
 
-        {/* ════════════ 5. АККАУНТ ════════════════════════════ */}
-        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={4}>
+        {/* ════════════ 6. АККАУНТ ════════════════════════════ */}
+        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={5}>
           <Card className="border-rose-100 dark:border-rose-900/50 bg-card rounded-2xl shadow-md">
             <CardContent className="p-5">
               <h3 className="text-sm font-bold text-rose-600 dark:text-rose-400 flex items-center gap-2 mb-2">
@@ -370,11 +665,16 @@ export function SettingsView() {
               {/* email */}
               <div className="flex items-center gap-3 mb-3">
                 <Mail className="w-4 h-4 text-muted-foreground shrink-0" />
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <p className="text-xs text-muted-foreground">Электронная почта</p>
-                  <p className="text-sm font-medium truncate">
-                    {currentUser?.email ?? '—'}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium truncate">
+                      {currentUser?.email ?? '—'}
+                    </p>
+                    {!currentUser?.emailVerified && (
+                      <Badge variant="destructive" className="text-[10px]">Не подтверждён</Badge>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -396,39 +696,33 @@ export function SettingsView() {
                 <Button
                   variant="outline"
                   className="w-full justify-start gap-2 border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl"
-                  onClick={() => {
-                    clearAllData();
-                    // Clear all browser storage
-                    try { localStorage.clear(); } catch { /* ignore */ }
-                    try { sessionStorage.clear(); } catch { /* ignore */ }
-                    // Clear cookies by setting them with past expiration
+                  onClick={async () => {
                     try {
-                      document.cookie.split(';').forEach((c) => {
-                        const name = c.split('=')[0].trim();
-                        document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
-                      });
-                    } catch { /* ignore */ }
-                    toast.success('Кэш очищен', {
-                      description: 'Данные приложения успешно удалены. Перезагрузите страницу.',
-                    });
+                      const res = await fetch('/api/auth/logout', { method: 'POST' });
+                      if (res.ok) {
+                        logout();
+                        toast.success('Вы вышли из аккаунта');
+                      }
+                    } catch {
+                      toast.error('Ошибка при выходе');
+                    }
                   }}
                 >
-                  <Trash2 className="w-4 h-4" />
-                  Очистить кэш
+                  <LogOut className="w-4 h-4" />
+                  Выйти
                 </Button>
 
                 <Button
                   variant="outline"
                   className="w-full justify-start gap-2 border-destructive/40 text-destructive hover:bg-destructive/10 rounded-xl"
                   onClick={async () => {
-                    if (!currentUser?.id) return;
                     const confirmed = window.confirm(
                       'Вы уверены? Все ваши данные, мэтчи и переписки будут удалены безвозвратно.'
                     );
                     if (!confirmed) return;
 
                     try {
-                      const res = await fetch(`/api/account?id=${currentUser.id}`, {
+                      const res = await fetch('/api/account', {
                         method: 'DELETE',
                       });
                       if (!res.ok) {
@@ -454,26 +748,17 @@ export function SettingsView() {
                   При удалении аккаунта все данные, включая переписки и мэтчи, будут удалены
                   безвозвратно.
                 </p>
-
-                <Button
-                  variant="outline"
-                  className="w-full justify-start gap-2 border-rose-200 dark:border-rose-800 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl"
-                  onClick={logout}
-                >
-                  <LogOut className="w-4 h-4" />
-                  Выйти
-                </Button>
               </div>
             </CardContent>
           </Card>
         </motion.div>
 
-        {/* ════════════ 6. О ПРИЛОЖЕНИИ ════════════════════════ */}
+        {/* ════════════ 7. О ПРИЛОЖЕНИИ ════════════════════════ */}
         <motion.div
           variants={fadeUp}
           initial="hidden"
           animate="visible"
-          custom={5}
+          custom={6}
         >
           <Card className="border-rose-100 dark:border-rose-900/50 bg-card rounded-2xl shadow-md">
             <CardContent className="p-5">
@@ -495,7 +780,7 @@ export function SettingsView() {
                   variant="secondary"
                   className="bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800"
                 >
-                  версия 2.0.0
+                  версия 3.0.0
                 </Badge>
                 <p className="text-xs text-muted-foreground mt-2 max-w-[260px] mx-auto leading-relaxed">
                   Love Compass — ваш надёжный путеводитель в мире знакомств. Мы помогаем
@@ -503,7 +788,6 @@ export function SettingsView() {
                 </p>
               </div>
 
-              {/* info cards */}
               <div className="grid gap-2">
                 {[
                   {
@@ -538,9 +822,18 @@ export function SettingsView() {
           </Card>
         </motion.div>
 
-        {/* bottom spacing for safe-area / footer breathing room */}
         <div className="h-6" />
       </div>
+
+      {/* 2FA Setup Dialog */}
+      <TwoFASetupDialog
+        open={twoFADialogOpen}
+        onOpenChange={setTwoFADialogOpen}
+        onEnabled={() => {
+          // Force re-render to show updated 2FA status
+          window.location.reload();
+        }}
+      />
     </div>
   );
 }

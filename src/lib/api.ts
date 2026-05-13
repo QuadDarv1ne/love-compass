@@ -3,8 +3,9 @@ import { useAppStore, type User, type MatchWithUsers } from '@/lib/store';
 /**
  * Fetch all app data from API and populate the Zustand store.
  * Called once after successful login or registration.
+ * Session cookie is sent automatically by the browser.
  */
-export async function hydrateAppData(currentUser: User) {
+export async function hydrateAppData() {
   const store = useAppStore.getState();
   store.setIsLoading(true);
 
@@ -14,7 +15,8 @@ export async function hydrateAppData(currentUser: User) {
     if (!profilesRes.ok) throw new Error('Failed to fetch profiles');
     const profilesBody = await profilesRes.json();
     const allUsers: User[] = profilesBody.data ?? profilesBody;
-    const otherProfiles = allUsers.filter((u) => u.id !== currentUser.id);
+    const currentUser = store.currentUser;
+    const otherProfiles = currentUser ? allUsers.filter((u) => u.id !== currentUser.id) : allUsers;
     store.setProfiles(otherProfiles);
 
     // Set online status (random ~40% for now)
@@ -24,21 +26,21 @@ export async function hydrateAppData(currentUser: User) {
     store.setOnlineUserIds(onlineIds);
 
     // Fetch matches with messages
-    const matchesRes = await fetch(`/api/matches?userId=${currentUser.id}`);
+    const matchesRes = await fetch('/api/matches');
     if (matchesRes.ok) {
       const matches: MatchWithUsers[] = await matchesRes.json();
       store.setMatches(matches);
     }
 
     // Fetch received likes (who liked you)
-    const likedYouRes = await fetch(`/api/likes/received?userId=${currentUser.id}`);
+    const likedYouRes = await fetch('/api/likes/received');
     if (likedYouRes.ok) {
       const likedYouUsers: User[] = await likedYouRes.json();
       store.setLikedYouProfiles(likedYouUsers);
     }
 
-    // Build set of already-liked user IDs so swipe cards are filtered
-    const likeSentRes = await fetch(`/api/likes/sent?userId=${currentUser.id}`);
+    // Build set of already-liked user IDs
+    const likeSentRes = await fetch('/api/likes/sent');
     if (likeSentRes.ok) {
       const likes: { toUserId: string }[] = await likeSentRes.json();
       for (const like of likes) {
@@ -47,7 +49,7 @@ export async function hydrateAppData(currentUser: User) {
     }
 
     // Fetch blocked users
-    const blockedRes = await fetch(`/api/block?userId=${currentUser.id}`);
+    const blockedRes = await fetch('/api/block');
     if (blockedRes.ok) {
       const { blocks } = await blockedRes.json();
       const blockedIds: string[] = blocks.map((b: { blockedId: string }) => b.blockedId);
