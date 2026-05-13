@@ -44,8 +44,8 @@ const POPULAR_EMOJIS = [
 // ─── Auto-Reply Constants ────────────────────────────────────────────────────
 const AUTO_REPLY_MIN_DELAY = 1500;
 const AUTO_REPLY_MAX_DELAY = 2500;
-const TYPING_MIN_DELAY = 800;
-const TYPING_MAX_DELAY = 700;
+const TYPING_MIN_DELAY = 500;
+const TYPING_MAX_DELAY = 800;
 
 const EMOJI_LIST = POPULAR_EMOJIS;
 
@@ -101,7 +101,6 @@ export function ChatView() {
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [partnerTyping, setPartnerTyping] = useState(false);
-  const _typingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const autoReplyTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -131,38 +130,36 @@ export function ChatView() {
     }
   }, [messages, partnerTyping]);
 
-  // Auto-reply simulation
+  // Auto-reply simulation — only triggers when the *latest* message is from current user
+  const lastMessage = messages.length > 0 ? messages[messages.length - 1] : null;
   useEffect(() => {
-    if (messages.length === 0 || !selectedMatch || !currentUser) return;
-    const lastMsg = messages[messages.length - 1];
-    // Only simulate reply if the last message is from current user and there's an odd number of messages
-    if (lastMsg.senderId === currentUser.id) {
-      const replyDelay = AUTO_REPLY_MIN_DELAY + Math.random() * AUTO_REPLY_MAX_DELAY;
-      // Show partner typing after 1 second
-      const typingDelay = TYPING_MIN_DELAY + Math.random() * TYPING_MAX_DELAY;
-      autoReplyTimerRef.current = setTimeout(() => {
-        setPartnerTyping(true);
-        // Send reply after typing
-        setTimeout(async () => {
-          setPartnerTyping(false);
-          const replyText = AUTO_REPLIES[Math.floor(Math.random() * AUTO_REPLIES.length)];
-          try {
-            const partnerId = selectedMatch.user1.id === currentUser.id ? selectedMatch.user2.id : selectedMatch.user1.id;
-            const res = await fetch('/api/messages', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ matchId: selectedMatch.id, senderId: partnerId, content: replyText }),
-            });
-            const msg = await res.json();
-            if (msg.id) addMessage(msg);
-          } catch { /* silent */ }
-        }, replyDelay - typingDelay);
-      }, typingDelay);
-    }
+    if (!lastMessage || !selectedMatch || !currentUser) return;
+    if (lastMessage.senderId !== currentUser.id) return;
+
+    const replyDelay = AUTO_REPLY_MIN_DELAY + Math.random() * AUTO_REPLY_MAX_DELAY;
+    const typingDelay = TYPING_MIN_DELAY + Math.random() * TYPING_MAX_DELAY;
+    autoReplyTimerRef.current = setTimeout(() => {
+      setPartnerTyping(true);
+      setTimeout(async () => {
+        setPartnerTyping(false);
+        const replyText = AUTO_REPLIES[Math.floor(Math.random() * AUTO_REPLIES.length)];
+        try {
+          const partnerId = selectedMatch.user1.id === currentUser.id ? selectedMatch.user2.id : selectedMatch.user1.id;
+          const res = await fetch('/api/messages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ matchId: selectedMatch.id, senderId: partnerId, content: replyText }),
+          });
+          const msg = await res.json();
+          if (msg.id) addMessage(msg);
+        } catch { /* silent */ }
+      }, replyDelay - typingDelay);
+    }, typingDelay);
     return () => {
       if (autoReplyTimerRef.current) clearTimeout(autoReplyTimerRef.current);
     };
-  }, [messages, selectedMatch, currentUser, addMessage]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lastMessage?.id]); // only re-run when the last message changes
 
   const sendMessage = async () => {
     if (!newMessage.trim() || !selectedMatch || !currentUser || sending) return;

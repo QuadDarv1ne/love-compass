@@ -168,7 +168,6 @@ export function AchievementsView() {
     dislikedUserIds,
     unlockedAchievements,
     unlockAchievement,
-    currentUser,
   } = useAppStore();
 
   // Track which achievements were already unlocked when we first mounted,
