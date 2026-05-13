@@ -172,6 +172,13 @@ interface AppState {
   setProfileVisible: (visible: boolean) => void;
   setShowOnlineStatus: (show: boolean) => void;
   setLanguage: (lang: string) => void;
+  loadSettings: () => Promise<void>;
+  saveSettings: (settings: {
+    notificationsEnabled?: boolean;
+    profileVisible?: boolean;
+    showOnlineStatus?: boolean;
+    language?: string;
+  }) => Promise<void>;
 
   // Achievements
   unlockAchievement: (id: string) => void;
@@ -211,6 +218,8 @@ const clearState = {
   showOnlineStatus: true,
   language: 'ru',
   unlockedAchievements: [],
+  showMatchAnimation: false,
+  matchAnimationPartner: null,
 };
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -253,7 +262,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   navigateTo: (view) => {
     const currentView = get().currentView;
-    const viewOrder: ViewType[] = ['browse', 'matches', 'likedYou', 'profile', 'chat'];
+    const viewOrder: ViewType[] = ['landing', 'browse', 'matches', 'likedYou', 'profile', 'chat', 'moments', 'top', 'achievements', 'settings'];
     const currentIdx = viewOrder.indexOf(currentView);
     const nextIdx = viewOrder.indexOf(view);
     const direction = nextIdx > currentIdx ? 'forward' : 'backward';
@@ -344,6 +353,18 @@ export const useAppStore = create<AppState>((set, get) => ({
               const blockedIds: string[] = blocks.map((b: { blockedId: string }) => b.blockedId);
               useAppStore.setState({ blockedUserIds: blockedIds });
             }
+
+            // Load user settings
+            const settingsRes = await fetch('/api/settings');
+            if (settingsRes.ok) {
+              const settings = await settingsRes.json();
+              set({
+                notificationEnabled: settings.notificationsEnabled ?? true,
+                profileVisible: settings.profileVisible ?? true,
+                showOnlineStatus: settings.showOnlineStatus ?? true,
+                language: settings.language ?? 'ru',
+              });
+            }
           } catch (error) {
             console.error('Failed to hydrate app data:', error);
           } finally {
@@ -415,10 +436,49 @@ export const useAppStore = create<AppState>((set, get) => ({
   profileVisible: true,
   showOnlineStatus: true,
   language: 'ru',
-  setNotificationEnabled: (enabled) => set({ notificationEnabled: enabled }),
-  setProfileVisible: (visible) => set({ profileVisible: visible }),
-  setShowOnlineStatus: (show) => set({ showOnlineStatus: show }),
-  setLanguage: (lang) => set({ language: lang }),
+  setNotificationEnabled: (enabled) => {
+    set({ notificationEnabled: enabled });
+    get().saveSettings({ notificationsEnabled: enabled });
+  },
+  setProfileVisible: (visible) => {
+    set({ profileVisible: visible });
+    get().saveSettings({ profileVisible: visible });
+  },
+  setShowOnlineStatus: (show) => {
+    set({ showOnlineStatus: show });
+    get().saveSettings({ showOnlineStatus: show });
+  },
+  setLanguage: (lang) => {
+    set({ language: lang });
+    get().saveSettings({ language: lang });
+  },
+  loadSettings: async () => {
+    try {
+      const res = await fetch('/api/settings');
+      if (res.ok) {
+        const settings = await res.json();
+        set({
+          notificationEnabled: settings.notificationsEnabled ?? true,
+          profileVisible: settings.profileVisible ?? true,
+          showOnlineStatus: settings.showOnlineStatus ?? true,
+          language: settings.language ?? 'ru',
+        });
+      }
+    } catch {
+      // Ignore errors
+    }
+  },
+  saveSettings: async (settings) => {
+    try {
+      await fetch('/api/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settings),
+      });
+    } catch {
+      // Ignore errors
+    }
+  },
 
   // Achievements
   unlockedAchievements: [],

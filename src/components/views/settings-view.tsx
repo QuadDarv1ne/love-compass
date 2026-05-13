@@ -240,6 +240,7 @@ export function SettingsView() {
     setShowOnlineStatus,
     language,
     setLanguage,
+    loadSettings,
   } = useAppStore();
 
   /* local notification sub‑toggles */
@@ -262,9 +263,11 @@ export function SettingsView() {
 
   useEffect(() => { setMounted(true); }, []);
 
-  /* helpers */
-  const handleSaveToast = () => toast.success('Настройки сохранены');
+  useEffect(() => {
+    loadSettings();
+  }, [loadSettings]);
 
+  /* helpers */
   const handleDisable2FA = async () => {
     if (disable2FACode.length !== 6) {
       toast.error('Введите 6-значный код');
@@ -434,10 +437,7 @@ export function SettingsView() {
                 label="Push-уведомления"
                 description="Получайте уведомления на устройстве"
                 checked={notificationEnabled}
-                onCheckedChange={(v) => {
-                  setNotificationEnabled(v);
-                  handleSaveToast();
-                }}
+                onCheckedChange={setNotificationEnabled}
               />
 
               <SettingRow
@@ -445,10 +445,7 @@ export function SettingsView() {
                 label="Звуки сообщений"
                 description="Воспроизводить звук при новом сообщении"
                 checked={soundEnabled}
-                onCheckedChange={(v) => {
-                  setSoundEnabled(v);
-                  handleSaveToast();
-                }}
+                onCheckedChange={setSoundEnabled}
               />
 
               <SettingRow
@@ -456,10 +453,7 @@ export function SettingsView() {
                 label="Уведомления о мэтчах"
                 description="Узнавайте, когда произойдёт совпадение"
                 checked={matchNotif}
-                onCheckedChange={(v) => {
-                  setMatchNotif(v);
-                  handleSaveToast();
-                }}
+                onCheckedChange={setMatchNotif}
               />
 
               <SettingRow
@@ -467,10 +461,7 @@ export function SettingsView() {
                 label="Уведомления о лайках"
                 description="Получайте уведомления о симпатиях"
                 checked={likeNotif}
-                onCheckedChange={(v) => {
-                  setLikeNotif(v);
-                  handleSaveToast();
-                }}
+                onCheckedChange={setLikeNotif}
               />
             </CardContent>
           </Card>
@@ -492,10 +483,7 @@ export function SettingsView() {
                 label="Показывать профиль"
                 description="Ваш профиль будет виден другим пользователям в поиске"
                 checked={profileVisible}
-                onCheckedChange={(v) => {
-                  setProfileVisible(v);
-                  handleSaveToast();
-                }}
+                onCheckedChange={setProfileVisible}
               />
 
               <SettingRow
@@ -503,10 +491,7 @@ export function SettingsView() {
                 label="Показывать статус онлайн"
                 description="Другие пользователи увидят, что вы сейчас в приложении"
                 checked={showOnlineStatus}
-                onCheckedChange={(v) => {
-                  setShowOnlineStatus(v);
-                  handleSaveToast();
-                }}
+                onCheckedChange={setShowOnlineStatus}
               />
 
               <SettingRow
@@ -514,10 +499,7 @@ export function SettingsView() {
                 label="Показывать расстояние"
                 description="Отображать расстояние до вас в других профилях"
                 checked={showDistance}
-                onCheckedChange={(v) => {
-                  setShowDistance(v);
-                  handleSaveToast();
-                }}
+                onCheckedChange={setShowDistance}
               />
             </CardContent>
           </Card>
