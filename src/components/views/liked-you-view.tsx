@@ -35,6 +35,7 @@ export function LikedYouView() {
     if (!currentUser) return;
     try {
       const res = await fetchWithCSRF('/api/like', { toUserId: profile.id });
+      if (!res.ok) throw new Error('Like back failed');
       const data = await res.json();
       if (data.isMutual) {
         toast.success(`Новый мэтч с ${profile.name}!`, {
@@ -48,9 +49,13 @@ export function LikedYouView() {
           description: 'Вы лайкнули в ответ',
         });
       }
-      // Remove from liked you list
-      setLikedYouProfiles(likedYouProfiles.filter(p => p.id !== profile.id));
-    } catch { console.error('Like back failed'); }
+      // Remove from liked you list only after success
+      const updated = likedYouProfiles.filter(p => p.id !== profile.id);
+      setLikedYouProfiles(updated);
+    } catch (error) {
+      toast.error('Не удалось ответить на лайк', { description: 'Попробуйте ещё раз' });
+      console.error('Like back failed:', error);
+    }
   };
 
   if (loading) {

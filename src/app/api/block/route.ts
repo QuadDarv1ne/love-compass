@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@/lib/db';
-import { requireAuth, requireAuthWithCSRF } from '@/lib/auth/guard';
+import { requireAuth, requireAuthWithCSRF, isZodError } from '@/lib/auth/guard';
 
 const blockSchema = z.object({
   blockedId: z.string().min(1),
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ block }, { status: 201 });
   } catch (error) {
-    if (error instanceof z.ZodError) {
+    if (isZodError(error)) {
       return NextResponse.json({ error: 'Validation failed', details: error.issues }, { status: 400 });
     }
     return NextResponse.json({ error: 'Failed to block user' }, { status: 500 });
@@ -78,7 +78,7 @@ export async function DELETE(request: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    if (error instanceof z.ZodError) {
+    if (isZodError(error)) {
       return NextResponse.json({ error: 'Validation failed', details: error.issues }, { status: 400 });
     }
     return NextResponse.json({ error: 'Failed to unblock user' }, { status: 500 });

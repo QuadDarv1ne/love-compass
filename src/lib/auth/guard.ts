@@ -3,6 +3,14 @@ import { getUserFromRequest } from './session';
 import { validateCSRFToken } from './csrf';
 import type { User } from '@prisma/client';
 
+/**
+ * Check if an error is a Zod validation error.
+ * Works with both Zod v3 and v4.
+ */
+export function isZodError(error: unknown): error is { name: 'ZodError'; issues: Array<{ message: string; path: (string | number)[] }> } {
+  return error instanceof Error && error.name === 'ZodError';
+}
+
 export async function requireAuth(
   request: Request
 ): Promise<{ user: User } | NextResponse> {

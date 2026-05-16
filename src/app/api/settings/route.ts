@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { z } from 'zod';
-import { requireAuth, requireAuthWithCSRF } from '@/lib/auth/guard';
+import { requireAuth, requireAuthWithCSRF, isZodError } from '@/lib/auth/guard';
 
 const updateSettingsSchema = z.object({
   notificationsEnabled: z.boolean().optional(),
@@ -60,7 +60,7 @@ export async function PUT(request: Request) {
 
     return NextResponse.json(updatedUser);
   } catch (error) {
-    if (error instanceof z.ZodError) {
+    if (isZodError(error)) {
       return NextResponse.json({ error: 'Validation failed', details: error.issues }, { status: 400 });
     }
     return NextResponse.json({ error: 'Failed to update settings' }, { status: 500 });

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { z } from 'zod';
-import { requireAuthWithCSRF } from '@/lib/auth/guard';
+import { requireAuthWithCSRF, isZodError } from '@/lib/auth/guard';
 
 const likeSchema = z.object({
   toUserId: z.string().min(1),
@@ -77,9 +77,60 @@ export async function POST(request: Request) {
 
     return NextResponse.json(result);
   } catch (error) {
-    if (error instanceof z.ZodError) {
+    if (isZodError(error)) {
       return NextResponse.json({ error: 'Validation failed', details: error.issues }, { status: 400 });
     }
     return NextResponse.json({ error: 'Failed to create like' }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const auth = await requireAuthWithCSRF(request);
+    if (auth instanceof NextResponse) return auth;
+
+    const { user } = auth;
+    const { searchParams } = new URL(request.url);
+    const toUserId = searchParams.get('toUserId');
+
+    if (!toUserId) {
+      return NextResponse.json({ error: 'Missing toUserId parameter' }, { status: 400 });
+    }
+
+    await db.$transaction(async (tx) => {
+      // Delete the like
+      await tx.like.deleteMany({
+        where: {
+          AND: [{ fromUserId: user.id }, { toUserId }],
+        },
+      });
+
+      // If a match exists, delete it too
+      const match = await tx.match.findFirst({
+        where: {
+          OR: [
+            { user1Id: user.id, user2Id: toUserId },
+            { user1Id: toUserId, user2Id: user.id },
+          ],
+        },
+      });
+
+      if (match) {
+        // Only delete match if the reverse like also doesn't exist
+        const reverseLike = await tx.like.findUnique({
+          where: { fromUserId_toUserId: { fromUserId: toUserId, toUserId: user.id } },
+        });
+        if (!reverseLike) {
+          await tx.match.delete({ where: { id: match.id } });
+        }
+      }
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    if (isZodError(error)) {
+      return NextResponse.json({ error: 'Validation failed', details: error.issues }, { status: 400 });
+    }
+    return NextResponse.json({ error: 'Failed to undo like' }, { status: 500 });
   }
 }

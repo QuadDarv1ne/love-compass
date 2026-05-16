@@ -8,7 +8,7 @@ import {
   Heart, X, Star, MapPin, SlidersHorizontal, Undo2, ShieldAlert, Flag,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { fetchWithCSRF } from '@/lib/api';
+import { fetchWithCSRF, deleteWithCSRF } from '@/lib/api';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { useAppStore, type User } from '@/lib/store';
@@ -229,6 +229,7 @@ export function BrowseView() {
 
     try {
       const res = await fetchWithCSRF('/api/like', { toUserId: profile.id });
+      if (!res.ok) throw new Error('Like failed');
       const data = await res.json();
       if (data.isMutual) {
         toast.success(`Новый мэтч с ${profile.name}!`, {
@@ -238,8 +239,14 @@ export function BrowseView() {
         setMatchAnimationPartner(profile);
         setTimeout(() => { setShowMatchAnimation(true); }, MATCH_ANIMATION_DELAY);
       }
-    } catch { console.error('Like failed'); }
-    setTimeout(() => removeProfile(profile.id), CARD_REMOVAL_DELAY);
+      setTimeout(() => removeProfile(profile.id), CARD_REMOVAL_DELAY);
+    } catch (error) {
+      // Rollback optimistic update
+      const newIds = useAppStore.getState().likedUserIds.filter((id) => id !== profile.id);
+      useAppStore.setState({ likedUserIds: newIds });
+      toast.error('Не удалось отправить лайк', { description: 'Попробуйте ещё раз' });
+      console.error('Like failed:', error);
+    }
   }, [currentUser, addLikedUserId, setMatchAnimationPartner, setShowMatchAnimation, removeProfile]);
 
   const handleDislike = useCallback((profile: User) => {
@@ -262,6 +269,7 @@ export function BrowseView() {
     setTimeout(() => { setShowSuperLike(false); }, SUPER_LIKE_DURATION);
     try {
       const res = await fetchWithCSRF('/api/like', { toUserId: profile.id });
+      if (!res.ok) throw new Error('Super Like failed');
       const data = await res.json();
       if (data.isMutual) {
         toast.success(`Новый мэтч с ${profile.name}!`, {
@@ -271,12 +279,31 @@ export function BrowseView() {
         setMatchAnimationPartner(profile);
         setTimeout(() => { setShowMatchAnimation(true); }, MATCH_ANIMATION_DELAY);
       }
-    } catch { console.error('Super Like failed'); }
-    setTimeout(() => removeProfile(profile.id), CARD_REMOVAL_DELAY);
+      setTimeout(() => removeProfile(profile.id), CARD_REMOVAL_DELAY);
+    } catch (error) {
+      // Rollback optimistic update
+      const state = useAppStore.getState();
+      const newLikeIds = state.likedUserIds.filter((id) => id !== profile.id);
+      const newSuperIds = state.superLikedUserIds.filter((id) => id !== profile.id);
+      useAppStore.setState({ likedUserIds: newLikeIds, superLikedUserIds: newSuperIds });
+      toast.error('Не удалось отправить супер-лайк', { description: 'Попробуйте ещё раз' });
+      console.error('Super Like failed:', error);
+    }
   }, [currentUser, addSuperLikedUserId, addLikedUserId, setMatchAnimationPartner, setShowMatchAnimation, removeProfile]);
 
-  const handleUndo = useCallback(() => {
+  const handleUndo = useCallback(async () => {
     if (!lastSwipedProfile || !lastSwipeAction) return;
+
+    // If it was a like or superLike, call API to delete it
+    if (lastSwipeAction === 'like' || lastSwipeAction === 'superLike') {
+      try {
+        await deleteWithCSRF(`/api/like?toUserId=${lastSwipedProfile.id}`, {});
+      } catch (error) {
+        toast.error('Не удалось отменить лайк', { description: 'Профиль восстановлен, но лайк остался' });
+        console.error('Undo like failed:', error);
+      }
+    }
+
     // Add profile back only if not already present (avoids duplicates with filters)
     const alreadyExists = profiles.some((p) => p.id === lastSwipedProfile.id);
     if (!alreadyExists) {
