@@ -40,7 +40,16 @@ export async function GET(request: Request) {
     });
 
     const profiles = await db.user.findMany({
-      where: { id: { not: user.id } },
+      where: {
+        id: { not: user.id },
+        profileVisible: true,
+        NOT: {
+          OR: [
+            { blockedBy: { some: { blockerId: user.id } } },
+            { blocked: { some: { blockedId: user.id } } },
+          ],
+        },
+      },
       select: profileSelect,
       take: pagination.limit + 1,
       cursor: pagination.cursor ? { id: pagination.cursor } : undefined,

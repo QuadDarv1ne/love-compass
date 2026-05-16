@@ -19,10 +19,11 @@ export async function getCSRFToken(): Promise<string> {
 /**
  * Perform a mutation request with CSRF token included.
  * Automatically fetches the token if not already cached.
+ * If the server returns 403, the token is invalidated and retried once.
  */
 export async function fetchWithCSRF(url: string, body: unknown): Promise<Response> {
   const token = await getCSRFToken();
-  return fetch(url, {
+  let res = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -30,6 +31,22 @@ export async function fetchWithCSRF(url: string, body: unknown): Promise<Respons
     },
     body: JSON.stringify(body),
   });
+
+  // If token is stale (403), invalidate cache and retry once
+  if (res.status === 403) {
+    csrfToken = null;
+    const freshToken = await getCSRFToken();
+    res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-csrf-token': freshToken,
+      },
+      body: JSON.stringify(body),
+    });
+  }
+
+  return res;
 }
 
 /**
@@ -37,7 +54,7 @@ export async function fetchWithCSRF(url: string, body: unknown): Promise<Respons
  */
 export async function putWithCSRF(url: string, body: unknown): Promise<Response> {
   const token = await getCSRFToken();
-  return fetch(url, {
+  let res = await fetch(url, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -45,6 +62,21 @@ export async function putWithCSRF(url: string, body: unknown): Promise<Response>
     },
     body: JSON.stringify(body),
   });
+
+  if (res.status === 403) {
+    csrfToken = null;
+    const freshToken = await getCSRFToken();
+    res = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-csrf-token': freshToken,
+      },
+      body: JSON.stringify(body),
+    });
+  }
+
+  return res;
 }
 
 /**
@@ -52,7 +84,7 @@ export async function putWithCSRF(url: string, body: unknown): Promise<Response>
  */
 export async function deleteWithCSRF(url: string, body: unknown): Promise<Response> {
   const token = await getCSRFToken();
-  return fetch(url, {
+  let res = await fetch(url, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',
@@ -60,6 +92,21 @@ export async function deleteWithCSRF(url: string, body: unknown): Promise<Respon
     },
     body: JSON.stringify(body),
   });
+
+  if (res.status === 403) {
+    csrfToken = null;
+    const freshToken = await getCSRFToken();
+    res = await fetch(url, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-csrf-token': freshToken,
+      },
+      body: JSON.stringify(body),
+    });
+  }
+
+  return res;
 }
 
 /**
@@ -67,7 +114,7 @@ export async function deleteWithCSRF(url: string, body: unknown): Promise<Respon
  */
 export async function patchWithCSRF(url: string, body: unknown): Promise<Response> {
   const token = await getCSRFToken();
-  return fetch(url, {
+  let res = await fetch(url, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
@@ -75,6 +122,21 @@ export async function patchWithCSRF(url: string, body: unknown): Promise<Respons
     },
     body: JSON.stringify(body),
   });
+
+  if (res.status === 403) {
+    csrfToken = null;
+    const freshToken = await getCSRFToken();
+    res = await fetch(url, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-csrf-token': freshToken,
+      },
+      body: JSON.stringify(body),
+    });
+  }
+
+  return res;
 }
 
 /**
@@ -96,10 +158,10 @@ export async function hydrateAppData() {
     const otherProfiles = currentUser ? allUsers.filter((u) => u.id !== currentUser.id) : allUsers;
     store.setProfiles(otherProfiles);
 
-    // Set online status (random ~40% for now)
-    const otherIds = otherProfiles.map((p) => p.id);
-    const shuffled = otherIds.sort(() => Math.random() - 0.5);
-    const onlineIds = shuffled.slice(0, Math.ceil(shuffled.length * 0.4));
+    // Set online status based on each user's showOnlineStatus preference
+    const onlineIds = otherProfiles
+      .filter((p) => p.showOnlineStatus)
+      .map((p) => p.id);
     store.setOnlineUserIds(onlineIds);
 
     // Fetch matches with messages
