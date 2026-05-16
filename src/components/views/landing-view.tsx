@@ -9,7 +9,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAppStore, type User } from '@/lib/store';
-import { hydrateAppData } from '@/lib/api';
 import { FloatingHearts } from './shared';
 import Link from 'next/link';
 
@@ -64,7 +63,6 @@ const DEMO_USERS = [
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
 
 export function LandingView() {
-  const { login } = useAppStore();
   const [loading, setLoading] = React.useState(false);
 
   const quickLogin = async (avatarIndex: number) => {
@@ -75,8 +73,15 @@ export function LandingView() {
       const users: User[] = body.data ?? body;
       const selectedUser = users[avatarIndex];
       if (selectedUser) {
-        login(selectedUser);
-        await hydrateAppData();
+        const loginRes = await fetch('/api/auth/demo-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: selectedUser.id }),
+        });
+        if (loginRes.ok) {
+          const { checkAuth } = useAppStore.getState();
+          await checkAuth();
+        }
       }
     } catch {
       console.error('Login failed');
