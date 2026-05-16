@@ -437,8 +437,6 @@ export const useAppStore = create<AppState>((set, get) => ({
   setLikedYouCount: (count) => set({ likedYouCount: count }),
 
   // Moments
-  moments: [],
-  currentMomentIndex: 0,
   setMoments: (moments) => set({ moments }),
   setCurrentMomentIndex: (index) => set({ currentMomentIndex: index }),
   addMoment: (moment) => set((state) => ({ moments: [moment, ...state.moments] })),

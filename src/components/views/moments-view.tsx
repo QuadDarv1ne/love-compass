@@ -783,8 +783,12 @@ export function MomentsView() {
         body: JSON.stringify({ id: momentId, action: 'like' }),
       });
     } catch {
-      // Revert on error
-      toggleFeedLike(momentId);
+      setLikedMomentIds((prev) => {
+        const next = new Set(prev);
+        if (next.has(momentId)) next.delete(momentId);
+        else next.add(momentId);
+        return next;
+      });
     }
   };
 
@@ -809,8 +813,19 @@ export function MomentsView() {
         body: JSON.stringify({ id: momentId, action: 'react', emoji }),
       });
     } catch {
-      // Revert on error
-      handleFeedReaction(momentId, emoji);
+      setMoments((prev) =>
+        prev.map((m) => {
+          if (m.id !== momentId) return m;
+          const currentCount = m.reactions[emoji] || 0;
+          return {
+            ...m,
+            reactions: {
+              ...m.reactions,
+              [emoji]: currentCount > 0 ? currentCount - 1 : (m.reactions[emoji] || 0) + 1,
+            },
+          };
+        })
+      );
     }
   };
 

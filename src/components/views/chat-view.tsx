@@ -140,19 +140,21 @@ export function ChatView() {
     const typingDelay = TYPING_MIN_DELAY + Math.random() * TYPING_MAX_DELAY;
     autoReplyTimerRef.current = setTimeout(() => {
       setPartnerTyping(true);
-      setTimeout(async () => {
+      setTimeout(() => {
         setPartnerTyping(false);
         const replyText = AUTO_REPLIES[Math.floor(Math.random() * AUTO_REPLIES.length)];
-        try {
-          const partnerId = selectedMatch.user1.id === currentUser.id ? selectedMatch.user2.id : selectedMatch.user1.id;
-          const res = await fetch('/api/messages', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ matchId: selectedMatch.id, senderId: partnerId, content: replyText }),
-          });
-          const msg = await res.json();
-          if (msg.id) addMessage(msg);
-        } catch { /* silent */ }
+        const partnerId = selectedMatch.user1.id === currentUser.id ? selectedMatch.user2.id : selectedMatch.user1.id;
+        const partnerName = selectedMatch.user1.id === currentUser.id ? selectedMatch.user2.name : selectedMatch.user1.name;
+        const partnerAvatar = selectedMatch.user1.id === currentUser.id ? selectedMatch.user2.avatar : selectedMatch.user1.avatar;
+        addMessage({
+          id: `auto-reply-${Date.now()}`,
+          matchId: selectedMatch.id,
+          senderId: partnerId,
+          sender: { id: partnerId, name: partnerName, avatar: partnerAvatar },
+          content: replyText,
+          read: false,
+          createdAt: new Date().toISOString(),
+        });
       }, replyDelay - typingDelay);
     }, typingDelay);
     return () => {

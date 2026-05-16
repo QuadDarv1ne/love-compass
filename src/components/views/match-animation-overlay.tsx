@@ -15,7 +15,7 @@ export function MatchAnimationOverlay() {
   const handleContinue = async () => {
     setShowMatchAnimation(false);
     if (currentUser) {
-      const res = await fetch(`/api/matches?userId=${currentUser.id}`);
+      const res = await fetch('/api/matches');
       const matches = await res.json();
       useAppStore.getState().setMatches(matches);
     }
@@ -25,7 +25,7 @@ export function MatchAnimationOverlay() {
   const handleSendMessage = async () => {
     setShowMatchAnimation(false);
     if (currentUser) {
-      const res = await fetch(`/api/matches?userId=${currentUser.id}`);
+      const res = await fetch('/api/matches');
       const matches = await res.json();
       useAppStore.getState().setMatches(matches);
       const latestMatch = matches[0];

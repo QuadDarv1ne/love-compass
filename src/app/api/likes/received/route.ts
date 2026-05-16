@@ -9,32 +9,42 @@ export async function GET(request: Request) {
 
     const { user } = auth;
 
+    // Get all users who liked the current user
     const receivedLikes = await db.like.findMany({
       where: {
         toUserId: user.id,
       },
-      include: {
-        fromUser: true,
-      },
-      orderBy: {
-        createdAt: 'desc',
+      select: {
+        fromUserId: true,
       },
     });
 
-    const pendingLikes: (typeof receivedLikes)[number]['fromUser'][] = [];
-    for (const like of receivedLikes) {
-      const reverseLike = await db.like.findUnique({
-        where: {
-          fromUserId_toUserId: {
-            fromUserId: user.id,
-            toUserId: like.fromUserId,
-          },
-        },
-      });
-      if (!reverseLike) {
-        pendingLikes.push(like.fromUser);
-      }
+    if (receivedLikes.length === 0) {
+      return NextResponse.json([]);
     }
+
+    const likedUserIds = receivedLikes.map((like) => like.fromUserId);
+
+    // Single query to find which of those users the current user has NOT liked back
+    const mutualLikes = await db.like.findMany({
+      where: {
+        fromUserId: user.id,
+        toUserId: { in: likedUserIds },
+      },
+      select: {
+        toUserId: true,
+      },
+    });
+
+    const mutualUserIds = new Set(mutualLikes.map((like) => like.toUserId));
+    const pendingUserIds = likedUserIds.filter((id) => !mutualUserIds.has(id));
+
+    // Fetch pending user profiles in a single query
+    const pendingLikes = await db.user.findMany({
+      where: {
+        id: { in: pendingUserIds },
+      },
+    });
 
     return NextResponse.json(pendingLikes);
   } catch {

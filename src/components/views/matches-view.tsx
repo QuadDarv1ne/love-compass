@@ -17,7 +17,7 @@ export function MatchesView() {
     const loadMatches = async () => {
       if (!currentUser) return;
       try {
-        const res = await fetch(`/api/matches?userId=${currentUser.id}`);
+        const res = await fetch('/api/matches');
         const data = await res.json();
         useAppStore.getState().setMatches(data);
 

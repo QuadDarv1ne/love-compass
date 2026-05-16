@@ -20,7 +20,7 @@ export function LikedYouView() {
     const loadLikedYou = async () => {
       if (!currentUser) return;
       try {
-        const res = await fetch(`/api/likes/received?userId=${currentUser.id}`);
+        const res = await fetch('/api/likes/received');
         const data = await res.json();
         setLikedYouProfiles(data);
         useAppStore.getState().setLikedYouCount(data.length);
