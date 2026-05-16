@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { z } from 'zod';
-import { requireAuth } from '@/lib/auth/guard';
+import { requireAuth, isZodError } from '@/lib/auth/guard';
 
 const querySchema = z.object({
   sort: z.enum(['popular', 'active', 'new']).default('popular'),
@@ -18,12 +18,11 @@ export async function GET(request: Request) {
       sort: searchParams.get('sort') || 'popular',
     });
 
-    // Fetch all users except current
+    // Fetch all visible users except current
     const users = await db.user.findMany({
-      where: { id: { not: user.id } },
+      where: { id: { not: user.id }, profileVisible: true },
       select: {
         id: true,
-        email: true,
         name: true,
         age: true,
         gender: true,
@@ -32,8 +31,6 @@ export async function GET(request: Request) {
         avatar: true,
         city: true,
         lookingFor: true,
-        emailVerified: true,
-        totpEnabled: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -46,7 +43,7 @@ export async function GET(request: Request) {
     });
     const likeMap = new Map(likeCounts.map((l) => [l.toUserId, l._count.toUserId]));
 
-    // Count matches per user
+    // Count matches per user (both user1 and user2 roles)
     const matchCounts = await db.match.groupBy({
       by: ['user1Id'],
       _count: { user1Id: true },
@@ -92,7 +89,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ data: ranked, sort });
   } catch (error) {
-    if (error instanceof z.ZodError) {
+    if (isZodError(error)) {
       return NextResponse.json({ error: 'Invalid query parameters', details: error.issues }, { status: 400 });
     }
     console.error('GET /api/leaderboard error:', error);

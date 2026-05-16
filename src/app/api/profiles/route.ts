@@ -1,12 +1,30 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { z } from 'zod';
-import { requireAuth } from '@/lib/auth/guard';
+import { requireAuth, isZodError } from '@/lib/auth/guard';
 
 const paginationSchema = z.object({
   cursor: z.string().optional(),
   limit: z.coerce.number().min(1).max(100).default(20),
 });
+
+// Fields safe to expose in public profiles
+const profileSelect = {
+  id: true,
+  name: true,
+  age: true,
+  gender: true,
+  bio: true,
+  interests: true,
+  avatar: true,
+  city: true,
+  lookingFor: true,
+  profileVisible: true,
+  showOnlineStatus: true,
+  language: true,
+  createdAt: true,
+  updatedAt: true,
+};
 
 export async function GET(request: Request) {
   try {
@@ -23,6 +41,7 @@ export async function GET(request: Request) {
 
     const profiles = await db.user.findMany({
       where: { id: { not: user.id } },
+      select: profileSelect,
       take: pagination.limit + 1,
       cursor: pagination.cursor ? { id: pagination.cursor } : undefined,
       orderBy: { createdAt: 'desc' },
@@ -39,7 +58,7 @@ export async function GET(request: Request) {
       nextCursor,
     });
   } catch (error) {
-    if (error instanceof z.ZodError) {
+    if (isZodError(error)) {
       return NextResponse.json({ error: 'Invalid query parameters', details: error.issues }, { status: 400 });
     }
     return NextResponse.json({ error: 'Failed to fetch profiles' }, { status: 500 });

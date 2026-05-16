@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { z } from 'zod';
-import { requireAuth, requireAuthWithCSRF } from '@/lib/auth/guard';
+import { requireAuth, requireAuthWithCSRF, isZodError } from '@/lib/auth/guard';
 
 const updateProfileSchema = z.object({
   name: z.string().min(1).max(100).optional(),
@@ -56,7 +56,7 @@ export async function PUT(request: Request) {
     const { passwordHash, ...safeUser } = updatedUser;
     return NextResponse.json(safeUser);
   } catch (error) {
-    if (error instanceof z.ZodError) {
+    if (isZodError(error)) {
       return NextResponse.json({ error: 'Validation failed', details: error.issues }, { status: 400 });
     }
     return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 });

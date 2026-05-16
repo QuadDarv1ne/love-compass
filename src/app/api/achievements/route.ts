@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { z } from 'zod';
-import { requireAuth, requireAuthWithCSRF } from '@/lib/auth/guard';
+import { requireAuth, requireAuthWithCSRF, isZodError } from '@/lib/auth/guard';
 
 const unlockSchema = z.object({
   achievementId: z.string(),
@@ -56,7 +56,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ data: achievement }, { status: 201 });
   } catch (error) {
-    if (error instanceof z.ZodError) {
+    if (isZodError(error)) {
       return NextResponse.json({ error: 'Invalid input', details: error.issues }, { status: 400 });
     }
     console.error('POST /api/achievements error:', error);

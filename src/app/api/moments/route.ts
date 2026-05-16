@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { z } from 'zod';
-import { requireAuth, requireAuthWithCSRF } from '@/lib/auth/guard';
+import { requireAuth, requireAuthWithCSRF, isZodError } from '@/lib/auth/guard';
 
 const createMomentSchema = z.object({
   content: z.string().min(1).max(200),
@@ -14,6 +14,13 @@ const commentSchema = z.object({
 
 const reactionSchema = z.object({
   emoji: z.string().min(1).max(4),
+});
+
+const actionSchema = z.object({
+  id: z.string(),
+  action: z.enum(['like', 'comment', 'react']),
+  emoji: z.string().optional(),
+  content: z.string().optional(),
 });
 
 export async function GET(request: Request) {
@@ -88,7 +95,12 @@ export async function POST(request: Request) {
 
     const { user } = auth;
     const body = await request.json();
-    const { content, gradient } = createMomentSchema.parse(body);
+    const result = createMomentSchema.safeParse(body);
+    if (!result.success) {
+      return NextResponse.json({ error: 'Invalid input', details: result.error.issues }, { status: 400 });
+    }
+
+    const { content, gradient } = result.data;
 
     const moment = await db.moment.create({
       data: {
@@ -100,7 +112,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ data: moment }, { status: 201 });
   } catch (error) {
-    if (error instanceof z.ZodError) {
+    if (isZodError(error)) {
       return NextResponse.json({ error: 'Invalid input', details: error.issues }, { status: 400 });
     }
     console.error('POST /api/moments error:', error);
@@ -115,12 +127,12 @@ export async function PATCH(request: Request) {
     if (auth instanceof NextResponse) return auth;
 
     const body = await request.json();
-    const { id, action, emoji, content } = z.object({
-      id: z.string(),
-      action: z.enum(['like', 'comment', 'react']),
-      emoji: z.string().optional(),
-      content: z.string().optional(),
-    }).parse(body);
+    const result = actionSchema.safeParse(body);
+    if (!result.success) {
+      return NextResponse.json({ error: 'Invalid input', details: result.error.issues }, { status: 400 });
+    }
+
+    const { id, action, emoji, content } = result.data;
 
     // Verify moment exists
     const moment = await db.moment.findUnique({ where: { id } });
@@ -140,13 +152,16 @@ export async function PATCH(request: Request) {
       if (!content) {
         return NextResponse.json({ error: 'Content is required for comment' }, { status: 400 });
       }
-      const { content: validatedContent } = commentSchema.parse({ content });
+      const commentResult = commentSchema.safeParse({ content });
+      if (!commentResult.success) {
+        return NextResponse.json({ error: 'Invalid input', details: commentResult.error.issues }, { status: 400 });
+      }
 
       const comment = await db.momentComment.create({
         data: {
           momentId: id,
           userId: auth.user.id,
-          content: validatedContent,
+          content: commentResult.data.content,
         },
         include: {
           user: { select: { id: true, name: true, avatar: true } },
@@ -169,11 +184,14 @@ export async function PATCH(request: Request) {
       if (!emoji) {
         return NextResponse.json({ error: 'Emoji is required for reaction' }, { status: 400 });
       }
-      const { emoji: validatedEmoji } = reactionSchema.parse({ emoji });
+      const reactionResult = reactionSchema.safeParse({ emoji });
+      if (!reactionResult.success) {
+        return NextResponse.json({ error: 'Invalid input', details: reactionResult.error.issues }, { status: 400 });
+      }
 
       // Upsert: toggle reaction
       const existing = await db.momentReaction.findUnique({
-        where: { momentId_userId_emoji: { momentId: id, userId: auth.user.id, emoji: validatedEmoji } },
+        where: { momentId_userId_emoji: { momentId: id, userId: auth.user.id, emoji: reactionResult.data.emoji } },
       });
 
       if (existing) {
@@ -185,7 +203,7 @@ export async function PATCH(request: Request) {
         data: {
           momentId: id,
           userId: auth.user.id,
-          emoji: validatedEmoji,
+          emoji: reactionResult.data.emoji,
         },
       });
 
@@ -194,7 +212,7 @@ export async function PATCH(request: Request) {
 
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
   } catch (error) {
-    if (error instanceof z.ZodError) {
+    if (isZodError(error)) {
       return NextResponse.json({ error: 'Invalid input', details: error.issues }, { status: 400 });
     }
     console.error('PATCH /api/moments error:', error);

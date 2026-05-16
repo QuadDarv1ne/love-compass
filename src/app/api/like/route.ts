@@ -91,7 +91,7 @@ export async function DELETE(request: Request) {
 
     const { user } = auth;
     const { searchParams } = new URL(request.url);
-    const toUserId = searchParams.get('toUserId');
+    const toUserId = searchParams.get('toUserId')?.trim();
 
     if (!toUserId) {
       return NextResponse.json({ error: 'Missing toUserId parameter' }, { status: 400 });
