@@ -25,7 +25,8 @@ export async function GET(request: Request) {
     });
 
     return NextResponse.json(matches);
-  } catch {
+  } catch (error) {
+    console.error('Failed to fetch matches:', error);
     return NextResponse.json({ error: 'Failed to fetch matches' }, { status: 500 });
   }
 }

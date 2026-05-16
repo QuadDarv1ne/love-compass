@@ -47,7 +47,8 @@ export async function GET(request: Request) {
     });
 
     return NextResponse.json(pendingLikes);
-  } catch {
+  } catch (error) {
+    console.error('Failed to fetch received likes:', error);
     return NextResponse.json({ error: 'Failed to fetch received likes' }, { status: 500 });
   }
 }
