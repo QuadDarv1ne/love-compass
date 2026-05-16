@@ -8,6 +8,7 @@ import {
   Heart, X, Star, MapPin, SlidersHorizontal, Undo2, ShieldAlert, Flag,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { fetchWithCSRF } from '@/lib/api';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { useAppStore, type User } from '@/lib/store';
@@ -227,11 +228,7 @@ export function BrowseView() {
     setTimeout(() => { setSwipeDir(null); setShowHeartBurst(false); }, ANIMATION_DURATION);
 
     try {
-      const res = await fetch('/api/like', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fromUserId: currentUser.id, toUserId: profile.id }),
-      });
+      const res = await fetchWithCSRF('/api/like', { toUserId: profile.id });
       const data = await res.json();
       if (data.isMutual) {
         toast.success(`Новый мэтч с ${profile.name}!`, {
@@ -264,11 +261,7 @@ export function BrowseView() {
     setLastSwipeAction('superLike');
     setTimeout(() => { setShowSuperLike(false); }, SUPER_LIKE_DURATION);
     try {
-      const res = await fetch('/api/like', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fromUserId: currentUser.id, toUserId: profile.id }),
-      });
+      const res = await fetchWithCSRF('/api/like', { toUserId: profile.id });
       const data = await res.json();
       if (data.isMutual) {
         toast.success(`Новый мэтч с ${profile.name}!`, {
@@ -520,31 +513,19 @@ export function BrowseView() {
               const state = useAppStore.getState();
               if (!state.currentUser) return;
               try {
-                await fetch('/api/block', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    blockerId: state.currentUser.id,
-                    blockedId: detailProfile.id,
-                    reason: 'Blocked from profile detail',
-                  }),
+                await fetchWithCSRF('/api/block', {
+                  blockedId: detailProfile.id,
+                  reason: 'Blocked from profile detail',
                 });
               } catch { /* silent fail — user is still blocked client-side */ }
               state.blockUser(detailProfile.id);
               toast.success(`${detailProfile.name} заблокирован(а)`, { description: 'Вы больше не увидите этого пользователя' });
             }}
             onReport={async () => {
-              const state = useAppStore.getState();
-              if (!state.currentUser) return;
               try {
-                await fetch('/api/report', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    reporterId: state.currentUser.id,
-                    reportedId: detailProfile.id,
-                    reason: 'Inappropriate behavior',
-                  }),
+                await fetchWithCSRF('/api/report', {
+                  reportedId: detailProfile.id,
+                  reason: 'Inappropriate behavior',
                 });
               } catch { /* silent fail */ }
               toast.info(`Жалоба на ${detailProfile.name} отправлена`, { description: 'Мы рассмотрим вашу жалобу' });

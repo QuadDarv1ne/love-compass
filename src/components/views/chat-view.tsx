@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAppStore, type Message } from '@/lib/store';
 import { OnlineIndicator, TypingIndicator } from './shared';
+import { fetchWithCSRF } from '@/lib/api';
 
 // ─── Auto Reply Phrases ──────────────────────────────────────────────────────
 const AUTO_REPLIES = [
@@ -170,11 +171,7 @@ export function ChatView() {
     setSending(true);
 
     try {
-      const res = await fetch('/api/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ matchId: selectedMatch.id, senderId: currentUser.id, content }),
-      });
+      const res = await fetchWithCSRF('/api/messages', { matchId: selectedMatch.id, content });
       const msg = await res.json();
       if (msg.id) addMessage(msg);
     } catch { console.error('Failed to send message'); }

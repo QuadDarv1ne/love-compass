@@ -11,6 +11,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAppStore, type User } from '@/lib/store';
 import { OnlineIndicator } from './shared';
+import { fetchWithCSRF } from '@/lib/api';
 
 export function LikedYouView() {
   const { currentUser, likedYouProfiles, setLikedYouProfiles, setShowMatchAnimation, setMatchAnimationPartner, navigateTo } = useAppStore();
@@ -33,11 +34,7 @@ export function LikedYouView() {
   const handleLikeBack = async (profile: User) => {
     if (!currentUser) return;
     try {
-      const res = await fetch('/api/like', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fromUserId: currentUser.id, toUserId: profile.id }),
-      });
+      const res = await fetchWithCSRF('/api/like', { toUserId: profile.id });
       const data = await res.json();
       if (data.isMutual) {
         toast.success(`Новый мэтч с ${profile.name}!`, {

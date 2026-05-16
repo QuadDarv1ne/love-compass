@@ -293,7 +293,8 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   logout: async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
+      const { fetchWithCSRF } = await import('@/lib/api');
+      await fetchWithCSRF('/api/auth/logout', {});
     } catch {
       // Ignore errors during logout
     }
@@ -483,11 +484,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
   saveSettings: async (settings) => {
     try {
-      await fetch('/api/settings', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(settings),
-      });
+      const { putWithCSRF } = await import('@/lib/api');
+      await putWithCSRF('/api/settings', settings);
     } catch {
       // Ignore errors
     }
@@ -499,11 +497,9 @@ export const useAppStore = create<AppState>((set, get) => ({
     set((state) => {
       if (state.unlockedAchievements.includes(id)) return state;
       // Fire and forget API call
-      fetch('/api/achievements', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ achievementId: id }),
-      }).catch(() => {});
+      import('@/lib/api').then(({ fetchWithCSRF }) => {
+        fetchWithCSRF('/api/achievements', { achievementId: id }).catch(() => {});
+      });
       return { unlockedAchievements: [...state.unlockedAchievements, id] };
     });
   },

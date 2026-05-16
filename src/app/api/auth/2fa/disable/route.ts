@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { requireAuth } from '@/lib/auth/guard';
+import { requireAuthWithCSRF } from '@/lib/auth/guard';
 import { verifyTOTP } from '@/lib/auth/totp';
 import { db } from '@/lib/db';
 
@@ -10,7 +10,7 @@ const disableSchema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const auth = await requireAuth(request);
+    const auth = await requireAuthWithCSRF(request);
     if (auth instanceof NextResponse) return auth;
 
     const { user } = auth;

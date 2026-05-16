@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@/lib/db';
-import { requireAuth } from '@/lib/auth/guard';
+import { requireAuthWithCSRF } from '@/lib/auth/guard';
 
 const reportSchema = z.object({
   reportedId: z.string().min(1),
@@ -11,7 +11,7 @@ const reportSchema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const auth = await requireAuth(request);
+    const auth = await requireAuthWithCSRF(request);
     if (auth instanceof NextResponse) return auth;
 
     const { user } = auth;

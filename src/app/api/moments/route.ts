@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { z } from 'zod';
-import { requireAuth } from '@/lib/auth/guard';
+import { requireAuth, requireAuthWithCSRF } from '@/lib/auth/guard';
 
 const createMomentSchema = z.object({
   content: z.string().min(1).max(200),
@@ -83,7 +83,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const auth = await requireAuth(request);
+    const auth = await requireAuthWithCSRF(request);
     if (auth instanceof NextResponse) return auth;
 
     const { user } = auth;
@@ -111,7 +111,7 @@ export async function POST(request: Request) {
 // Like a moment
 export async function PATCH(request: Request) {
   try {
-    const auth = await requireAuth(request);
+    const auth = await requireAuthWithCSRF(request);
     if (auth instanceof NextResponse) return auth;
 
     const body = await request.json();

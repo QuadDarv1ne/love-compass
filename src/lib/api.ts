@@ -1,5 +1,82 @@
 import { useAppStore, type User, type MatchWithUsers } from '@/lib/store';
 
+let csrfToken: string | null = null;
+
+/**
+ * Fetch a fresh CSRF token from the server.
+ * The token is cached for subsequent requests.
+ */
+export async function getCSRFToken(): Promise<string> {
+  if (csrfToken) return csrfToken;
+
+  const res = await fetch('/api/auth/csrf-token');
+  if (!res.ok) throw new Error('Failed to fetch CSRF token');
+  const data = await res.json();
+  csrfToken = data.csrfToken as string;
+  return csrfToken;
+}
+
+/**
+ * Perform a mutation request with CSRF token included.
+ * Automatically fetches the token if not already cached.
+ */
+export async function fetchWithCSRF(url: string, body: unknown): Promise<Response> {
+  const token = await getCSRFToken();
+  return fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-csrf-token': token,
+    },
+    body: JSON.stringify(body),
+  });
+}
+
+/**
+ * Perform a PUT mutation request with CSRF token included.
+ */
+export async function putWithCSRF(url: string, body: unknown): Promise<Response> {
+  const token = await getCSRFToken();
+  return fetch(url, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-csrf-token': token,
+    },
+    body: JSON.stringify(body),
+  });
+}
+
+/**
+ * Perform a DELETE mutation request with CSRF token included.
+ */
+export async function deleteWithCSRF(url: string, body: unknown): Promise<Response> {
+  const token = await getCSRFToken();
+  return fetch(url, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-csrf-token': token,
+    },
+    body: JSON.stringify(body),
+  });
+}
+
+/**
+ * Perform a PATCH mutation request with CSRF token included.
+ */
+export async function patchWithCSRF(url: string, body: unknown): Promise<Response> {
+  const token = await getCSRFToken();
+  return fetch(url, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-csrf-token': token,
+    },
+    body: JSON.stringify(body),
+  });
+}
+
 /**
  * Fetch all app data from API and populate the Zustand store.
  * Called once after successful login or registration.

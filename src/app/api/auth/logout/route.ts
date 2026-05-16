@@ -4,9 +4,15 @@ import {
   invalidateSession,
   deleteSessionCookie,
 } from '@/lib/auth/session';
+import { validateCSRFToken } from '@/lib/auth/csrf';
 
-export async function POST() {
+export async function POST(request: Request) {
   try {
+    const csrfValid = await validateCSRFToken(request);
+    if (!csrfValid) {
+      return NextResponse.json({ error: 'CSRF validation failed' }, { status: 403 });
+    }
+
     const token = await getSessionTokenFromCookie();
 
     if (token) {

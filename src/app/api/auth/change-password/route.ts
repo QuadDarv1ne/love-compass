@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@/lib/db';
 import { verifyPassword, hashPassword, validatePasswordStrength } from '@/lib/auth/password';
-import { requireAuth } from '@/lib/auth/guard';
+import { requireAuthWithCSRF } from '@/lib/auth/guard';
 import { invalidateAllUserSessions } from '@/lib/auth/session';
 
 const changePasswordSchema = z.object({
@@ -12,7 +12,7 @@ const changePasswordSchema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const auth = await requireAuth(request);
+    const auth = await requireAuthWithCSRF(request);
     if (auth instanceof NextResponse) return auth;
 
     const { user } = auth;

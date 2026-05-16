@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@/lib/db';
-import { requireAuth } from '@/lib/auth/guard';
+import { requireAuth, requireAuthWithCSRF } from '@/lib/auth/guard';
 
 const blockSchema = z.object({
   blockedId: z.string().min(1),
@@ -10,7 +10,7 @@ const blockSchema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const auth = await requireAuth(request);
+    const auth = await requireAuthWithCSRF(request);
     if (auth instanceof NextResponse) return auth;
 
     const { user } = auth;
@@ -63,7 +63,7 @@ export async function GET(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const auth = await requireAuth(request);
+    const auth = await requireAuthWithCSRF(request);
     if (auth instanceof NextResponse) return auth;
 
     const { user } = auth;

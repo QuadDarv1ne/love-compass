@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { putWithCSRF } from '@/lib/api';
 import {
   Select,
   SelectContent,
@@ -51,11 +52,7 @@ export function ProfileView() {
     if (!currentUser) return;
     setSaving(true);
     try {
-      const res = await fetch(`/api/profile?id=${currentUser.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, bio, city, interests, lookingFor }),
-      });
+      const res = await putWithCSRF(`/api/profile?id=${currentUser.id}`, { name, bio, city, interests, lookingFor });
       if (res.ok) {
         const updatedUser = await res.json();
         setCurrentUser(updatedUser);

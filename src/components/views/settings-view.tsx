@@ -48,6 +48,7 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useAppStore } from '@/lib/store';
 import { QRCodeCanvas } from 'qrcode.react';
+import { fetchWithCSRF, putWithCSRF } from '@/lib/api';
 
 /* ─── shared animation ────────────────────────────────────────── */
 const fadeUp = {
@@ -115,7 +116,7 @@ function TwoFASetupDialog({
   const handleSetup = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/auth/2fa/setup', { method: 'POST' });
+      const res = await fetchWithCSRF('/api/auth/2fa/setup', {});
       const data = await res.json();
       if (!res.ok) {
         toast.error(data.error);
@@ -135,11 +136,7 @@ function TwoFASetupDialog({
   const handleVerify = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/auth/2fa/enable', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: code }),
-      });
+      const res = await fetchWithCSRF('/api/auth/2fa/enable', { token: code });
       const data = await res.json();
       if (!res.ok) {
         toast.error(data.error);
@@ -275,11 +272,7 @@ export function SettingsView() {
     }
     setDisabling2FA(true);
     try {
-      const res = await fetch('/api/auth/2fa/disable', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: disable2FACode }),
-      });
+      const res = await fetchWithCSRF('/api/auth/2fa/disable', { token: disable2FACode });
       const data = await res.json();
       if (!res.ok) {
         toast.error(data.error);
@@ -303,11 +296,7 @@ export function SettingsView() {
     }
     setChangingPassword(true);
     try {
-      const res = await fetch('/api/auth/change-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ currentPassword, newPassword }),
-      });
+      const res = await fetchWithCSRF('/api/auth/change-password', { currentPassword, newPassword });
       const data = await res.json();
       if (!res.ok) {
         toast.error(data.error, { description: data.details?.join(', ') });
@@ -680,7 +669,7 @@ export function SettingsView() {
                   className="w-full justify-start gap-2 border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl"
                   onClick={async () => {
                     try {
-                      const res = await fetch('/api/auth/logout', { method: 'POST' });
+                      const res = await fetchWithCSRF('/api/auth/logout', {});
                       if (res.ok) {
                         logout();
                         toast.success('Вы вышли из аккаунта');
@@ -704,9 +693,7 @@ export function SettingsView() {
                     if (!confirmed) return;
 
                     try {
-                      const res = await fetch('/api/account', {
-                        method: 'DELETE',
-                      });
+                      const res = await fetchWithCSRF('/api/account', {});
                       if (!res.ok) {
                         const data = await res.json();
                         throw new Error(data.error || 'Failed to delete account');

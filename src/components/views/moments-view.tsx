@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/dialog';
 import { useAppStore, type Moment, type MomentComment } from '@/lib/store';
 import { OnlineIndicator } from './shared';
+import { fetchWithCSRF, patchWithCSRF } from '@/lib/api';
 
 // ─── Gradient Presets ────────────────────────────────────────────────────────
 const GRADIENT_PRESETS = [
@@ -738,11 +739,7 @@ export function MomentsView() {
   const handleCreateMoment = async (text: string, gradient: string) => {
     if (!currentUser) return;
     try {
-      const res = await fetch('/api/moments', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: text, gradient }),
-      });
+      const res = await fetchWithCSRF('/api/moments', { content: text, gradient });
       if (res.ok) {
         const { data } = await res.json();
         const newMoment: Moment = {
@@ -777,11 +774,7 @@ export function MomentsView() {
       return next;
     });
     try {
-      await fetch('/api/moments', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: momentId, action: 'like' }),
-      });
+      await patchWithCSRF('/api/moments', { id: momentId, action: 'like' });
     } catch {
       setLikedMomentIds((prev) => {
         const next = new Set(prev);
@@ -807,11 +800,7 @@ export function MomentsView() {
       })
     );
     try {
-      await fetch('/api/moments', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: momentId, action: 'react', emoji }),
-      });
+      await patchWithCSRF('/api/moments', { id: momentId, action: 'react', emoji });
     } catch {
       setMoments((prev) =>
         prev.map((m) => {

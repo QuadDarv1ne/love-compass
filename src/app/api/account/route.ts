@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { requireAuth } from '@/lib/auth/guard';
+import { requireAuthWithCSRF } from '@/lib/auth/guard';
 import { invalidateAllUserSessions, deleteSessionCookie, getSessionTokenFromCookie } from '@/lib/auth/session';
 
 export async function DELETE(request: Request) {
   try {
-    const auth = await requireAuth(request);
+    const auth = await requireAuthWithCSRF(request);
     if (auth instanceof NextResponse) return auth;
 
     const { user } = auth;
