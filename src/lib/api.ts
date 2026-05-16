@@ -143,8 +143,9 @@ export async function patchWithCSRF(url: string, body: unknown): Promise<Respons
  * Fetch all app data from API and populate the Zustand store.
  * Called once after successful login or registration.
  * Session cookie is sent automatically by the browser.
+ * @param user - Optional user object to use instead of store.currentUser (avoids race condition)
  */
-export async function hydrateAppData() {
+export async function hydrateAppData(user?: User) {
   const store = useAppStore.getState();
   store.setIsLoading(true);
 
@@ -154,7 +155,7 @@ export async function hydrateAppData() {
     if (!profilesRes.ok) throw new Error('Failed to fetch profiles');
     const profilesBody = await profilesRes.json();
     const allUsers: User[] = profilesBody.data ?? profilesBody;
-    const currentUser = store.currentUser;
+    const currentUser = user ?? store.currentUser;
     const otherProfiles = currentUser ? allUsers.filter((u) => u.id !== currentUser.id) : allUsers;
     store.setProfiles(otherProfiles);
 

@@ -466,16 +466,16 @@ export function BrowseView() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
               {/* Swipe labels during drag */}
               {dragX > SWIPE_LABEL_THRESHOLD && (
-                <div className="absolute top-8 left-6 bg-green-500 text-white px-4 py-2 rounded-lg text-xl font-bold transform -rotate-12 border-3 border-green-400 shadow-lg" style={{ opacity: Math.min(dragX / SWIPE_THRESHOLD, 1) }}>НРАВИТСЯ</div>
+                <div className="absolute top-8 left-6 bg-green-500 text-white px-4 py-2 rounded-lg text-xl font-bold transform -rotate-12 border-[3px] border-green-400 shadow-lg" style={{ opacity: Math.min(dragX / SWIPE_THRESHOLD, 1) }}>НРАВИТСЯ</div>
               )}
               {dragX < -SWIPE_LABEL_THRESHOLD && (
-                <div className="absolute top-8 right-6 bg-red-500 text-white px-4 py-2 rounded-lg text-xl font-bold transform rotate-12 border-3 border-red-400 shadow-lg" style={{ opacity: Math.min(Math.abs(dragX) / SWIPE_THRESHOLD, 1) }}>НЕТ</div>
+                <div className="absolute top-8 right-6 bg-red-500 text-white px-4 py-2 rounded-lg text-xl font-bold transform rotate-12 border-[3px] border-red-400 shadow-lg" style={{ opacity: Math.min(Math.abs(dragX) / SWIPE_THRESHOLD, 1) }}>НЕТ</div>
               )}
               {swipeDir === 'right' && (
-                <div className="absolute top-8 left-6 bg-green-500 text-white px-4 py-2 rounded-lg text-xl font-bold transform -rotate-12 border-3 border-green-400 shadow-lg">НРАВИТСЯ</div>
+                <div className="absolute top-8 left-6 bg-green-500 text-white px-4 py-2 rounded-lg text-xl font-bold transform -rotate-12 border-[3px] border-green-400 shadow-lg">НРАВИТСЯ</div>
               )}
               {swipeDir === 'left' && (
-                <div className="absolute top-8 right-6 bg-red-500 text-white px-4 py-2 rounded-lg text-xl font-bold transform rotate-12 border-3 border-red-400 shadow-lg">НЕТ</div>
+                <div className="absolute top-8 right-6 bg-red-500 text-white px-4 py-2 rounded-lg text-xl font-bold transform rotate-12 border-[3px] border-red-400 shadow-lg">НЕТ</div>
               )}
               <div className="absolute bottom-0 left-0 right-0 p-6">
                 <div className="flex items-end justify-between">
@@ -544,7 +544,9 @@ export function BrowseView() {
                   blockedId: detailProfile.id,
                   reason: 'Blocked from profile detail',
                 });
-              } catch { /* silent fail — user is still blocked client-side */ }
+              } catch (error) {
+                console.error('Failed to block user via API:', error);
+              }
               state.blockUser(detailProfile.id);
               toast.success(`${detailProfile.name} заблокирован(а)`, { description: 'Вы больше не увидите этого пользователя' });
             }}
@@ -554,7 +556,9 @@ export function BrowseView() {
                   reportedId: detailProfile.id,
                   reason: 'Inappropriate behavior',
                 });
-              } catch { /* silent fail */ }
+              } catch (error) {
+                console.error('Failed to submit report via API:', error);
+              }
               toast.info(`Жалоба на ${detailProfile.name} отправлена`, { description: 'Мы рассмотрим вашу жалобу' });
             }}
           />

@@ -299,8 +299,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     try {
       const { fetchWithCSRF } = await import('@/lib/api');
       await fetchWithCSRF('/api/auth/logout', {});
-    } catch {
-      // Ignore errors during logout
+    } catch (error) {
+      console.error('Logout API call failed:', error);
     }
     set({ ...clearState, authStatus: 'unauthenticated' });
   },
@@ -317,14 +317,15 @@ export const useAppStore = create<AppState>((set, get) => ({
             authStatus: 'authenticated',
             currentView: 'browse',
           });
-          // Hydrate app data using the shared utility
+          // Hydrate app data using the user from response directly
+          // to avoid race condition with Zustand state update
           const { hydrateAppData } = await import('@/lib/api');
-          await hydrateAppData();
+          await hydrateAppData(data.user);
           return;
         }
       }
-    } catch {
-      // Ignore errors
+    } catch (error) {
+      console.error('checkAuth failed:', error);
     }
     set({ authStatus: 'unauthenticated', currentView: 'landing' });
   },
@@ -412,16 +413,16 @@ export const useAppStore = create<AppState>((set, get) => ({
           language: settings.language ?? 'ru',
         });
       }
-    } catch {
-      // Ignore errors
+    } catch (error) {
+      console.error('Failed to load settings:', error);
     }
   },
   saveSettings: async (settings) => {
     try {
       const { putWithCSRF } = await import('@/lib/api');
       await putWithCSRF('/api/settings', settings);
-    } catch {
-      // Ignore errors
+    } catch (error) {
+      console.error('Failed to save settings:', error);
     }
   },
 
@@ -432,7 +433,9 @@ export const useAppStore = create<AppState>((set, get) => ({
       if (state.unlockedAchievements.includes(id)) return state;
       // Fire and forget API call
       import('@/lib/api').then(({ fetchWithCSRF }) => {
-        fetchWithCSRF('/api/achievements', { achievementId: id }).catch(() => {});
+        fetchWithCSRF('/api/achievements', { achievementId: id }).catch((error) => {
+          console.error('Failed to unlock achievement:', error);
+        });
       });
       return { unlockedAchievements: [...state.unlockedAchievements, id] };
     });
