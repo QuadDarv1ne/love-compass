@@ -14,29 +14,37 @@ export function MatchesView() {
   const [localLoading, setLocalLoading] = useState(true);
 
   useEffect(() => {
+    if (!currentUser) return;
+    let cancelled = false;
     const loadMatches = async () => {
-      if (!currentUser) return;
       try {
         const res = await fetch('/api/matches');
         const data = await res.json();
-        useAppStore.getState().setMatches(data);
+        if (!cancelled) {
+          useAppStore.getState().setMatches(data);
 
-        // Detect unread: matches that have messages where sender is not current user
-        const unreadIds: string[] = [];
-        for (const match of data) {
-          if (match.messages && match.messages.length > 0) {
-            const lastMsg = match.messages[0];
-            if (lastMsg.senderId !== currentUser.id) {
-              unreadIds.push(match.id);
+          // Detect unread: matches that have messages where sender is not current user
+          const unreadIds: string[] = [];
+          for (const match of data) {
+            if (match.messages && match.messages.length > 0) {
+              const lastMsg = match.messages[0];
+              if (lastMsg.senderId !== currentUser.id) {
+                unreadIds.push(match.id);
+              }
             }
           }
+          useAppStore.getState().setUnreadMatchIds(unreadIds);
         }
-        useAppStore.getState().setUnreadMatchIds(unreadIds);
-      } catch { console.error('Failed to load matches'); }
-      setLocalLoading(false);
+      } catch (error) {
+        if (!cancelled) console.error('Failed to load matches:', error);
+      }
+      if (!cancelled) setLocalLoading(false);
     };
     loadMatches();
-  }, [currentUser]);
+    return () => { cancelled = true; };
+    // currentUser is used as a guard — only the stable .id is needed for re-trigger
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser?.id]);
 
   const getPartner = (match: MatchWithUsers): User => {
     return match.user1.id === currentUser?.id ? match.user2 : match.user1;

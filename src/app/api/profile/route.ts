@@ -11,6 +11,25 @@ const updateProfileSchema = z.object({
   lookingFor: z.enum(['all', 'male', 'female']).optional(),
 });
 
+// Fields safe to expose in profiles
+const profileSelect = {
+  id: true,
+  name: true,
+  age: true,
+  gender: true,
+  bio: true,
+  interests: true,
+  avatar: true,
+  city: true,
+  lookingFor: true,
+  emailVerified: true,
+  profileVisible: true,
+  showOnlineStatus: true,
+  language: true,
+  createdAt: true,
+  updatedAt: true,
+};
+
 export async function GET(request: Request) {
   try {
     const auth = await requireAuth(request);
@@ -25,15 +44,16 @@ export async function GET(request: Request) {
 
     const user = await db.user.findUnique({
       where: { id: targetId },
+      select: profileSelect,
     });
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const { passwordHash: _passwordHash, ...safeUser } = user;
-    return NextResponse.json(safeUser);
-  } catch {
+    return NextResponse.json(user);
+  } catch (error) {
+    console.error('Failed to fetch profile:', error);
     return NextResponse.json({ error: 'Failed to fetch profile' }, { status: 500 });
   }
 }

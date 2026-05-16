@@ -18,18 +18,26 @@ export function LikedYouView() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!currentUser) return;
+    let cancelled = false;
     const loadLikedYou = async () => {
-      if (!currentUser) return;
       try {
         const res = await fetch('/api/likes/received');
         const data = await res.json();
-        setLikedYouProfiles(data);
-        useAppStore.getState().setLikedYouCount(data.length);
-      } catch { console.error('Failed to load liked you'); }
-      setLoading(false);
+        if (!cancelled) {
+          setLikedYouProfiles(data);
+          useAppStore.getState().setLikedYouCount(data.length);
+        }
+      } catch (error) {
+        if (!cancelled) console.error('Failed to load liked you:', error);
+      }
+      if (!cancelled) setLoading(false);
     };
     loadLikedYou();
-  }, [currentUser, setLikedYouProfiles]);
+    return () => { cancelled = true; };
+    // currentUser is used as a guard — only the stable .id is needed for re-trigger
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser?.id, setLikedYouProfiles]);
 
   const handleLikeBack = async (profile: User) => {
     if (!currentUser) return;

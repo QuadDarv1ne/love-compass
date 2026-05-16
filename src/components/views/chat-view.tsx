@@ -88,19 +88,25 @@ export function ChatView() {
 
   useEffect(() => {
     if (!selectedMatch) return;
+    let cancelled = false;
     const loadMessages = async () => {
       try {
         const res = await fetch(`/api/messages?matchId=${selectedMatch.id}`);
         if (!res.ok) throw new Error('Failed to load messages');
         const data = await res.json();
-        setMessages(data);
-      } catch { console.error('Failed to load messages'); }
+        if (!cancelled) setMessages(data);
+      } catch (error) {
+        if (!cancelled) console.error('Failed to load messages:', error);
+      }
     };
     loadMessages();
-    // Cleanup auto-reply timer on match change
-    if (autoReplyTimerRef.current) clearTimeout(autoReplyTimerRef.current);
-    return () => { if (autoReplyTimerRef.current) clearTimeout(autoReplyTimerRef.current); };
-  }, [selectedMatch, setMessages]);
+    return () => {
+      cancelled = true;
+      if (autoReplyTimerRef.current) clearTimeout(autoReplyTimerRef.current);
+    };
+    // selectedMatch is used as a guard — only the stable .id is needed for re-trigger
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedMatch?.id, setMessages]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -110,36 +116,47 @@ export function ChatView() {
 
   // Auto-reply simulation — only triggers when the *latest* message is from current user
   const lastMessage = messages.length > 0 ? messages[messages.length - 1] : null;
+  const lastMessageRef = useRef<Message | null>(null);
+  lastMessageRef.current = lastMessage;
+
   useEffect(() => {
     if (!lastMessage || !selectedMatch || !currentUser) return;
     if (lastMessage.senderId !== currentUser.id) return;
 
     const replyDelay = AUTO_REPLY_MIN_DELAY + Math.random() * AUTO_REPLY_MAX_DELAY;
     const typingDelay = TYPING_MIN_DELAY + Math.random() * TYPING_MAX_DELAY;
+
+    const matchId = selectedMatch.id;
     autoReplyTimerRef.current = setTimeout(() => {
+      // Verify the message is still the latest (user didn't switch chats)
+      const currentLast = lastMessageRef.current;
+      if (!currentLast || currentLast.id !== lastMessage.id || currentLast.senderId === currentUser.id) return;
+
       setPartnerTyping(true);
-      setTimeout(async () => {
+      setTimeout(() => {
         setPartnerTyping(false);
-        try {
-          const res = await fetch('/api/messages/auto-reply', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ matchId: selectedMatch.id }),
+        fetch('/api/messages/auto-reply', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ matchId }),
+        })
+          .then((res) => (res.ok ? res.json() : null))
+          .then((msg) => {
+            if (msg) addMessage(msg);
+          })
+          .catch((error) => {
+            console.error('Failed to send auto-reply:', error);
           });
-          if (res.ok) {
-            const msg = await res.json();
-            addMessage(msg);
-          }
-        } catch {
-          console.error('Failed to send auto-reply');
-        }
       }, replyDelay - typingDelay);
     }, typingDelay);
     return () => {
       if (autoReplyTimerRef.current) clearTimeout(autoReplyTimerRef.current);
     };
+    // Intentionally not including lastMessage, selectedMatch, currentUser here —
+    // we only want to trigger a new auto-reply cycle when the message ID changes.
+    // Stable values are captured via refs inside the effect.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lastMessage?.id]); // only re-run when the last message changes
+  }, [lastMessage?.id, addMessage]);
 
   const sendMessage = async () => {
     if (!newMessage.trim() || !selectedMatch || !currentUser || sending) return;
@@ -151,7 +168,9 @@ export function ChatView() {
       const res = await fetchWithCSRF('/api/messages', { matchId: selectedMatch.id, content });
       const msg = await res.json();
       if (msg.id) addMessage(msg);
-    } catch { console.error('Failed to send message'); }
+    } catch (error) {
+      console.error('Failed to send message:', error);
+    }
     setSending(false);
     inputRef.current?.focus();
   };

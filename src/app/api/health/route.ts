@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { db } from "@/lib/db";
 
 export async function GET() {
   const health: {
@@ -16,12 +17,9 @@ export async function GET() {
     version: process.env.npm_package_version || "0.2.0",
   };
 
-  // Check database connection
+  // Check database connection using the shared singleton
   try {
-    const { PrismaClient } = await import("@prisma/client");
-    const prisma = new PrismaClient();
-    await prisma.$queryRaw`SELECT 1`;
-    await prisma.$disconnect();
+    await db.$queryRaw`SELECT 1`;
     health.database = "connected";
   } catch {
     health.database = "disconnected";

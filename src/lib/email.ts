@@ -7,6 +7,8 @@ const resend = process.env.RESEND_API_KEY
 const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
 const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
+const isDev = process.env.NODE_ENV !== 'production';
+
 export async function sendVerificationEmail(
   email: string,
   token: string
@@ -14,7 +16,9 @@ export async function sendVerificationEmail(
   const verificationUrl = `${appUrl}/verify-email?token=${token}`;
 
   if (!resend) {
-    console.log(`\n[EMAIL] Verification link for ${email}: ${verificationUrl}\n`);
+    if (isDev) {
+      console.log(`\n[EMAIL] Verification link for ${email}: ${verificationUrl}\n`);
+    }
     return;
   }
 
@@ -46,7 +50,9 @@ export async function sendPasswordResetEmail(
   const resetUrl = `${appUrl}/reset-password?token=${token}`;
 
   if (!resend) {
-    console.log(`\n[EMAIL] Password reset link for ${email}: ${resetUrl}\n`);
+    if (isDev) {
+      console.log(`\n[EMAIL] Password reset link for ${email}: ${resetUrl}\n`);
+    }
     return;
   }
 
@@ -76,7 +82,9 @@ export async function sendWelcomeEmail(
   name: string
 ): Promise<void> {
   if (!resend) {
-    console.log(`\n[EMAIL] Welcome email for ${name} (${email})\n`);
+    if (isDev) {
+      console.log(`\n[EMAIL] Welcome email for ${name} (${email})\n`);
+    }
     return;
   }
 
