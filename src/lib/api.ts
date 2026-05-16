@@ -132,6 +132,32 @@ export async function hydrateAppData() {
       const blockedIds: string[] = blocks.map((b: { blockedId: string }) => b.blockedId);
       useAppStore.setState({ blockedUserIds: blockedIds });
     }
+
+    // Fetch moments
+    const momentsRes = await fetch('/api/moments');
+    if (momentsRes.ok) {
+      const { data: momentsData } = await momentsRes.json();
+      useAppStore.setState({ moments: momentsData ?? [] });
+    }
+
+    // Fetch achievements
+    const achievementsRes = await fetch('/api/achievements');
+    if (achievementsRes.ok) {
+      const { unlocked } = await achievementsRes.json();
+      useAppStore.setState({ unlockedAchievements: unlocked ?? [] });
+    }
+
+    // Load user settings
+    const settingsRes = await fetch('/api/settings');
+    if (settingsRes.ok) {
+      const settings = await settingsRes.json();
+      useAppStore.setState({
+        notificationEnabled: settings.notificationsEnabled ?? true,
+        profileVisible: settings.profileVisible ?? true,
+        showOnlineStatus: settings.showOnlineStatus ?? true,
+        language: settings.language ?? 'ru',
+      });
+    }
   } catch (error) {
     console.error('Failed to hydrate app data:', error);
   } finally {

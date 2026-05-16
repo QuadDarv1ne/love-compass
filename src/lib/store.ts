@@ -313,79 +313,9 @@ export const useAppStore = create<AppState>((set, get) => ({
             authStatus: 'authenticated',
             currentView: 'browse',
           });
-          // Hydrate app data
-          const store = useAppStore.getState();
-          store.setIsLoading(true);
-
-          try {
-            const profilesRes = await fetch('/api/profiles?limit=100');
-            if (profilesRes.ok) {
-              const profilesBody = await profilesRes.json();
-              const allUsers: User[] = profilesBody.data ?? profilesBody;
-              const otherProfiles = allUsers.filter((u) => u.id !== data.user.id);
-              store.setProfiles(otherProfiles);
-
-              const otherIds = otherProfiles.map((p) => p.id);
-              const shuffled = otherIds.sort(() => Math.random() - 0.5);
-              const onlineIds = shuffled.slice(0, Math.ceil(shuffled.length * 0.4));
-              store.setOnlineUserIds(onlineIds);
-            }
-
-            const matchesRes = await fetch('/api/matches');
-            if (matchesRes.ok) {
-              const matches: MatchWithUsers[] = await matchesRes.json();
-              store.setMatches(matches);
-            }
-
-            const likedYouRes = await fetch('/api/likes/received');
-            if (likedYouRes.ok) {
-              const likedYouUsers: User[] = await likedYouRes.json();
-              store.setLikedYouProfiles(likedYouUsers);
-            }
-
-            const likeSentRes = await fetch('/api/likes/sent');
-            if (likeSentRes.ok) {
-              const likes: { toUserId: string }[] = await likeSentRes.json();
-              for (const like of likes) {
-                store.addLikedUserId(like.toUserId);
-              }
-            }
-
-            const blockedRes = await fetch('/api/block');
-            if (blockedRes.ok) {
-              const { blocks } = await blockedRes.json();
-              const blockedIds: string[] = blocks.map((b: { blockedId: string }) => b.blockedId);
-              useAppStore.setState({ blockedUserIds: blockedIds });
-            }
-
-            const momentsRes = await fetch('/api/moments');
-            if (momentsRes.ok) {
-              const { data: momentsData } = await momentsRes.json();
-              useAppStore.setState({ moments: momentsData ?? [] });
-            }
-
-            const achievementsRes = await fetch('/api/achievements');
-            if (achievementsRes.ok) {
-              const { unlocked } = await achievementsRes.json();
-              useAppStore.setState({ unlockedAchievements: unlocked ?? [] });
-            }
-
-            // Load user settings
-            const settingsRes = await fetch('/api/settings');
-            if (settingsRes.ok) {
-              const settings = await settingsRes.json();
-              set({
-                notificationEnabled: settings.notificationsEnabled ?? true,
-                profileVisible: settings.profileVisible ?? true,
-                showOnlineStatus: settings.showOnlineStatus ?? true,
-                language: settings.language ?? 'ru',
-              });
-            }
-          } catch (error) {
-            console.error('Failed to hydrate app data:', error);
-          } finally {
-            store.setIsLoading(false);
-          }
+          // Hydrate app data using the shared utility
+          const { hydrateAppData } = await import('@/lib/api');
+          await hydrateAppData();
           return;
         }
       }
