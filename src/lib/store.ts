@@ -258,6 +258,9 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   likedYouProfiles: [],
 
+  moments: [],
+  currentMomentIndex: 0,
+
   setView: (view) => set({ currentView: view }),
 
   navigateTo: (view) => {

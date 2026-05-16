@@ -21,44 +21,37 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Cannot like yourself' }, { status: 400 });
     }
 
-    // Check if like already exists
-    const existingLike = await db.like.findUnique({
-      where: {
-        fromUserId_toUserId: {
-          fromUserId,
-          toUserId,
+    // Execute all operations in a transaction to prevent race conditions
+    const result = await db.$transaction(async (tx) => {
+      // Check if like already exists
+      const existingLike = await tx.like.findUnique({
+        where: {
+          fromUserId_toUserId: { fromUserId, toUserId },
         },
-      },
-    });
+      });
 
-    if (existingLike) {
-      return NextResponse.json({ message: 'Already liked' });
-    }
+      if (existingLike) {
+        return { like: existingLike, match: null, isMutual: false };
+      }
 
-    // Create the like
-    const like = await db.like.create({
-      data: { fromUserId, toUserId },
-    });
+      // Create the like
+      const like = await tx.like.create({
+        data: { fromUserId, toUserId },
+      });
 
-    // Check if there is a reverse like (mutual like)
-    const reverseLike = await db.like.findUnique({
-      where: {
-        fromUserId_toUserId: {
-          fromUserId: toUserId,
-          toUserId: fromUserId,
+      // Check if there is a reverse like (mutual like)
+      const reverseLike = await tx.like.findUnique({
+        where: {
+          fromUserId_toUserId: { fromUserId: toUserId, toUserId: fromUserId },
         },
-      },
-    });
+      });
 
-    let match: {
-      id: string;
-      createdAt: Date;
-      user1Id: string;
-      user2Id: string;
-    } | null = null;
+      if (!reverseLike) {
+        return { like, match: null, isMutual: false };
+      }
 
-    if (reverseLike) {
-      const existingMatch = await db.match.findFirst({
+      // Check for existing match
+      const existingMatch = await tx.match.findFirst({
         where: {
           OR: [
             { user1Id: fromUserId, user2Id: toUserId },
@@ -67,19 +60,22 @@ export async function POST(request: Request) {
         },
       });
 
-      if (!existingMatch) {
-        match = await db.match.create({
-          data: {
-            user1Id: fromUserId < toUserId ? fromUserId : toUserId,
-            user2Id: fromUserId < toUserId ? toUserId : fromUserId,
-          },
-        });
-      } else {
-        match = existingMatch;
+      if (existingMatch) {
+        return { like, match: existingMatch, isMutual: true };
       }
-    }
 
-    return NextResponse.json({ like, match, isMutual: !!match });
+      // Create new match (consistent ordering by ID)
+      const match = await tx.match.create({
+        data: {
+          user1Id: fromUserId < toUserId ? fromUserId : toUserId,
+          user2Id: fromUserId < toUserId ? toUserId : fromUserId,
+        },
+      });
+
+      return { like, match, isMutual: true };
+    });
+
+    return NextResponse.json(result);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: 'Validation failed', details: error.issues }, { status: 400 });

@@ -277,7 +277,7 @@ export function TopView() {
   // Find current user rank
   const currentUserRank = useMemo(() => {
     if (!currentUser) return null;
-    const idx = sortedUsers.findIndex((r) => r.user.id === currentUser.id);
+    const idx = sortedUsers.findIndex((r) => r.id === currentUser.id);
     if (idx === -1) return null;
     return {
       rank: idx + 1,
@@ -539,7 +539,7 @@ function LeaderboardContent({
               }
               return (
                 <PodiumCard
-                  key={`${scoreLabel}-${ranked.user.id}-${place}`}
+                  key={`${scoreLabel}-${ranked.id}-${place}`}
                   ranked={ranked}
                   place={place}
                   delay={0.1 + idx * 0.15}
@@ -562,7 +562,7 @@ function LeaderboardContent({
                 <AnimatePresence mode="popLayout">
                   {rest.map((ranked, idx) => (
                     <RankedListRow
-                      key={`${scoreLabel}-${ranked.user.id}`}
+                      key={`${scoreLabel}-${ranked.id}`}
                       ranked={ranked}
                       rank={idx + 4}
                       index={idx}
