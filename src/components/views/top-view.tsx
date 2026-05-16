@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, Crown, TrendingUp, UserPlus, MapPin, Sparkles } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -11,41 +11,11 @@ import { Progress } from '@/components/ui/progress';
 import { useAppStore, type User } from '@/lib/store';
 import { OnlineIndicator } from './shared';
 
-// ─── Seeded PRNG (deterministic per user id) ─────────────────────────────────
-function seededRandom(seed: string): number {
-  let hash = 0;
-  for (let i = 0; i < seed.length; i++) {
-    const chr = seed.charCodeAt(i);
-    hash = ((hash << 5) - hash) + chr;
-    hash |= 0;
-  }
-  // Simple LCG
-  let s = Math.abs(hash) || 1;
-  for (let i = 0; i < 5; i++) {
-    s = (s * 16807) % 2147483647;
-  }
-  return (s - 1) / 2147483646;
-}
-
-interface RankedUser {
-  user: User;
+interface RankedUser extends User {
   popularityScore: number;
   activityScore: number;
-}
-
-function generateRankings(profiles: User[], matches: { user1Id: string; user2Id: string }[]): RankedUser[] {
-  return profiles.map((user) => {
-    const r1 = seededRandom(user.id + 'pop');
-    const r2 = seededRandom(user.id + 'act');
-    const matchCount = matches.filter(
-      (m) => m.user1Id === user.id || m.user2Id === user.id
-    ).length;
-
-    const popularityScore = Math.floor(10 + r1 * 490);
-    const activityScore = popularityScore + matchCount * 50 + Math.floor(r2 * 200);
-
-    return { user, popularityScore, activityScore };
-  });
+  matchCount: number;
+  likesReceived: number;
 }
 
 type SortKey = 'popular' | 'active' | 'new';
@@ -60,10 +30,7 @@ function sortUsers(ranked: RankedUser[], sortKey: SortKey): RankedUser[] {
       sorted.sort((a, b) => b.activityScore - a.activityScore);
       break;
     case 'new':
-      sorted.sort(
-        (a, b) =>
-          new Date(b.user.createdAt).getTime() - new Date(a.user.createdAt).getTime()
-      );
+      sorted.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       break;
   }
   return sorted;
@@ -88,8 +55,7 @@ function PodiumCard({
   place: 1 | 2 | 3;
   delay: number;
 }) {
-  const { user, popularityScore } = ranked;
-  const isCurrent = useAppStore((s) => s.currentUser?.id === user.id);
+  const isCurrent = useAppStore((s) => s.currentUser?.id === ranked.id);
 
   const medals: Record<1 | 2 | 3, { emoji: string; label: string }> = {
     1: { emoji: '🥇', label: '1 место' },
@@ -140,12 +106,12 @@ function PodiumCard({
         <div className="flex justify-center mb-3">
           <div className={`relative ${isFirst ? 'w-20 h-20' : 'w-16 h-16'}`}>
             <Avatar className={`${isFirst ? 'w-20 h-20' : 'w-16 h-16'} border-2 border-white dark:border-gray-800 shadow-md`}>
-              <AvatarImage src={user.avatar} alt={user.name} />
+              <AvatarImage src={ranked.avatar} alt={ranked.name} />
               <AvatarFallback className="bg-rose-100 dark:bg-rose-900 text-rose-600 dark:text-rose-300">
-                {user.name.charAt(0)}
+                {ranked.name.charAt(0)}
               </AvatarFallback>
             </Avatar>
-            <OnlineIndicator userId={user.id} size="md" />
+            <OnlineIndicator userId={ranked.id} size="md" />
           </div>
         </div>
 
@@ -153,12 +119,12 @@ function PodiumCard({
         <h3
           className={`font-bold text-gray-800 dark:text-gray-100 truncate ${isFirst ? 'text-lg' : 'text-base'}`}
         >
-          {user.name}
+          {ranked.name}
         </h3>
-        {user.city && (
+        {ranked.city && (
           <p className="text-xs text-gray-600 dark:text-gray-300 truncate flex items-center justify-center gap-1 mt-0.5">
             <MapPin className="w-3 h-3 flex-shrink-0" />
-            {user.city}
+            {ranked.city}
           </p>
         )}
 
@@ -166,7 +132,7 @@ function PodiumCard({
         <div className="flex items-center justify-center gap-1 mt-2">
           <Heart className="w-4 h-4 text-rose-500 fill-rose-500" />
           <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">
-            {popularityScore}
+            {ranked.popularityScore}
           </span>
         </div>
 
@@ -204,9 +170,8 @@ function RankedListRow({
   scoreLabel: string;
   scoreValue: number;
 }) {
-  const { user } = ranked;
   const currentUserId = useAppStore((s) => s.currentUser?.id);
-  const isCurrent = currentUserId === user.id;
+  const isCurrent = currentUserId === ranked.id;
 
   return (
     <motion.div
@@ -235,29 +200,29 @@ function RankedListRow({
       {/* Avatar */}
       <div className="relative flex-shrink-0">
         <Avatar className="w-10 h-10 border border-rose-100 dark:border-rose-800">
-          <AvatarImage src={user.avatar} alt={user.name} />
+          <AvatarImage src={ranked.avatar} alt={ranked.name} />
           <AvatarFallback className="bg-rose-100 dark:bg-rose-900 text-rose-600 dark:text-rose-300 text-xs">
-            {user.name.charAt(0)}
+            {ranked.name.charAt(0)}
           </AvatarFallback>
         </Avatar>
-        <OnlineIndicator userId={user.id} />
+        <OnlineIndicator userId={ranked.id} />
       </div>
 
       {/* Info */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">
-          <span className="text-sm font-semibold truncate">{user.name}</span>
-          <span className="text-xs text-muted-foreground">{user.age}</span>
+          <span className="text-sm font-semibold truncate">{ranked.name}</span>
+          <span className="text-xs text-muted-foreground">{ranked.age}</span>
           {isCurrent && (
             <Badge className="bg-rose-500 text-white text-[10px] px-1.5 py-0 h-4">
               Вы
             </Badge>
           )}
         </div>
-        {user.city && (
+        {ranked.city && (
           <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
             <MapPin className="w-3 h-3 flex-shrink-0" />
-            {user.city}
+            {ranked.city}
           </p>
         )}
       </div>
@@ -281,24 +246,29 @@ function RankedListRow({
 
 // ─── Main Component ─────────────────────────────────────────────────────────
 export function TopView() {
-  const { profiles, currentUser, matches } = useAppStore();
+  const { currentUser } = useAppStore();
   const [activeTab, setActiveTab] = useState<SortKey>('popular');
+  const [leaderboardData, setLeaderboardData] = useState<RankedUser[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Simulate brief loading
-  React.useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 600);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const allRanked = useMemo(
-    () => generateRankings(profiles, matches),
-    [profiles, matches]
-  );
+  // Fetch leaderboard data from API
+  useEffect(() => {
+    setLoading(true);
+    fetch(`/api/leaderboard?sort=${activeTab}`)
+      .then((r) => r.json())
+      .then(({ data }) => {
+        setLeaderboardData(data ?? []);
+        setLoading(false);
+      })
+      .catch(() => {
+        setLeaderboardData([]);
+        setLoading(false);
+      });
+  }, [activeTab]);
 
   const sortedUsers = useMemo(
-    () => sortUsers(allRanked, activeTab),
-    [allRanked, activeTab]
+    () => sortUsers(leaderboardData, activeTab),
+    [leaderboardData, activeTab]
   );
 
   const top3 = sortedUsers.slice(0, 3);
@@ -363,7 +333,7 @@ export function TopView() {
   }
 
   // ─── Empty State ──────────────────────────────────────────────────────────
-  if (profiles.length === 0) {
+  if (leaderboardData.length === 0 && !loading) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center px-4 py-12">
         <motion.div

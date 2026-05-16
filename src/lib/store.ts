@@ -354,6 +354,18 @@ export const useAppStore = create<AppState>((set, get) => ({
               useAppStore.setState({ blockedUserIds: blockedIds });
             }
 
+            const momentsRes = await fetch('/api/moments');
+            if (momentsRes.ok) {
+              const { data: momentsData } = await momentsRes.json();
+              useAppStore.setState({ moments: momentsData ?? [] });
+            }
+
+            const achievementsRes = await fetch('/api/achievements');
+            if (achievementsRes.ok) {
+              const { unlocked } = await achievementsRes.json();
+              useAppStore.setState({ unlockedAchievements: unlocked ?? [] });
+            }
+
             // Load user settings
             const settingsRes = await fetch('/api/settings');
             if (settingsRes.ok) {
@@ -482,8 +494,16 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   // Achievements
   unlockedAchievements: [],
-  unlockAchievement: (id) => set((state) => {
-    if (state.unlockedAchievements.includes(id)) return state;
-    return { unlockedAchievements: [...state.unlockedAchievements, id] };
-  }),
+  unlockAchievement: (id) => {
+    set((state) => {
+      if (state.unlockedAchievements.includes(id)) return state;
+      // Fire and forget API call
+      fetch('/api/achievements', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ achievementId: id }),
+      }).catch(() => {});
+      return { unlockedAchievements: [...state.unlockedAchievements, id] };
+    });
+  },
 }));

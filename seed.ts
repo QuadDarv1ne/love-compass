@@ -6,16 +6,6 @@ const prisma = new PrismaClient();
 const DEFAULT_PASSWORD = 'Test1234!';
 
 async function main() {
-  // Clear existing data
-  await prisma.message.deleteMany();
-  await prisma.match.deleteMany();
-  await prisma.like.deleteMany();
-  await prisma.block.deleteMany();
-  await prisma.report.deleteMany();
-  await prisma.session.deleteMany();
-  await prisma.rateLimit.deleteMany();
-  await prisma.user.deleteMany();
-
   const passwordHash = await hashPassword(DEFAULT_PASSWORD);
 
   const users = [
@@ -298,10 +288,15 @@ async function main() {
   ];
 
   for (const user of users) {
-    await prisma.user.create({ data: user });
+    await prisma.user.upsert({
+      where: { email: user.email },
+      update: {},
+      create: user,
+    });
   }
 
-  console.warn(`✅ Создано ${users.length} пользователей`);
+  const totalUsers = await prisma.user.count();
+  console.warn(`✅ ${totalUsers} пользователей в базе`);
   console.warn(`🔑 Пароль для входа: ${DEFAULT_PASSWORD}`);
 }
 

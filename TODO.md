@@ -8,20 +8,20 @@
 - [ ] **Secure API routes** — All endpoints accept arbitrary `userId` without validation. Any user can act as any other. Add session-based auth checks to every route
 - [ ] **Защитить API-маршруты** — Все эндпоинты принимают произвольный `userId` без проверки. Любой пользователь может действовать от имени другого. Добавить проверку сессии в каждый маршрут
 
-- [ ] **Add input validation** — Use Zod (already installed) to validate all request bodies on API routes. Currently raw JSON is consumed with minimal checks
-- [ ] **Добавить валидацию входных данных** — Использовать Zod (уже установлен) для валидации всех тел запросов на API-маршрутах. Сейчас сырой JSON принимается с минимальными проверками
+- [x] **Add input validation** — Zod validation used on all API routes with requireAuth guards
+- [x] **Добавить валидацию входных данных** — Zod используется во всех API-маршрутах с requireAuth
 
-- [ ] **Fix avatar images** — Avatars reference non-existent files (`/avatar-woman1.jpg` etc.). Either add actual images to `public/` or use placeholder services
-- [ ] **Починить аватары** — Аватары ссылаются на несуществующие файлы (`/avatar-woman1.jpg` и т.д.). Либо добавить реальные изображения в `public/`, либо использовать placeholder-сервисы
+- [x] **Fix avatar images** — Using DiceBear SVG API, all avatars load correctly
+- [x] **Починить аватары** — Используются SVG с DiceBear API, все аватары загружаются корректно
 
-- [ ] **Enable ESLint** — `eslint.config.mjs` disables every rule. Restore standard rules for code quality
-- [ ] **Включить ESLint** — `eslint.config.mjs` отключает все правила. Восстановить стандартные правила для контроля качества кода
+- [x] **Enable ESLint** — ESLint extends next/core-web-vitals and typescript with sensible rules
+- [x] **Включить ESLint** — ESLint расширяет next/core-web-vitals и typescript с разумными правилами
 
 - [ ] **Remove build error suppression** — `next.config.ts` has `ignoreBuildErrors: true`. Fix underlying issues instead
 - [ ] **Убрать подавление ошибок сборки** — `next.config.ts` имеет `ignoreBuildErrors: true`. Вместо этого исправить underlying проблемы
 
-- [ ] **Fix `.env` path** — `DATABASE_URL` uses hardcoded Linux path (`/home/z/my-project/db/custom.db`). Won't work on Windows/macOS. Use relative path
-- [ ] **Починить путь в `.env`** — `DATABASE_URL` использует захардкоженный Linux-путь (`/home/z/my-project/db/custom.db`). Не работает на Windows/macOS. Использовать относительный путь
+- [x] **Fix `.env` path** — `DATABASE_URL` already uses relative path `file:./db/custom.db`
+- [x] **Починить путь в `.env`** — `DATABASE_URL` уже использует относительный путь `file:./db/custom.db`
 
 ## High Priority
 
@@ -31,11 +31,11 @@
 - [ ] **Add image upload** — Create endpoint for profile photo uploads. Add gallery support (multiple photos per profile)
 - [ ] **Добавить загрузку изображений** — Создать эндпоинт для загрузки фото профиля. Добавить поддержку галереи (несколько фото на профиль)
 
-- [ ] **Build Moments/Top backend** — Moments and Leaderboard use entirely hardcoded client-side data. Create DB models (`Moment`, `Reaction`, `Comment`) and API routes
-- [ ] **Сделать бэкенд для Moments/Top** — Моменты и Лидерборд используют полностью захардкоженные клиентские данные. Создать модели БД (`Moment`, `Reaction`, `Comment`) и API-маршруты
+- [x] **Build Moments/Top backend** — Moments have full CRUD API (`/api/moments` GET/POST/PATCH), Leaderboard API (`/api/leaderboard`) with real scores from likes/matches
+- [x] **Сделать бэкенд для Moments/Top** — Moments имеют полный CRUD API (`/api/moments`), Leaderboard API (`/api/leaderboard`) с реальными scores
 
-- [ ] **Persist achievements** — Achievements track Zustand state only (lost on refresh). Add DB model and sync with server
-- [ ] **Сохранять достижения** — Достижения хранятся только в Zustand (теряются при перезагрузке). Добавить модель БД и синхронизацию с сервером
+- [x] **Persist achievements** — Achievements synced to DB via `UserAchievement` model and `/api/achievements` endpoint
+- [x] **Сохранять достижения** — Достижения синхронизируются с БД через модель `UserAchievement` и эндпоинт `/api/achievements`
 
 - [ ] **Hydrate client state from DB** — Page refresh loses all client state (likedUserIds, matches, etc.). Re-fetch from API on mount/login
 - [ ] **Восстанавливать клиентское состояние из БД** — Перезагрузка страницы теряет всё клиентское состояние (лайкнутые ID, матчи и т.д.). Повторно загрузить из API при монтировании/входе
@@ -46,8 +46,8 @@
 - [ ] **Implement notifications** — Settings has toggles but no actual notification service. Add web push, email, or in-app notification system
 - [ ] **Реализовать уведомления** — В настройках есть переключатели, но нет настоящего сервиса уведомлений. Добавить web push, email или встроенную систему уведомлений
 
-- [ ] **Add pagination** — `/api/profiles` returns ALL users at once. Implement cursor-based or offset pagination
-- [ ] **Добавить пагинацию** — `/api/profiles` возвращает ВСЕХ пользователей сразу. Реализовать курсорную или offset-пагинацию
+- [x] **Add pagination** — `/api/profiles` already has cursor-based pagination with `cursor` and `limit` params
+- [x] **Добавить пагинацию** — `/api/profiles` уже имеет курсорную пагинацию с параметрами `cursor` и `limit`
 
 - [ ] **Enable TypeScript strictness** — `noImplicitAny: false` in tsconfig. Fix types and enable strict mode
 - [ ] **Включить строгий TypeScript** — `noImplicitAny: false` в tsconfig. Исправить типы и включить строгий режим
@@ -84,14 +84,14 @@
 - [ ] **Add super-like API** — Super likes use same `/api/like` endpoint. Add separate endpoint with daily limit tracking
 - [ ] **Добавить API для супер-лайков** — Супер-лайки используют тот же эндпоинт `/api/like`. Добавить отдельный эндпоинт с дневным лимитом
 
-- [ ] **Fix `Message.read` mismatch** — TypeScript interface has `read` field but Prisma schema doesn't. Add to schema or remove from types
-- [ ] **Починить несоответствие `Message.read`** — Интерфейс TypeScript имеет поле `read`, но схема Prisma — нет. Добавить в схему или убрать из типов
+- [x] **Fix `Message.read` mismatch** — Already exists in Prisma schema as `read Boolean @default(false)`
+- [x] **Починить несоответствие `Message.read`** — Уже существует в схеме Prisma как `read Boolean @default(false)`
 
-- [ ] **Remove unused dependencies** — Clean up: `@dnd-kit/*`, `@mdxeditor/editor`, `recharts`, `react-syntax-highlighter`, `react-resizable-panels`, `z-ai-web-dev-sdk`, `input-otp`, `react-day-picker`, `cmdk`
-- [ ] **Удалить неиспользуемые зависимости** — Очистить: `@dnd-kit/*`, `@mdxeditor/editor`, `recharts`, `react-syntax-highlighter`, `react-resizable-panels`, `z-ai-web-dev-sdk`, `input-otp`, `react-day-picker`, `cmdk`
+- [x] **Remove unused dependencies** — All unused deps already removed from package.json
+- [x] **Удалить неиспользуемые зависимости** — Все неиспользуемые зависимости уже удалены из package.json
 
-- [ ] **Delete dead code** — `use-toast.ts` is unused (sonner is used instead). Remove or replace
-- [ ] **Удалить мёртвый код** — `use-toast.ts` не используется (везде используется sonner). Удалить или заменить
+- [x] **Delete dead code** — `use-toast.ts` already removed; sonner used everywhere
+- [x] **Удалить мёртвый код** — `use-toast.ts` уже удалён; sonner используется везде
 
 - [ ] **Fix race conditions** — Multiple `useEffect` hooks call `useAppStore.getState()` leading to stale state. Refactor to proper Zustand patterns
 - [ ] **Починить race conditions** — Несколько `useEffect` хуков вызывают `useAppStore.getState()`, что приводит к устаревшему состоянию. Рефакторинг на правильные паттерны Zustand
@@ -102,8 +102,8 @@
 - [ ] **Fix memory leaks** — `setTimeout`/`setInterval` in overlays and views may not be cleaned up properly
 - [ ] **Починить утечки памяти** — `setTimeout`/`setInterval` в оверлеях и представлениях могут не очищаться корректно
 
-- [ ] **Add idempotency to seed** — `seed.ts` deletes all data before re-seeding, destroying real data. Add check or flag
-- [ ] **Добавить идемпотентность в seed** — `seed.ts` удаляет все данные перед повторным заполнением, уничтожая реальные данные. Добавить проверку или флаг
+- [x] **Add idempotency to seed** — `seed.ts` uses `upsert` by email, won't destroy existing data
+- [x] **Добавить идемпотентность в seed** — `seed.ts` использует `upsert` по email, не уничтожает существующие данные
 
 - [ ] **Standardize error handling** — Mix of `console.error`, silent failures, and no catch. Use consistent error reporting
 - [ ] **Стандартизировать обработку ошибок** — Смесь `console.error`, тихих падений и отсутствия catch. Использовать единый стиль обработки ошибок

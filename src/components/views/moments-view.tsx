@@ -695,8 +695,7 @@ function MomentFeedCard({
 
 // ─── Moments View ────────────────────────────────────────────────────────────
 export function MomentsView() {
-  const { currentUser } = useAppStore();
-  const [isLoading, setIsLoading] = useState(true);
+  const { currentUser, moments: storeMoments, setMoments: setStoreMoments, addMoment: addStoreMoment } = useAppStore();
   const [moments, setMoments] = useState<Moment[]>([]);
   const [showStoryViewer, setShowStoryViewer] = useState(false);
   const [storyStartIndex, setStoryStartIndex] = useState(0);
@@ -704,14 +703,20 @@ export function MomentsView() {
   const [dialogKey, setDialogKey] = useState(0);
   const [likedMomentIds, setLikedMomentIds] = useState<Set<string>>(new Set());
 
-  // Simulate loading
+  // Fetch moments from API
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setMoments(SEED_MOMENTS);
-      setIsLoading(false);
-    }, 800);
-    return () => clearTimeout(timer);
-  }, []);
+    if (storeMoments.length > 0) {
+      setMoments(storeMoments);
+      return;
+    }
+    fetch('/api/moments')
+      .then((r) => r.json())
+      .then(({ data }) => {
+        setMoments(data ?? []);
+        setStoreMoments(data ?? []);
+      })
+      .catch(() => setMoments([]));
+  }, [storeMoments, setStoreMoments]);
 
   // Unique users for stories row
   const storyUsers = getUniqueUsersFromMoments(moments);
@@ -730,26 +735,38 @@ export function MomentsView() {
     setCreateDialogOpen(true);
   };
 
-  const handleCreateMoment = (text: string, gradient: string) => {
+  const handleCreateMoment = async (text: string, gradient: string) => {
     if (!currentUser) return;
-    const newMoment: Moment = {
-      id: `moment-new-${Date.now()}`,
-      userId: currentUser.id,
-      userName: currentUser.name,
-      userAvatar: currentUser.avatar || 'https://api.dicebear.com/9.x/notionists/svg?seed=Default',
-      content: text,
-      gradient,
-      createdAt: new Date().toISOString(),
-      likes: 0,
-      comments: [],
-      reactions: {},
-    };
-    setMoments((prev) => [newMoment, ...prev]);
-    setLikedMomentIds(new Set());
-    toast.success('Момент опубликован!');
+    try {
+      const res = await fetch('/api/moments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: text, gradient }),
+      });
+      if (res.ok) {
+        const { data } = await res.json();
+        const newMoment: Moment = {
+          id: data.id,
+          userId: data.userId,
+          userName: currentUser.name,
+          userAvatar: currentUser.avatar || 'https://api.dicebear.com/9.x/notionists/svg?seed=Default',
+          content: data.content,
+          gradient: data.gradient,
+          createdAt: data.createdAt,
+          likes: data.likes,
+          comments: [],
+          reactions: {},
+        };
+        setMoments((prev) => [newMoment, ...prev]);
+        addStoreMoment(newMoment);
+        toast.success('Момент опубликован!');
+      }
+    } catch {
+      toast.error('Не удалось опубликовать момент');
+    }
   };
 
-  const toggleFeedLike = (momentId: string) => {
+  const toggleFeedLike = async (momentId: string) => {
     setLikedMomentIds((prev) => {
       const next = new Set(prev);
       if (next.has(momentId)) {
@@ -759,36 +776,43 @@ export function MomentsView() {
       }
       return next;
     });
+    try {
+      await fetch('/api/moments', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: momentId, action: 'like' }),
+      });
+    } catch {
+      // Revert on error
+      toggleFeedLike(momentId);
+    }
   };
 
-  const handleFeedReaction = (momentId: string, emoji: string) => {
+  const handleFeedReaction = async (momentId: string, emoji: string) => {
     setMoments((prev) =>
       prev.map((m) => {
         if (m.id !== momentId) return m;
+        const currentCount = m.reactions[emoji] || 0;
         return {
           ...m,
           reactions: {
             ...m.reactions,
-            [emoji]: (m.reactions[emoji] || 0) + 1,
+            [emoji]: currentCount > 0 ? currentCount - 1 : (m.reactions[emoji] || 0) + 1,
           },
         };
       })
     );
+    try {
+      await fetch('/api/moments', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: momentId, action: 'react', emoji }),
+      });
+    } catch {
+      // Revert on error
+      handleFeedReaction(momentId, emoji);
+    }
   };
-
-  // ─── Loading State ────────────────────────────────────────────────────────
-  if (isLoading) {
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-        >
-          <Heart className="w-10 h-10 text-rose-400" />
-        </motion.div>
-      </div>
-    );
-  }
 
   // ─── Empty State ──────────────────────────────────────────────────────────
   if (moments.length === 0) {

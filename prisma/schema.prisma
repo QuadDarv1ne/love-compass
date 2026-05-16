@@ -45,6 +45,10 @@ model User {
   reportedBy             Report[]   @relation("ReportedBy")
   reported               Report[]   @relation("Reported")
   sessions               Session[]
+  moments                Moment[]   @relation("UserMoments")
+  momentComments         MomentComment[] @relation("UserMomentComments")
+  momentReactions        MomentReaction[] @relation("UserMomentReactions")
+  achievements           UserAchievement[]
 }
 
 model Like {
@@ -126,4 +130,56 @@ model RateLimit {
 
   @@index([key])
   @@index([resetAt])
+}
+
+model Moment {
+  id         String   @id @default(cuid())
+  userId     String
+  content    String
+  gradient   String   @default("from-rose-400 to-pink-500")
+  likes      Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation("UserMoments", fields: [userId], references: [id], onDelete: Cascade)
+  comments   MomentComment[]
+  reactions  MomentReaction[]
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model MomentComment {
+  id         String   @id @default(cuid())
+  momentId   String
+  userId     String
+  content    String
+  createdAt  DateTime @default(now())
+  moment     Moment   @relation(fields: [momentId], references: [id], onDelete: Cascade)
+  user       User     @relation("UserMomentComments", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([momentId])
+}
+
+model MomentReaction {
+  id         String   @id @default(cuid())
+  momentId   String
+  userId     String
+  emoji      String
+  createdAt  DateTime @default(now())
+  moment     Moment   @relation(fields: [momentId], references: [id], onDelete: Cascade)
+  user       User     @relation("UserMomentReactions", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([momentId, userId, emoji])
+  @@index([momentId])
+}
+
+model UserAchievement {
+  id             String   @id @default(cuid())
+  userId         String
+  achievementId  String
+  unlockedAt     DateTime @default(now())
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+  @@index([userId])
 }

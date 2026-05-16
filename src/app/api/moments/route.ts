@@ -1,0 +1,203 @@
+import { NextResponse } from 'next/server';
+import { db } from '@/lib/db';
+import { z } from 'zod';
+import { requireAuth } from '@/lib/auth/guard';
+
+const createMomentSchema = z.object({
+  content: z.string().min(1).max(200),
+  gradient: z.string().default('from-rose-400 to-pink-500'),
+});
+
+const commentSchema = z.object({
+  content: z.string().min(1).max(500),
+});
+
+const reactionSchema = z.object({
+  emoji: z.string().min(1).max(4),
+});
+
+export async function GET(request: Request) {
+  try {
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+
+    const moments = await db.moment.findMany({
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            avatar: true,
+          },
+        },
+        comments: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                avatar: true,
+              },
+            },
+          },
+          orderBy: { createdAt: 'asc' },
+        },
+        reactions: {
+          select: {
+            emoji: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const data = moments.map((moment) => ({
+      id: moment.id,
+      userId: moment.userId,
+      userName: moment.user.name,
+      userAvatar: moment.user.avatar,
+      content: moment.content,
+      gradient: moment.gradient,
+      createdAt: moment.createdAt.toISOString(),
+      likes: moment.likes,
+      comments: moment.comments.map((c) => ({
+        id: c.id,
+        userId: c.userId,
+        userName: c.user.name,
+        userAvatar: c.user.avatar,
+        content: c.content,
+        createdAt: c.createdAt.toISOString(),
+      })),
+      reactions: moment.reactions.reduce<Record<string, number>>((acc, r) => {
+        acc[r.emoji] = (acc[r.emoji] || 0) + 1;
+        return acc;
+      }, {}),
+    }));
+
+    return NextResponse.json({ data });
+  } catch (error) {
+    console.error('GET /api/moments error:', error);
+    return NextResponse.json({ error: 'Failed to fetch moments' }, { status: 500 });
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+
+    const { user } = auth;
+    const body = await request.json();
+    const { content, gradient } = createMomentSchema.parse(body);
+
+    const moment = await db.moment.create({
+      data: {
+        userId: user.id,
+        content,
+        gradient,
+      },
+    });
+
+    return NextResponse.json({ data: moment }, { status: 201 });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: 'Invalid input', details: error.issues }, { status: 400 });
+    }
+    console.error('POST /api/moments error:', error);
+    return NextResponse.json({ error: 'Failed to create moment' }, { status: 500 });
+  }
+}
+
+// Like a moment
+export async function PATCH(request: Request) {
+  try {
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+
+    const body = await request.json();
+    const { id, action, emoji, content } = z.object({
+      id: z.string(),
+      action: z.enum(['like', 'comment', 'react']),
+      emoji: z.string().optional(),
+      content: z.string().optional(),
+    }).parse(body);
+
+    // Verify moment exists
+    const moment = await db.moment.findUnique({ where: { id } });
+    if (!moment) {
+      return NextResponse.json({ error: 'Moment not found' }, { status: 404 });
+    }
+
+    if (action === 'like') {
+      const updated = await db.moment.update({
+        where: { id },
+        data: { likes: { increment: 1 } },
+      });
+      return NextResponse.json({ data: { likes: updated.likes } });
+    }
+
+    if (action === 'comment') {
+      if (!content) {
+        return NextResponse.json({ error: 'Content is required for comment' }, { status: 400 });
+      }
+      const { content: validatedContent } = commentSchema.parse({ content });
+
+      const comment = await db.momentComment.create({
+        data: {
+          momentId: id,
+          userId: auth.user.id,
+          content: validatedContent,
+        },
+        include: {
+          user: { select: { id: true, name: true, avatar: true } },
+        },
+      });
+
+      return NextResponse.json({
+        data: {
+          id: comment.id,
+          userId: comment.userId,
+          userName: comment.user.name,
+          userAvatar: comment.user.avatar,
+          content: comment.content,
+          createdAt: comment.createdAt.toISOString(),
+        },
+      }, { status: 201 });
+    }
+
+    if (action === 'react') {
+      if (!emoji) {
+        return NextResponse.json({ error: 'Emoji is required for reaction' }, { status: 400 });
+      }
+      const { emoji: validatedEmoji } = reactionSchema.parse({ emoji });
+
+      // Upsert: toggle reaction
+      const existing = await db.momentReaction.findUnique({
+        where: { momentId_userId_emoji: { momentId: id, userId: auth.user.id, emoji: validatedEmoji } },
+      });
+
+      if (existing) {
+        await db.momentReaction.delete({ where: { id: existing.id } });
+        return NextResponse.json({ data: { removed: true } });
+      }
+
+      await db.momentReaction.create({
+        data: {
+          momentId: id,
+          userId: auth.user.id,
+          emoji: validatedEmoji,
+        },
+      });
+
+      return NextResponse.json({ data: { added: true } });
+    }
+
+    return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: 'Invalid input', details: error.issues }, { status: 400 });
+    }
+    console.error('PATCH /api/moments error:', error);
+    return NextResponse.json({ error: 'Failed to update moment' }, { status: 500 });
+  }
+}
