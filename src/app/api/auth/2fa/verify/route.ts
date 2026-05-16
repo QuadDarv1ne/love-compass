@@ -95,7 +95,7 @@ export async function POST(request: Request) {
     await createSession(sessionToken, user.id, userAgent, ipAddress);
     await setSessionCookie(sessionToken);
 
-    const { passwordHash, ...safeUser } = user;
+    const { passwordHash: _passwordHash, ...safeUser } = user;
     return NextResponse.json({ user: safeUser });
   } catch (error) {
     console.error('2FA verify error:', error);

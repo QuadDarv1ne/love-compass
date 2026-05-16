@@ -31,7 +31,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const { passwordHash, ...safeUser } = user;
+    const { passwordHash: _passwordHash, ...safeUser } = user;
     return NextResponse.json(safeUser);
   } catch {
     return NextResponse.json({ error: 'Failed to fetch profile' }, { status: 500 });
@@ -53,7 +53,7 @@ export async function PUT(request: Request) {
       data: validated,
     });
 
-    const { passwordHash, ...safeUser } = updatedUser;
+    const { passwordHash: _passwordHash, ...safeUser } = updatedUser;
     return NextResponse.json(safeUser);
   } catch (error) {
     if (isZodError(error)) {

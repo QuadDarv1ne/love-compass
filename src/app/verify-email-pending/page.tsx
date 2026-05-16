@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 
 function VerifyEmailPendingContent() {
   const searchParams = useSearchParams();
-  const router = useRouter();
+  const _router = useRouter();
   const email = searchParams.get('email') || '';
   const [cooldown, setCooldown] = useState(0);
   const [sending, setSending] = useState(false);

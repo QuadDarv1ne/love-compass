@@ -48,7 +48,7 @@ const RING_GRADIENTS = [
 const REACTION_EMOJIS = ['❤️', '🔥', '😂', '😍'];
 
 // ─── Seed Data ───────────────────────────────────────────────────────────────
-const SEED_MOMENTS: Moment[] = [
+const _SEED_MOMENTS: Moment[] = [
   {
     id: 'moment-1',
     userId: 'story-user-1',
@@ -706,18 +706,26 @@ export function MomentsView() {
 
   // Fetch moments from API
   useEffect(() => {
-    if (storeMoments.length > 0) {
-      setMoments(storeMoments);
-      return;
-    }
+    if (storeMoments.length > 0) return;
+    let cancelled = false;
     fetch('/api/moments')
       .then((r) => r.json())
       .then(({ data }) => {
-        setMoments(data ?? []);
-        setStoreMoments(data ?? []);
+        if (!cancelled) {
+          setMoments(data ?? []);
+          setStoreMoments(data ?? []);
+        }
       })
-      .catch(() => setMoments([]));
+      .catch(() => { if (!cancelled) setMoments([]); });
+    return () => { cancelled = true; };
   }, [storeMoments, setStoreMoments]);
+
+  // Sync store moments to local state when store updates
+  useEffect(() => {
+    if (storeMoments.length > 0) {
+      setMoments(storeMoments);
+    }
+  }, [storeMoments]);
 
   // Unique users for stories row
   const storyUsers = getUniqueUsersFromMoments(moments);
@@ -786,15 +794,17 @@ export function MomentsView() {
   };
 
   const handleFeedReaction = async (momentId: string, emoji: string) => {
+    let wasAdding = false;
     setMoments((prev) =>
       prev.map((m) => {
         if (m.id !== momentId) return m;
         const currentCount = m.reactions[emoji] || 0;
+        wasAdding = currentCount === 0;
         return {
           ...m,
           reactions: {
             ...m.reactions,
-            [emoji]: currentCount > 0 ? currentCount - 1 : (m.reactions[emoji] || 0) + 1,
+            [emoji]: currentCount > 0 ? currentCount - 1 : currentCount + 1,
           },
         };
       })
@@ -802,6 +812,7 @@ export function MomentsView() {
     try {
       await patchWithCSRF('/api/moments', { id: momentId, action: 'react', emoji });
     } catch {
+      // Reverse the optimistic change: if we removed, add back; if we added, remove
       setMoments((prev) =>
         prev.map((m) => {
           if (m.id !== momentId) return m;
@@ -810,7 +821,7 @@ export function MomentsView() {
             ...m,
             reactions: {
               ...m.reactions,
-              [emoji]: currentCount > 0 ? currentCount - 1 : (m.reactions[emoji] || 0) + 1,
+              [emoji]: wasAdding ? (currentCount > 0 ? currentCount - 1 : currentCount + 1) : currentCount + 1,
             },
           };
         })

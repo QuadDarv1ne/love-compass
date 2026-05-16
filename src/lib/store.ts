@@ -15,6 +15,10 @@ export interface User {
   totpEnabled: boolean;
   createdAt: string;
   updatedAt: string;
+  showOnlineStatus?: boolean;
+  profileVisible?: boolean;
+  language?: string;
+  notificationsEnabled?: boolean;
 }
 
 export interface MatchWithUsers {

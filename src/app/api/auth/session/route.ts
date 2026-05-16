@@ -9,7 +9,7 @@ export async function GET() {
       return NextResponse.json(null, { status: 200 });
     }
 
-    const { passwordHash, ...safeUser } = user;
+    const { passwordHash: _passwordHash, ...safeUser } = user;
     return NextResponse.json({
       user: safeUser,
     });

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAuthWithCSRF } from '@/lib/auth/guard';
-import { invalidateAllUserSessions, deleteSessionCookie, getSessionTokenFromCookie } from '@/lib/auth/session';
+import { invalidateAllUserSessions, deleteSessionCookie } from '@/lib/auth/session';
 
 export async function DELETE(request: Request) {
   try {

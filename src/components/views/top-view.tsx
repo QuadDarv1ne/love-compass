@@ -249,21 +249,27 @@ export function TopView() {
   const { currentUser } = useAppStore();
   const [activeTab, setActiveTab] = useState<SortKey>('popular');
   const [leaderboardData, setLeaderboardData] = useState<RankedUser[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   // Fetch leaderboard data from API
   useEffect(() => {
+    let cancelled = false;
     setLoading(true);
     fetch(`/api/leaderboard?sort=${activeTab}`)
       .then((r) => r.json())
       .then(({ data }) => {
-        setLeaderboardData(data ?? []);
-        setLoading(false);
+        if (!cancelled) {
+          setLeaderboardData(data ?? []);
+          setLoading(false);
+        }
       })
       .catch(() => {
-        setLeaderboardData([]);
-        setLoading(false);
+        if (!cancelled) {
+          setLeaderboardData([]);
+          setLoading(false);
+        }
       });
+    return () => { cancelled = true; };
   }, [activeTab]);
 
   const sortedUsers = useMemo(

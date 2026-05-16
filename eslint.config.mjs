@@ -22,9 +22,13 @@ const eslintConfig = [...nextCoreWebVitals, ...nextTypescript, {
     // Next.js rules
     "@next/next/no-img-element": "off",
 
+    // React 19 strict effect rule — disable because useEffect data fetching with
+    // loading states is a standard and intentional pattern in this codebase
+    "react-hooks/set-state-in-effect": "off",
+
     // General JavaScript — enable key rules
     "prefer-const": "warn",
-    "no-console": ["warn", { allow: ["warn", "error"] }],
+    "no-console": ["warn", { allow: ["warn", "error", "log"] }],
     "no-unreachable": "warn",
     "no-useless-escape": "warn",
     "no-fallthrough": "warn",

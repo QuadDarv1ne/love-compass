@@ -115,6 +115,7 @@ export function ChatView() {
     const loadMessages = async () => {
       try {
         const res = await fetch(`/api/messages?matchId=${selectedMatch.id}`);
+        if (!res.ok) throw new Error('Failed to load messages');
         const data = await res.json();
         setMessages(data);
       } catch { console.error('Failed to load messages'); }

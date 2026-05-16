@@ -10,7 +10,7 @@ import { useAppStore, type User, type MatchWithUsers } from '@/lib/store';
 import { OnlineIndicator } from './shared';
 
 export function MatchesView() {
-  const { matches, currentUser, navigateTo, setSelectedMatch } = useAppStore();
+  const { matches, currentUser, navigateTo, setSelectedMatch, unreadMatchIds } = useAppStore();
   const [localLoading, setLocalLoading] = useState(true);
 
   useEffect(() => {
@@ -78,7 +78,6 @@ export function MatchesView() {
     );
   }
 
-  const { unreadMatchIds } = useAppStore.getState();
 
   return (
     <div className="flex-1 px-4 py-4 md:py-6 overflow-y-auto custom-scrollbar">

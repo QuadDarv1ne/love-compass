@@ -29,7 +29,6 @@ import {
   Key,
   Loader2,
   CheckCircle,
-  XCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -48,7 +47,7 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useAppStore } from '@/lib/store';
 import { QRCodeCanvas } from 'qrcode.react';
-import { fetchWithCSRF, putWithCSRF } from '@/lib/api';
+import { fetchWithCSRF, deleteWithCSRF } from '@/lib/api';
 
 /* ─── shared animation ────────────────────────────────────────── */
 const fadeUp = {
@@ -669,11 +668,8 @@ export function SettingsView() {
                   className="w-full justify-start gap-2 border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl"
                   onClick={async () => {
                     try {
-                      const res = await fetchWithCSRF('/api/auth/logout', {});
-                      if (res.ok) {
-                        logout();
-                        toast.success('Вы вышли из аккаунта');
-                      }
+                      await logout();
+                      toast.success('Вы вышли из аккаунта');
                     } catch {
                       toast.error('Ошибка при выходе');
                     }
@@ -693,7 +689,7 @@ export function SettingsView() {
                     if (!confirmed) return;
 
                     try {
-                      const res = await fetchWithCSRF('/api/account', {});
+                      const res = await deleteWithCSRF('/api/account', {});
                       if (!res.ok) {
                         const data = await res.json();
                         throw new Error(data.error || 'Failed to delete account');

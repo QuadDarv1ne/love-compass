@@ -12,7 +12,7 @@ export function isZodError(error: unknown): error is { name: 'ZodError'; issues:
 }
 
 export async function requireAuth(
-  request: Request
+  _request: Request
 ): Promise<{ user: User } | NextResponse> {
   const user = await getUserFromRequest();
 
