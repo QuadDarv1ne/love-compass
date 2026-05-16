@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useSyncExternalStore } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion, type Variants } from 'framer-motion';
 import { useTheme } from 'next-themes';
@@ -74,14 +74,19 @@ export function TypingIndicator() {
 }
 
 // ─── Dark Mode Toggle ────────────────────────────────────────────────────────
-const subscribeHydrated = () => () => {};
-function useHydrated() {
-  return useSyncExternalStore(subscribeHydrated, () => true, () => false);
+/**
+ * Returns true once the component has mounted on the client.
+ * Used to avoid SSR hydration mismatches for theme-dependent UI.
+ */
+function useClientMounted() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  return mounted;
 }
 
 export function DarkModeToggle() {
   const { setTheme, resolvedTheme } = useTheme();
-  const mounted = useHydrated();
+  const mounted = useClientMounted();
   if (!mounted) return <div className="w-9 h-9" />;
   const isDark = resolvedTheme === 'dark';
   return (

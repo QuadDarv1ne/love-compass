@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, Fragment } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageCircle, ChevronLeft, Send, Sparkles, CheckCheck, Smile } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -271,7 +271,7 @@ export function ChatView() {
         )}
 
         {messageGroups.map((group) => (
-          <React.Fragment key={group.date}>
+          <Fragment key={group.date}>
             {/* Date separator */}
             <div className="flex justify-center">
               <span className="bg-card/80 dark:bg-card text-xs text-muted-foreground px-3 py-1 rounded-full border border-rose-100 dark:border-rose-900/50">
@@ -316,7 +316,7 @@ export function ChatView() {
                 </motion.div>
               );
             })}
-          </React.Fragment>
+          </Fragment>
         ))}
 
         {/* Typing indicator from partner */}

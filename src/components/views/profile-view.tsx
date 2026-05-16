@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
 import { toast } from 'sonner';
 import {
@@ -60,8 +60,14 @@ export function ProfileView() {
         toast.success('Профиль сохранён!', {
           description: 'Изменения успешно применены',
         });
+      } else {
+        const data = await res.json();
+        toast.error(data.error || 'Не удалось сохранить профиль');
       }
-    } catch { console.error('Failed to update profile'); }
+    } catch (error) {
+      console.error('Failed to update profile:', error);
+      toast.error('Ошибка при сохранении профиля');
+    }
     setSaving(false);
   };
 
