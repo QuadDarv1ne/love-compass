@@ -1,5 +1,16 @@
 # Love Compass — TODO
 
+## Done
+
+- [x] **Admin panel API routes** — `/api/admin/stats`, `/api/admin/users`, `/api/admin/users/[userId]` with role-based access control
+- [x] **API-маршруты админ-панели** — `/api/admin/stats`, `/api/admin/users`, `/api/admin/users/[userId]` с ролевым доступом
+- [x] **User role field** — Added `role` field to User model (`admin`/`user`, default `user`)
+- [x] **Поле роли пользователя** — Добавлено поле `role` в модель User (`admin`/`user`, по умолчанию `user`)
+- [x] **Admin seed user** — Added admin user (`admin@lovecompass.com`) to seed data
+- [x] **Админ в seed данных** — Добавлен пользователь-админ (`admin@lovecompass.com`) в seed данные
+- [x] **Auth guard update** — Updated auth guard to support role-based authorization checks
+- [x] **Обновление auth guard** — Обновлён auth guard для поддержки проверки авторизации по ролям
+
 ## Critical
 
 - [ ] **Implement real authentication** — NextAuth.js is installed but unused. Replace demo login with proper email/password auth, sessions, and token validation
