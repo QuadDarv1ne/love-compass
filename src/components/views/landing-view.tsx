@@ -199,7 +199,7 @@ export function LandingView() {
       </motion.div>
 
       {/* Footer stats */}
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }} className="flex gap-8 mt-8 z-10 text-center">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }} className="flex gap-8 mt-8 mb-12 z-10 text-center">
         {[
           { num: '10K+', label: 'Пользователей' },
           { num: '5K+', label: 'Мэтчей' },
@@ -211,6 +211,21 @@ export function LandingView() {
           </div>
         ))}
       </motion.div>
+
+      {/* Copyright Footer */}
+      <motion.footer
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1 }}
+        className="mt-auto pt-8 pb-4 text-center z-10"
+      >
+        <p className="text-xs text-muted-foreground">
+          © 2026 Love Compass. Все права защищены.
+        </p>
+        <p className="text-xs text-muted-foreground mt-1">
+          Автор: Дуплей Максим Игоревич
+        </p>
+      </motion.footer>
     </div>
   );
 }

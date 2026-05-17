@@ -177,6 +177,13 @@ export default function HomePage() {
             </div>
           </nav>
         </div>
+
+        {/* Copyright Footer */}
+        <footer className="text-center py-3 border-t border-rose-100 dark:border-rose-900/30 bg-card/40 backdrop-blur-sm">
+          <p className="text-xs text-muted-foreground">
+            © 2026 Love Compass. Все права защищены. Автор: Дуплей Максим Игоревич
+          </p>
+        </footer>
       )}
     </div>
   );
