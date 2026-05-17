@@ -9,6 +9,21 @@ async function main() {
   const passwordHash = await hashPassword(DEFAULT_PASSWORD);
 
   const users = [
+    // ─── Admin ───────────────────────────────────────────────
+    {
+      email: "admin@lovecompass.com",
+      passwordHash,
+      name: "Админ",
+      age: 30,
+      gender: "other",
+      bio: "Администратор платформы Love Compass",
+      interests: "администрирование, безопасность",
+      avatar: "https://api.dicebear.com/9.x/notionists/svg?seed=Admin",
+      city: "Москва",
+      lookingFor: "all",
+      emailVerified: true,
+      role: "admin",
+    },
     // ─── Русские ────────────────────────────────────────────
     {
       email: "anna@example.com",
@@ -298,6 +313,19 @@ async function main() {
   const totalUsers = await prisma.user.count();
   console.warn(`✅ ${totalUsers} пользователей в базе`);
   console.warn(`🔑 Пароль для входа: ${DEFAULT_PASSWORD}`);
+
+  // Ensure at least one admin exists
+  const adminCount = await prisma.user.count({ where: { role: 'admin' } });
+  if (adminCount === 0) {
+    const firstUser = await prisma.user.findFirst({ orderBy: { createdAt: 'asc' } });
+    if (firstUser) {
+      await prisma.user.update({
+        where: { id: firstUser.id },
+        data: { role: 'admin' },
+      });
+      console.warn(`👑 User "${firstUser.name}" promoted to admin`);
+    }
+  }
 }
 
 main()

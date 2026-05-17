@@ -52,3 +52,30 @@ export async function requireVerifiedEmail(
 
   return auth;
 }
+
+export async function requireAdmin(
+  request: Request
+): Promise<{ user: User } | NextResponse> {
+  const auth = await requireAuth(request);
+  if (auth instanceof NextResponse) return auth;
+
+  if ((auth.user as User & { role?: string }).role !== 'admin') {
+    return NextResponse.json({ error: 'Доступ запрещён' }, { status: 403 });
+  }
+
+  return auth;
+}
+
+export async function requireAdminWithCSRF(
+  request: Request
+): Promise<{ user: User } | NextResponse> {
+  const auth = await requireAdmin(request);
+  if (auth instanceof NextResponse) return auth;
+
+  const csrfValid = await validateCSRFToken(request);
+  if (!csrfValid) {
+    return NextResponse.json({ error: 'CSRF validation failed' }, { status: 403 });
+  }
+
+  return auth;
+}

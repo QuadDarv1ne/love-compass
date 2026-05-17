@@ -19,6 +19,69 @@ export interface User {
   profileVisible?: boolean;
   language?: string;
   notificationsEnabled?: boolean;
+  role?: string;
+}
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  name: string;
+  age: number;
+  gender: string;
+  bio: string;
+  avatar: string;
+  city: string;
+  role: string;
+  emailVerified: boolean;
+  profileVisible: boolean;
+  createdAt: string;
+  updatedAt: string;
+  likesSent: number;
+  likesReceived: number;
+  matchCount: number;
+  messageCount: number;
+  momentsCount: number;
+  lastActivity?: string;
+}
+
+export interface AdminUserDetail extends AdminUser {
+  interests: string;
+  lookingFor: string;
+  showOnlineStatus: boolean;
+  language: string;
+  notificationsEnabled: boolean;
+  stats: {
+    likesSent: number;
+    likesReceived: number;
+    matchCount: number;
+    messagesSent: number;
+    messagesReceived: number;
+    momentsCount: number;
+    momentCommentsCount: number;
+    momentReactionsCount: number;
+    blocksReceived: number;
+    blocksSent: number;
+    reportsReceived: number;
+    reportsSent: number;
+    achievementsCount: number;
+    lastActivity: string;
+  };
+}
+
+export interface PlatformStats {
+  totalUsers: number;
+  maleCount: number;
+  femaleCount: number;
+  otherCount: number;
+  activeUsers: number;
+  totalMatches: number;
+  totalMessages: number;
+  totalLikes: number;
+  totalMoments: number;
+  totalReports: number;
+  totalBlocks: number;
+  newUsersToday: number;
+  newUsersThisWeek: number;
 }
 
 export interface MatchWithUsers {
@@ -62,7 +125,7 @@ export interface MomentComment {
   createdAt: string;
 }
 
-type ViewType = 'landing' | 'browse' | 'matches' | 'chat' | 'profile' | 'likedYou' | 'moments' | 'top' | 'settings' | 'achievements';
+type ViewType = 'landing' | 'browse' | 'matches' | 'chat' | 'profile' | 'likedYou' | 'moments' | 'top' | 'settings' | 'achievements' | 'admin';
 
 type AuthStatus = 'idle' | 'loading' | 'authenticated' | 'unauthenticated';
 
@@ -119,6 +182,18 @@ interface AppState {
 
   // Achievements
   unlockedAchievements: string[];
+
+  // Admin
+  adminUsers: AdminUser[];
+  adminSelectedUser: AdminUserDetail | null;
+  adminStats: PlatformStats | null;
+  adminLoading: boolean;
+  adminUserDetailLoading: boolean;
+  adminFilterGender: 'all' | 'male' | 'female' | 'other';
+  adminSearchQuery: string;
+  adminTotal: number;
+  adminPage: number;
+  adminLimit: number;
 
   setView: (view: ViewType) => void;
   login: (user: User) => void;
@@ -189,6 +264,21 @@ interface AppState {
 
   // Custom setView with direction tracking
   navigateTo: (view: ViewType) => void;
+
+  // Admin actions
+  setAdminUsers: (users: AdminUser[]) => void;
+  setAdminSelectedUser: (user: AdminUserDetail | null) => void;
+  setAdminStats: (stats: PlatformStats | null) => void;
+  setAdminLoading: (loading: boolean) => void;
+  setAdminUserDetailLoading: (loading: boolean) => void;
+  setAdminFilterGender: (gender: 'all' | 'male' | 'female' | 'other') => void;
+  setAdminSearchQuery: (query: string) => void;
+  setAdminPage: (page: number) => void;
+  fetchAdminData: () => Promise<void>;
+  fetchUserDetail: (userId: string) => Promise<void>;
+  deleteUser: (userId: string) => Promise<void>;
+  toggleUserRole: (userId: string) => Promise<void>;
+  toggleUserProfileVisible: (userId: string) => Promise<void>;
 }
 
 const clearState = {
@@ -224,6 +314,16 @@ const clearState = {
   unlockedAchievements: [],
   showMatchAnimation: false,
   matchAnimationPartner: null,
+  adminUsers: [],
+  adminSelectedUser: null,
+  adminStats: null,
+  adminLoading: false,
+  adminUserDetailLoading: false,
+  adminFilterGender: 'all' as const,
+  adminSearchQuery: '',
+  adminTotal: 0,
+  adminPage: 1,
+  adminLimit: 20,
 };
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -269,7 +369,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   navigateTo: (view) => {
     const currentView = get().currentView;
-    const viewOrder: ViewType[] = ['landing', 'browse', 'matches', 'likedYou', 'profile', 'chat', 'moments', 'top', 'achievements', 'settings'];
+    const viewOrder: ViewType[] = ['landing', 'browse', 'matches', 'likedYou', 'profile', 'chat', 'moments', 'top', 'achievements', 'admin', 'settings'];
     const currentIdx = viewOrder.indexOf(currentView);
     const nextIdx = viewOrder.indexOf(view);
     const direction = nextIdx > currentIdx ? 'forward' : 'backward';
@@ -439,5 +539,128 @@ export const useAppStore = create<AppState>((set, get) => ({
       });
       return { unlockedAchievements: [...state.unlockedAchievements, id] };
     });
+  },
+
+  // Admin state
+  adminUsers: [],
+  adminSelectedUser: null,
+  adminStats: null,
+  adminLoading: false,
+  adminUserDetailLoading: false,
+  adminFilterGender: 'all',
+  adminSearchQuery: '',
+  adminTotal: 0,
+  adminPage: 1,
+  adminLimit: 20,
+
+  // Admin actions
+  setAdminUsers: (users) => set({ adminUsers: users }),
+  setAdminSelectedUser: (user) => set({ adminSelectedUser: user }),
+  setAdminStats: (stats) => set({ adminStats: stats }),
+  setAdminLoading: (loading) => set({ adminLoading: loading }),
+  setAdminUserDetailLoading: (loading) => set({ adminUserDetailLoading: loading }),
+  setAdminFilterGender: (gender) => set({ adminFilterGender: gender, adminPage: 1 }),
+  setAdminSearchQuery: (query) => set({ adminSearchQuery: query, adminPage: 1 }),
+  setAdminPage: (page) => set({ adminPage: page }),
+
+  fetchAdminData: async () => {
+    set({ adminLoading: true });
+    try {
+      const { adminFilterGender, adminSearchQuery, adminPage, adminLimit } = get();
+      const params = new URLSearchParams({
+        gender: adminFilterGender,
+        page: String(adminPage),
+        limit: String(adminLimit),
+      });
+      if (adminSearchQuery) params.set('search', adminSearchQuery);
+
+      const [usersRes, statsRes] = await Promise.all([
+        fetch(`/api/admin/users?${params}`),
+        fetch('/api/admin/stats'),
+      ]);
+      if (usersRes.ok) {
+        const { data, total } = await usersRes.json();
+        set({ adminUsers: data ?? [], adminTotal: total ?? 0 });
+      }
+      if (statsRes.ok) {
+        const { data } = await statsRes.json();
+        set({ adminStats: data ?? null });
+      }
+    } catch (error) {
+      console.error('Failed to fetch admin data:', error);
+    } finally {
+      set({ adminLoading: false });
+    }
+  },
+
+  fetchUserDetail: async (userId: string) => {
+    set({ adminUserDetailLoading: true });
+    try {
+      const res = await fetch(`/api/admin/users/${userId}`);
+      if (res.ok) {
+        const { data } = await res.json();
+        set({ adminSelectedUser: data });
+      }
+    } catch (error) {
+      console.error('Failed to fetch user detail:', error);
+    } finally {
+      set({ adminUserDetailLoading: false });
+    }
+  },
+
+  deleteUser: async (userId: string) => {
+    try {
+      const { deleteWithCSRF } = await import('@/lib/api');
+      const res = await deleteWithCSRF(`/api/admin/users/${userId}`);
+      if (res.ok || (res as any).response?.ok !== false) {
+        set((state) => ({
+          adminUsers: state.adminUsers.filter((u) => u.id !== userId),
+          adminSelectedUser: state.adminSelectedUser?.id === userId ? null : state.adminSelectedUser,
+          adminTotal: state.adminTotal - 1,
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to delete user:', error);
+    }
+  },
+
+  toggleUserRole: async (userId: string) => {
+    try {
+      const { patchWithCSRF } = await import('@/lib/api');
+      const user = get().adminUsers.find((u) => u.id === userId);
+      if (!user) return;
+      const res = await patchWithCSRF(`/api/admin/users/${userId}`, {
+        role: user.role === 'admin' ? 'user' : 'admin',
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        set((state) => ({
+          adminUsers: state.adminUsers.map((u) => u.id === userId ? { ...u, role: updated.data.role } : u),
+          adminSelectedUser: state.adminSelectedUser?.id === userId ? { ...state.adminSelectedUser, role: updated.data.role } : state.adminSelectedUser,
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to toggle user role:', error);
+    }
+  },
+
+  toggleUserProfileVisible: async (userId: string) => {
+    try {
+      const { patchWithCSRF } = await import('@/lib/api');
+      const user = get().adminUsers.find((u) => u.id === userId);
+      if (!user) return;
+      const res = await patchWithCSRF(`/api/admin/users/${userId}`, {
+        profileVisible: !user.profileVisible,
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        set((state) => ({
+          adminUsers: state.adminUsers.map((u) => u.id === userId ? { ...u, profileVisible: updated.data.profileVisible } : u),
+          adminSelectedUser: state.adminSelectedUser?.id === userId ? { ...state.adminSelectedUser, profileVisible: updated.data.profileVisible } : state.adminSelectedUser,
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to toggle profile visible:', error);
+    }
   },
 }));
