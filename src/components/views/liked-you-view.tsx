@@ -14,30 +14,14 @@ import { OnlineIndicator } from './shared';
 import { fetchWithCSRF } from '@/lib/api';
 
 export function LikedYouView() {
-  const { currentUser, likedYouProfiles, setLikedYouProfiles, setShowMatchAnimation, setMatchAnimationPartner, navigateTo } = useAppStore();
+  const { likedYouProfiles, setLikedYouProfiles, setShowMatchAnimation, setMatchAnimationPartner, navigateTo } = useAppStore();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!currentUser) return;
-    let cancelled = false;
-    const loadLikedYou = async () => {
-      try {
-        const res = await fetch('/api/likes/received');
-        const data = await res.json();
-        if (!cancelled) {
-          setLikedYouProfiles(data);
-          useAppStore.getState().setLikedYouCount(data.length);
-        }
-      } catch (error) {
-        if (!cancelled) console.error('Failed to load liked you:', error);
-      }
-      if (!cancelled) setLoading(false);
-    };
-    loadLikedYou();
-    return () => { cancelled = true; };
-    // currentUser is used as a guard — only the stable .id is needed for re-trigger
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUser?.id, setLikedYouProfiles]);
+    // Data is already loaded via hydrateAppData() on login
+    // Just mark loading as done
+    setLoading(false);
+  }, []);
 
   const handleLikeBack = async (profile: User) => {
     if (!currentUser) return;

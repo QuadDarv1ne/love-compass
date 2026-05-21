@@ -175,7 +175,7 @@ interface AppState {
   currentMomentIndex: number;
 
   // Settings
-  notificationEnabled: boolean;
+  notificationsEnabled: boolean;
   profileVisible: boolean;
   showOnlineStatus: boolean;
   language: string;
@@ -307,7 +307,7 @@ const clearState = {
   blockedUserIds: [],
   moments: [],
   currentMomentIndex: 0,
-  notificationEnabled: true,
+  notificationsEnabled: true,
   profileVisible: true,
   showOnlineStatus: true,
   language: 'ru',
@@ -481,12 +481,12 @@ export const useAppStore = create<AppState>((set, get) => ({
   addMoment: (moment) => set((state) => ({ moments: [moment, ...state.moments] })),
 
   // Settings
-  notificationEnabled: true,
+  notificationsEnabled: true,
   profileVisible: true,
   showOnlineStatus: true,
   language: 'ru',
   setNotificationEnabled: (enabled) => {
-    set({ notificationEnabled: enabled });
+    set({ notificationsEnabled: enabled });
     get().saveSettings({ notificationsEnabled: enabled });
   },
   setProfileVisible: (visible) => {
@@ -507,7 +507,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       if (res.ok) {
         const settings = await res.json();
         set({
-          notificationEnabled: settings.notificationsEnabled ?? true,
+          notificationsEnabled: settings.notificationsEnabled ?? true,
           profileVisible: settings.profileVisible ?? true,
           showOnlineStatus: settings.showOnlineStatus ?? true,
           language: settings.language ?? 'ru',

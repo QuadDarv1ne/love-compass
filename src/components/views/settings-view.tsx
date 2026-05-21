@@ -228,7 +228,7 @@ export function SettingsView() {
     currentUser,
     logout,
     clearAllData,
-    notificationEnabled,
+    notificationsEnabled,
     setNotificationEnabled,
     profileVisible,
     setProfileVisible,
@@ -279,8 +279,8 @@ export function SettingsView() {
       }
       toast.success('2FA отключён');
       setDisable2FACode('');
-      // Refresh to update UI
-      window.location.reload();
+      // Refresh user state to update 2FA status without losing client data
+      useAppStore.getState().checkAuth();
     } catch {
       toast.error('Ошибка сервера');
     } finally {
@@ -424,7 +424,7 @@ export function SettingsView() {
                 icon={<Bell className="w-4 h-4" />}
                 label="Push-уведомления"
                 description="Получайте уведомления на устройстве"
-                checked={notificationEnabled}
+                checked={notificationsEnabled}
                 onCheckedChange={setNotificationEnabled}
               />
 
@@ -795,8 +795,8 @@ export function SettingsView() {
         open={twoFADialogOpen}
         onOpenChange={setTwoFADialogOpen}
         onEnabled={() => {
-          // Force re-render to show updated 2FA status
-          window.location.reload();
+          // Refresh user state to update 2FA status without losing client data
+          useAppStore.getState().checkAuth();
         }}
       />
     </div>

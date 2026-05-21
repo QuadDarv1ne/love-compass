@@ -1,18 +1,24 @@
 import { useAppStore, type User, type MatchWithUsers } from '@/lib/store';
 
 let csrfToken: string | null = null;
+let csrfTokenFetchedAt: number | null = null;
+const CSRF_TOKEN_TTL = 5 * 60 * 1000; // 5 minutes
 
 /**
  * Fetch a fresh CSRF token from the server.
- * The token is cached for subsequent requests.
+ * The token is cached for 5 minutes, then refreshed.
  */
 export async function getCSRFToken(): Promise<string> {
-  if (csrfToken) return csrfToken;
+  const now = Date.now();
+  if (csrfToken && csrfTokenFetchedAt && now - csrfTokenFetchedAt < CSRF_TOKEN_TTL) {
+    return csrfToken;
+  }
 
   const res = await fetch('/api/auth/csrf-token');
   if (!res.ok) throw new Error('Failed to fetch CSRF token');
   const data = await res.json();
   csrfToken = data.csrfToken as string;
+  csrfTokenFetchedAt = now;
   return csrfToken;
 }
 
@@ -35,6 +41,7 @@ export async function fetchWithCSRF(url: string, body: unknown): Promise<Respons
   // If token is stale (403), invalidate cache and retry once
   if (res.status === 403) {
     csrfToken = null;
+    csrfTokenFetchedAt = null;
     const freshToken = await getCSRFToken();
     res = await fetch(url, {
       method: 'POST',
@@ -65,6 +72,7 @@ export async function putWithCSRF(url: string, body: unknown): Promise<Response>
 
   if (res.status === 403) {
     csrfToken = null;
+    csrfTokenFetchedAt = null;
     const freshToken = await getCSRFToken();
     res = await fetch(url, {
       method: 'PUT',
@@ -95,6 +103,7 @@ export async function deleteWithCSRF(url: string, body: unknown): Promise<Respon
 
   if (res.status === 403) {
     csrfToken = null;
+    csrfTokenFetchedAt = null;
     const freshToken = await getCSRFToken();
     res = await fetch(url, {
       method: 'DELETE',
@@ -125,6 +134,7 @@ export async function patchWithCSRF(url: string, body: unknown): Promise<Respons
 
   if (res.status === 403) {
     csrfToken = null;
+    csrfTokenFetchedAt = null;
     const freshToken = await getCSRFToken();
     res = await fetch(url, {
       method: 'PATCH',
@@ -215,7 +225,7 @@ export async function hydrateAppData(user?: User) {
     if (settingsRes.ok) {
       const settings = await settingsRes.json();
       useAppStore.setState({
-        notificationEnabled: settings.notificationsEnabled ?? true,
+        notificationsEnabled: settings.notificationsEnabled ?? true,
         profileVisible: settings.profileVisible ?? true,
         showOnlineStatus: settings.showOnlineStatus ?? true,
         language: settings.language ?? 'ru',

@@ -130,7 +130,7 @@ export function ChatView() {
     autoReplyTimerRef.current = setTimeout(() => {
       // Verify the message is still the latest (user didn't switch chats)
       const currentLast = lastMessageRef.current;
-      if (!currentLast || currentLast.id !== lastMessage.id || currentLast.senderId === currentUser.id) return;
+      if (!currentLast || currentLast.id !== lastMessage.id || currentLast.senderId !== currentUser.id) return;
 
       setPartnerTyping(true);
       setTimeout(() => {

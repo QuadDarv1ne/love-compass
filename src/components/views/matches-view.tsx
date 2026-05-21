@@ -14,37 +14,24 @@ export function MatchesView() {
   const [localLoading, setLocalLoading] = useState(true);
 
   useEffect(() => {
-    if (!currentUser) return;
-    let cancelled = false;
-    const loadMatches = async () => {
-      try {
-        const res = await fetch('/api/matches');
-        const data = await res.json();
-        if (!cancelled) {
-          useAppStore.getState().setMatches(data);
-
-          // Detect unread: matches that have messages where sender is not current user
-          const unreadIds: string[] = [];
-          for (const match of data) {
-            if (match.messages && match.messages.length > 0) {
-              const lastMsg = match.messages[0];
-              if (lastMsg.senderId !== currentUser.id) {
-                unreadIds.push(match.id);
-              }
-            }
-          }
-          useAppStore.getState().setUnreadMatchIds(unreadIds);
+    // Data is already loaded via hydrateAppData() on login
+    // Just detect unread messages from existing store data
+    if (!currentUser) {
+      setLocalLoading(false);
+      return;
+    }
+    const unreadIds: string[] = [];
+    for (const match of matches) {
+      if (match.messages && match.messages.length > 0) {
+        const lastMsg = match.messages[match.messages.length - 1];
+        if (lastMsg.senderId !== currentUser.id) {
+          unreadIds.push(match.id);
         }
-      } catch (error) {
-        if (!cancelled) console.error('Failed to load matches:', error);
       }
-      if (!cancelled) setLocalLoading(false);
-    };
-    loadMatches();
-    return () => { cancelled = true; };
-    // currentUser is used as a guard — only the stable .id is needed for re-trigger
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUser?.id]);
+    }
+    useAppStore.getState().setUnreadMatchIds(unreadIds);
+    setLocalLoading(false);
+  }, [currentUser?.id, matches]);
 
   const getPartner = (match: MatchWithUsers): User => {
     return match.user1.id === currentUser?.id ? match.user2 : match.user1;
@@ -52,7 +39,7 @@ export function MatchesView() {
 
   const getLastMessage = (match: MatchWithUsers): string => {
     if (match.messages && match.messages.length > 0) {
-      const lastMsg = match.messages[0];
+      const lastMsg = match.messages[match.messages.length - 1];
       const isMine = lastMsg.senderId === currentUser?.id;
       return isMine ? `Вы: ${lastMsg.content}` : lastMsg.content;
     }
@@ -134,7 +121,7 @@ export function ChatListView() {
 
   const getLastMessage = (match: MatchWithUsers): string => {
     if (match.messages && match.messages.length > 0) {
-      const lastMsg = match.messages[0];
+      const lastMsg = match.messages[match.messages.length - 1];
       const isMine = lastMsg.senderId === currentUser?.id;
       return isMine ? `Вы: ${lastMsg.content}` : lastMsg.content;
     }
@@ -175,8 +162,8 @@ export function ChatListView() {
               <div className="flex items-center justify-between">
                 <h4 className="font-semibold text-sm text-rose-800 dark:text-rose-200 truncate">{partner.name}</h4>
                 <span className="text-[10px] text-muted-foreground flex-shrink-0">
-                  {match.messages?.[0]?.createdAt
-                    ? new Date(match.messages[0].createdAt).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
+                  {match.messages?.[match.messages.length - 1]?.createdAt
+                    ? new Date(match.messages[match.messages.length - 1].createdAt).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
                     : ''}
                 </span>
               </div>
