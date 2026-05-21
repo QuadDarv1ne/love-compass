@@ -14,7 +14,7 @@ import { OnlineIndicator } from './shared';
 import { fetchWithCSRF } from '@/lib/api';
 
 export function LikedYouView() {
-  const { likedYouProfiles, setLikedYouProfiles, setShowMatchAnimation, setMatchAnimationPartner, navigateTo } = useAppStore();
+  const { currentUser, likedYouProfiles, setLikedYouProfiles, setShowMatchAnimation, setMatchAnimationPartner, navigateTo } = useAppStore();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

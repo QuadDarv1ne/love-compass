@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@/lib/db';
 import { requireAuth, isZodError } from '@/lib/auth/guard';
+import { checkRateLimit } from '@/lib/auth/rate-limit';
 
 const autoReplySchema = z.object({
   matchId: z.string().min(1),
@@ -43,6 +44,20 @@ export async function POST(request: Request) {
     if (auth instanceof NextResponse) return auth;
 
     const { user } = auth;
+
+    // Rate limit: max 5 auto-replies per minute per user
+    const rateLimit = await checkRateLimit(
+      `auto-reply:${user.id}`,
+      5,
+      60,
+    );
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Слишком много запросов, попробуйте позже' },
+        { status: 429 },
+      );
+    }
+
     const body = await request.json();
     const { matchId } = autoReplySchema.parse(body);
 

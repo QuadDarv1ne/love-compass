@@ -141,11 +141,33 @@ export async function PATCH(request: Request) {
     }
 
     if (action === 'like') {
-      const updated = await db.moment.update({
-        where: { id },
-        data: { likes: { increment: 1 } },
+      const result = await db.$transaction(async (tx) => {
+        const existing = await tx.momentLike.findUnique({
+          where: { momentId_userId: { momentId: id, userId: auth.user.id } },
+        });
+
+        if (existing) {
+          // Unlike: remove the like and decrement count
+          await tx.momentLike.delete({ where: { id: existing.id } });
+          const updated = await db.moment.update({
+            where: { id },
+            data: { likes: { decrement: 1 } },
+          });
+          return { likes: updated.likes, liked: false };
+        }
+
+        // Like: create record and increment count
+        await tx.momentLike.create({
+          data: { momentId: id, userId: auth.user.id },
+        });
+        const updated = await db.moment.update({
+          where: { id },
+          data: { likes: { increment: 1 } },
+        });
+        return { likes: updated.likes, liked: true };
       });
-      return NextResponse.json({ data: { likes: updated.likes } });
+
+      return NextResponse.json({ data: result });
     }
 
     if (action === 'comment') {

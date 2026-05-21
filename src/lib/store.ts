@@ -612,7 +612,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     try {
       const { deleteWithCSRF } = await import('@/lib/api');
       const res = await deleteWithCSRF(`/api/admin/users/${userId}`);
-      if (res.ok || (res as any).response?.ok !== false) {
+      if (res.ok) {
         set((state) => ({
           adminUsers: state.adminUsers.filter((u) => u.id !== userId),
           adminSelectedUser: state.adminSelectedUser?.id === userId ? null : state.adminSelectedUser,

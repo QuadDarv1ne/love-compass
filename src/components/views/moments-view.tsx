@@ -203,6 +203,8 @@ function StoryViewer({
   const [commentText, setCommentText] = useState('');
   const [localMoments, setLocalMoments] = useState<Moment[]>(moments);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
   const containerRef = useRef<HTMLDivElement>(null);
   const dragStartY = useRef(0);
 
@@ -218,7 +220,7 @@ function StoryViewer({
         if (currentIndex < localMoments.length - 1) {
           setCurrentIndex((i) => i + 1);
         } else {
-          onClose();
+          onCloseRef.current();
         }
         return;
       }
@@ -227,7 +229,7 @@ function StoryViewer({
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [currentIndex, localMoments.length, onClose]);
+  }, [currentIndex, localMoments.length]);
 
   const goToNext = useCallback(() => {
     if (currentIndex < localMoments.length - 1) {

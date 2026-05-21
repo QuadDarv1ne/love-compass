@@ -49,6 +49,7 @@ model User {
   moments                Moment[]   @relation("UserMoments")
   momentComments         MomentComment[] @relation("UserMomentComments")
   momentReactions        MomentReaction[] @relation("UserMomentReactions")
+  momentLikes            MomentLike[]     @relation("UserMomentLikes")
   achievements           UserAchievement[]
 }
 
@@ -144,6 +145,7 @@ model Moment {
   user       User     @relation("UserMoments", fields: [userId], references: [id], onDelete: Cascade)
   comments   MomentComment[]
   reactions  MomentReaction[]
+  momentLikes MomentLike[]
 
   @@index([userId])
   @@index([createdAt])
@@ -171,6 +173,18 @@ model MomentReaction {
   user       User     @relation("UserMomentReactions", fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([momentId, userId, emoji])
+  @@index([momentId])
+}
+
+model MomentLike {
+  id         String   @id @default(cuid())
+  momentId   String
+  userId     String
+  createdAt  DateTime @default(now())
+  moment     Moment   @relation(fields: [momentId], references: [id], onDelete: Cascade)
+  user       User     @relation("UserMomentLikes", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([momentId, userId])
   @@index([momentId])
 }
 

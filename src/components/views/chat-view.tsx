@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useMemo, Fragment } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageCircle, ChevronLeft, Send, Sparkles, CheckCheck, Smile } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -81,6 +82,7 @@ export function ChatView() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const autoReplyTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const innerTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const partner = selectedMatch
     ? selectedMatch.user1.id === currentUser?.id ? selectedMatch.user2 : selectedMatch.user1
@@ -133,7 +135,7 @@ export function ChatView() {
       if (!currentLast || currentLast.id !== lastMessage.id || currentLast.senderId !== currentUser.id) return;
 
       setPartnerTyping(true);
-      setTimeout(() => {
+      innerTimerRef.current = setTimeout(() => {
         setPartnerTyping(false);
         fetch('/api/messages/auto-reply', {
           method: 'POST',
@@ -151,6 +153,7 @@ export function ChatView() {
     }, typingDelay);
     return () => {
       if (autoReplyTimerRef.current) clearTimeout(autoReplyTimerRef.current);
+      if (innerTimerRef.current) clearTimeout(innerTimerRef.current);
     };
     // Intentionally not including lastMessage, selectedMatch, currentUser here —
     // we only want to trigger a new auto-reply cycle when the message ID changes.
@@ -170,6 +173,8 @@ export function ChatView() {
       if (msg.id) addMessage(msg);
     } catch (error) {
       console.error('Failed to send message:', error);
+      toast.error('Не удалось отправить сообщение', { description: 'Попробуйте ещё раз' });
+      setNewMessage(content);
     }
     setSending(false);
     inputRef.current?.focus();
