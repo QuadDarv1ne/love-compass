@@ -62,7 +62,6 @@ export async function POST(request: Request) {
         {
           success: true,
           message: 'Проверьте вашу почту для подтверждения email',
-          email: userData.email.toLowerCase(),
         },
         { status: 201 }
       );

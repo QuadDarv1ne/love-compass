@@ -22,7 +22,6 @@ const profileSelect = {
   avatar: true,
   city: true,
   lookingFor: true,
-  emailVerified: true,
   profileVisible: true,
   showOnlineStatus: true,
   language: true,

@@ -32,24 +32,14 @@ export async function POST(request: Request) {
       );
     }
 
-    const user = await db.user.findFirst({
+    const passwordHash = await hashPassword(newPassword);
+
+    // Atomic: find user by token AND update in one operation to prevent race condition
+    const updateResult = await db.user.updateMany({
       where: {
         passwordResetToken: token,
         passwordResetExpiry: { gt: new Date() },
       },
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Неверный или истёкший токен' },
-        { status: 400 }
-      );
-    }
-
-    const passwordHash = await hashPassword(newPassword);
-
-    await db.user.update({
-      where: { id: user.id },
       data: {
         passwordHash,
         passwordResetToken: null,
@@ -59,8 +49,23 @@ export async function POST(request: Request) {
       },
     });
 
-    // Invalidate all existing sessions
-    await invalidateAllUserSessions(user.id);
+    if (updateResult.count === 0) {
+      return NextResponse.json(
+        { error: 'Неверный или истёкший токен' },
+        { status: 400 }
+      );
+    }
+
+    // We need the user ID for session invalidation — fetch it (token already cleared)
+    const updatedUser = await db.user.findFirst({
+      where: { passwordResetToken: null, passwordResetExpiry: null },
+      select: { id: true },
+      orderBy: { updatedAt: 'desc' },
+    });
+
+    if (updatedUser) {
+      await invalidateAllUserSessions(updatedUser.id);
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -11,55 +11,51 @@ export async function DELETE(request: Request) {
     const { user } = auth;
     const id = user.id;
 
-    // Get all matches for this user
-    const matches = await db.match.findMany({
-      where: {
-        OR: [{ user1Id: id }, { user2Id: id }],
-      },
-      select: { id: true },
-    });
-
-    const matchIds = matches.map((m) => m.id);
-
-    // Delete all messages in those matches
-    if (matchIds.length > 0) {
-      await db.message.deleteMany({
-        where: { matchId: { in: matchIds } },
+    // Wrap all database deletions in a transaction for atomicity
+    await db.$transaction(async (tx) => {
+      // Get all matches for this user
+      const matches = await tx.match.findMany({
+        where: { OR: [{ user1Id: id }, { user2Id: id }] },
+        select: { id: true },
       });
-    }
+      const matchIds = matches.map((m) => m.id);
 
-    // Delete all likes (sent and received)
-    await db.like.deleteMany({
-      where: { OR: [{ fromUserId: id }, { toUserId: id }] },
+      // Delete all messages in those matches
+      if (matchIds.length > 0) {
+        await tx.message.deleteMany({ where: { matchId: { in: matchIds } } });
+      }
+
+      // Delete all likes (sent and received)
+      await tx.like.deleteMany({ where: { OR: [{ fromUserId: id }, { toUserId: id }] } });
+
+      // Delete all matches
+      if (matchIds.length > 0) {
+        await tx.match.deleteMany({ where: { id: { in: matchIds } } });
+      }
+
+      // Delete any remaining messages
+      await tx.message.deleteMany({ where: { senderId: id } });
+
+      // Delete blocks and reports
+      await tx.block.deleteMany({ where: { OR: [{ blockerId: id }, { blockedId: id }] } });
+      await tx.report.deleteMany({ where: { OR: [{ reporterId: id }, { reportedId: id }] } });
+
+      // Delete moments, comments, reactions, likes, achievements
+      await tx.moment.deleteMany({ where: { userId: id } });
+      await tx.momentComment.deleteMany({ where: { userId: id } });
+      await tx.momentReaction.deleteMany({ where: { userId: id } });
+      await tx.momentLike.deleteMany({ where: { userId: id } });
+      await tx.userAchievement.deleteMany({ where: { userId: id } });
+
+      // Delete rate limit entries
+      await tx.rateLimit.deleteMany({ where: { key: { startsWith: `auto-reply:${id}` } } });
+
+      // Finally delete the user
+      await tx.user.delete({ where: { id } });
     });
 
-    // Delete all matches
-    if (matchIds.length > 0) {
-      await db.match.deleteMany({
-        where: { id: { in: matchIds } },
-      });
-    }
-
-    // Delete any remaining messages
-    await db.message.deleteMany({
-      where: { senderId: id },
-    });
-
-    // Delete blocks and reports
-    await db.block.deleteMany({
-      where: { OR: [{ blockerId: id }, { blockedId: id }] },
-    });
-    await db.report.deleteMany({
-      where: { OR: [{ reporterId: id }, { reportedId: id }] },
-    });
-
-    // Delete all sessions
+    // Invalidate sessions and clear cookie (outside transaction)
     await invalidateAllUserSessions(id);
-
-    // Finally delete the user
-    await db.user.delete({ where: { id } });
-
-    // Clear session cookie
     await deleteSessionCookie();
 
     return NextResponse.json({ success: true });

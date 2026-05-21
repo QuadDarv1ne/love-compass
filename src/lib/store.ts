@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { toast } from 'sonner';
 
 export interface User {
   id: string;
@@ -486,20 +487,36 @@ export const useAppStore = create<AppState>((set, get) => ({
   showOnlineStatus: true,
   language: 'ru',
   setNotificationEnabled: (enabled) => {
+    const prev = get().notificationsEnabled;
     set({ notificationsEnabled: enabled });
-    get().saveSettings({ notificationsEnabled: enabled });
+    get().saveSettings({ notificationsEnabled: enabled }).catch(() => {
+      set({ notificationsEnabled: prev });
+      toast.error('Не удалось сохранить настройку');
+    });
   },
   setProfileVisible: (visible) => {
+    const prev = get().profileVisible;
     set({ profileVisible: visible });
-    get().saveSettings({ profileVisible: visible });
+    get().saveSettings({ profileVisible: visible }).catch(() => {
+      set({ profileVisible: prev });
+      toast.error('Не удалось сохранить настройку');
+    });
   },
   setShowOnlineStatus: (show) => {
+    const prev = get().showOnlineStatus;
     set({ showOnlineStatus: show });
-    get().saveSettings({ showOnlineStatus: show });
+    get().saveSettings({ showOnlineStatus: show }).catch(() => {
+      set({ showOnlineStatus: prev });
+      toast.error('Не удалось сохранить настройку');
+    });
   },
   setLanguage: (lang) => {
+    const prev = get().language;
     set({ language: lang });
-    get().saveSettings({ language: lang });
+    get().saveSettings({ language: lang }).catch(() => {
+      set({ language: prev });
+      toast.error('Не удалось сохранить настройку');
+    });
   },
   loadSettings: async () => {
     try {
@@ -518,11 +535,10 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
   saveSettings: async (settings) => {
-    try {
-      const { putWithCSRF } = await import('@/lib/api');
-      await putWithCSRF('/api/settings', settings);
-    } catch (error) {
-      console.error('Failed to save settings:', error);
+    const { putWithCSRF } = await import('@/lib/api');
+    const res = await putWithCSRF('/api/settings', settings);
+    if (!res.ok) {
+      throw new Error('Failed to save settings');
     }
   },
 

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { requireAdmin } from '@/lib/auth/guard';
+import { requireAdmin, isZodError } from '@/lib/auth/guard';
 import { z } from 'zod';
 
 const querySchema = z.object({
@@ -12,113 +12,120 @@ const querySchema = z.object({
 });
 
 export async function GET(request: Request) {
-  const auth = await requireAdmin(request);
-  if (auth instanceof NextResponse) return auth;
+  try {
+    const auth = await requireAdmin(request);
+    if (auth instanceof NextResponse) return auth;
 
-  const { searchParams } = new URL(request.url);
-  const parsed = querySchema.safeParse(Object.fromEntries(searchParams));
-  if (!parsed.success) {
-    return NextResponse.json({ error: 'Invalid query parameters' }, { status: 400 });
-  }
-
-  const { gender, search, page, limit, sort } = parsed.data;
-
-  const where: Record<string, unknown> = {};
-  if (gender !== 'all') where.gender = gender;
-  if (search) {
-    where.OR = [
-      { name: { contains: search } },
-      { email: { contains: search } },
-    ];
-  }
-
-  const orderBy: Record<string, 'asc' | 'desc'> = {};
-  switch (sort) {
-    case 'oldest': orderBy.createdAt = 'asc'; break;
-    case 'name': orderBy.name = 'asc'; break;
-    case 'popular': orderBy.createdAt = 'desc'; break;
-    default: orderBy.createdAt = 'desc';
-  }
-
-  const [users, total] = await Promise.all([
-    db.user.findMany({
-      where,
-      select: {
-        id: true, email: true, name: true, age: true, gender: true,
-        bio: true, avatar: true, city: true, role: true,
-        emailVerified: true, profileVisible: true,
-        createdAt: true, updatedAt: true,
-      },
-      orderBy,
-      skip: (page - 1) * limit,
-      take: limit,
-    }),
-    db.user.count({ where }),
-  ]);
-
-  // Batch aggregations
-  const userIds = users.map((u) => u.id);
-
-  const [
-    likesSent,
-    likesReceived,
-    matchCounts,
-    messageCounts,
-    momentCounts,
-    lastActivityMap,
-  ] = await Promise.all([
-    db.like.groupBy({ by: ['fromUserId'], where: { fromUserId: { in: userIds } }, _count: { fromUserId: true } }),
-    db.like.groupBy({ by: ['toUserId'], where: { toUserId: { in: userIds } }, _count: { toUserId: true } }),
-    Promise.all([
-      db.match.groupBy({ by: ['user1Id'], where: { user1Id: { in: userIds } }, _count: { user1Id: true } }),
-      db.match.groupBy({ by: ['user2Id'], where: { user2Id: { in: userIds } }, _count: { user2Id: true } }),
-    ]),
-    db.message.groupBy({ by: ['senderId'], where: { senderId: { in: userIds } }, _count: { senderId: true } }),
-    db.moment.groupBy({ by: ['userId'], where: { userId: { in: userIds } }, _count: { userId: true } }),
-    // Last activity = max message createdAt per sender
-    db.message.findMany({
-      where: { senderId: { in: userIds } },
-      select: { senderId: true, createdAt: true },
-      orderBy: { createdAt: 'desc' },
-      take: userIds.length * 2, // get a few per user, we'll dedupe in JS
-    }),
-  ]);
-
-  const toMap = <T extends { [key: string]: unknown }>(arr: T[], key: keyof T) =>
-    arr.reduce<Record<string, number>>((acc, item) => {
-      acc[String(item[key])] = (item as any)._count?.[key as string] ?? 0;
-      return acc;
-    }, {});
-
-  const likesSentMap = toMap(likesSent, 'fromUserId');
-  const likesReceivedMap = toMap(likesReceived, 'toUserId');
-  const matchCountsMap = toMap(matchCounts[0], 'user1Id');
-  for (const m of matchCounts[1]) {
-    const id = String(m.user2Id);
-    matchCountsMap[id] = (matchCountsMap[id] || 0) + ((m as any)._count?.user2Id ?? 0);
-  }
-  const messageCountsMap = toMap(messageCounts, 'senderId');
-  const momentCountsMap = toMap(momentCounts, 'userId');
-
-  // Last activity: pick the most recent message per sender
-  const lastActivity: Record<string, string> = {};
-  for (const msg of lastActivityMap) {
-    if (!lastActivity[msg.senderId]) {
-      lastActivity[msg.senderId] = msg.createdAt.toISOString();
+    const { searchParams } = new URL(request.url);
+    const parsed = querySchema.safeParse(Object.fromEntries(searchParams));
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Invalid query parameters' }, { status: 400 });
     }
+
+    const { gender, search, page, limit, sort } = parsed.data;
+
+    const where: Record<string, unknown> = {};
+    if (gender !== 'all') where.gender = gender;
+    if (search) {
+      where.OR = [
+        { name: { contains: search } },
+        { email: { contains: search } },
+      ];
+    }
+
+    const orderBy: Record<string, 'asc' | 'desc'> = {};
+    switch (sort) {
+      case 'oldest': orderBy.createdAt = 'asc'; break;
+      case 'name': orderBy.name = 'asc'; break;
+      case 'popular': orderBy.createdAt = 'desc'; break;
+      default: orderBy.createdAt = 'desc';
+    }
+
+    const [users, total] = await Promise.all([
+      db.user.findMany({
+        where,
+        select: {
+          id: true, email: true, name: true, age: true, gender: true,
+          bio: true, avatar: true, city: true, role: true,
+          emailVerified: true, profileVisible: true,
+          createdAt: true, updatedAt: true,
+        },
+        orderBy,
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      db.user.count({ where }),
+    ]);
+
+    // Batch aggregations
+    const userIds = users.map((u) => u.id);
+
+    const [
+      likesSent,
+      likesReceived,
+      matchCounts,
+      messageCounts,
+      momentCounts,
+      lastActivityMap,
+    ] = await Promise.all([
+      db.like.groupBy({ by: ['fromUserId'], where: { fromUserId: { in: userIds } }, _count: { fromUserId: true } }),
+      db.like.groupBy({ by: ['toUserId'], where: { toUserId: { in: userIds } }, _count: { toUserId: true } }),
+      Promise.all([
+        db.match.groupBy({ by: ['user1Id'], where: { user1Id: { in: userIds } }, _count: { user1Id: true } }),
+        db.match.groupBy({ by: ['user2Id'], where: { user2Id: { in: userIds } }, _count: { user2Id: true } }),
+      ]),
+      db.message.groupBy({ by: ['senderId'], where: { senderId: { in: userIds } }, _count: { senderId: true } }),
+      db.moment.groupBy({ by: ['userId'], where: { userId: { in: userIds } }, _count: { userId: true } }),
+      // Last activity = max message createdAt per sender
+      db.message.findMany({
+        where: { senderId: { in: userIds } },
+        select: { senderId: true, createdAt: true },
+        orderBy: { createdAt: 'desc' },
+        take: userIds.length * 2,
+      }),
+    ]);
+
+    const toMap = <T extends { [key: string]: unknown }>(arr: T[], key: keyof T) =>
+      arr.reduce<Record<string, number>>((acc, item) => {
+        acc[String(item[key])] = (item as any)._count?.[key as string] ?? 0;
+        return acc;
+      }, {});
+
+    const likesSentMap = toMap(likesSent, 'fromUserId');
+    const likesReceivedMap = toMap(likesReceived, 'toUserId');
+    const matchCountsMap = toMap(matchCounts[0], 'user1Id');
+    for (const m of matchCounts[1]) {
+      const id = String(m.user2Id);
+      matchCountsMap[id] = (matchCountsMap[id] || 0) + ((m as any)._count?.user2Id ?? 0);
+    }
+    const messageCountsMap = toMap(messageCounts, 'senderId');
+    const momentCountsMap = toMap(momentCounts, 'userId');
+
+    const lastActivity: Record<string, string> = {};
+    for (const msg of lastActivityMap) {
+      if (!lastActivity[msg.senderId]) {
+        lastActivity[msg.senderId] = msg.createdAt.toISOString();
+      }
+    }
+
+    const data = users.map((u) => ({
+      ...u,
+      createdAt: u.createdAt.toISOString(),
+      updatedAt: u.updatedAt.toISOString(),
+      likesSent: likesSentMap[u.id] ?? 0,
+      likesReceived: likesReceivedMap[u.id] ?? 0,
+      matchCount: matchCountsMap[u.id] ?? 0,
+      messageCount: messageCountsMap[u.id] ?? 0,
+      momentsCount: momentCountsMap[u.id] ?? 0,
+      lastActivity: lastActivity[u.id] ?? u.updatedAt.toISOString(),
+    }));
+
+    return NextResponse.json({ data, total, page, limit });
+  } catch (error) {
+    if (isZodError(error)) {
+      return NextResponse.json({ error: 'Validation failed', details: error.issues }, { status: 400 });
+    }
+    console.error('Admin users GET error:', error);
+    return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 });
   }
-
-  const data = users.map((u) => ({
-    ...u,
-    createdAt: u.createdAt.toISOString(),
-    updatedAt: u.updatedAt.toISOString(),
-    likesSent: likesSentMap[u.id] ?? 0,
-    likesReceived: likesReceivedMap[u.id] ?? 0,
-    matchCount: matchCountsMap[u.id] ?? 0,
-    messageCount: messageCountsMap[u.id] ?? 0,
-    momentsCount: momentCountsMap[u.id] ?? 0,
-    lastActivity: lastActivity[u.id] ?? u.updatedAt.toISOString(),
-  }));
-
-  return NextResponse.json({ data, total, page, limit });
 }

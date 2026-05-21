@@ -18,9 +18,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { fetchWithCSRF, patchWithCSRF } from '@/lib/api';
 import { useAppStore, type Moment, type MomentComment } from '@/lib/store';
 import { OnlineIndicator } from './shared';
-import { fetchWithCSRF, patchWithCSRF } from '@/lib/api';
 
 // ─── Gradient Presets ────────────────────────────────────────────────────────
 const GRADIENT_PRESETS = [
@@ -269,14 +269,25 @@ function StoryViewer({
   };
 
   const toggleLike = () => {
+    const wasLiked = likedMoments.has(currentMoment.id);
     setLikedMoments((prev) => {
       const next = new Set(prev);
-      if (next.has(currentMoment.id)) {
+      if (wasLiked) {
         next.delete(currentMoment.id);
       } else {
         next.add(currentMoment.id);
       }
       return next;
+    });
+    // Sync with server
+    patchWithCSRF('/api/moments', { id: currentMoment.id, action: 'like' }).catch(() => {
+      // Rollback on failure
+      setLikedMoments((prev) => {
+        const next = new Set(prev);
+        if (wasLiked) next.add(currentMoment.id);
+        else next.delete(currentMoment.id);
+        return next;
+      });
     });
   };
 
@@ -294,15 +305,21 @@ function StoryViewer({
       })
     );
     toast.success(`Реакция ${emoji} добавлена!`);
+    // Sync with server
+    patchWithCSRF('/api/moments', { id: currentMoment.id, action: 'react', emoji }).catch((error) => {
+      console.error('Failed to sync reaction:', error);
+      toast.error('Не удалось добавить реакцию');
+    });
   };
 
   const handleComment = () => {
     if (!commentText.trim()) return;
+    const content = commentText.trim();
     const newComment: MomentComment = {
       id: `new-c-${Date.now()}`,
       userId: 'current-user',
       userName: 'Вы',
-      content: commentText.trim(),
+      content,
       createdAt: new Date().toISOString(),
     };
     setLocalMoments((prev) =>
@@ -313,6 +330,11 @@ function StoryViewer({
     );
     setCommentText('');
     toast.success('Комментарий добавлен!');
+    // Sync with server
+    patchWithCSRF('/api/moments', { id: currentMoment.id, action: 'comment', content }).catch((error) => {
+      console.error('Failed to sync comment:', error);
+      toast.error('Не удалось добавить комментарий');
+    });
   };
 
   if (!currentMoment) return null;
