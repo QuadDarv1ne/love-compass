@@ -3,6 +3,20 @@ import { useAppStore, type User, type MatchWithUsers } from '@/lib/store';
 let csrfToken: string | null = null;
 let csrfTokenFetchedAt: number | null = null;
 const CSRF_TOKEN_TTL = 5 * 60 * 1000; // 5 minutes
+const FETCH_TIMEOUT_MS = 15_000; // 15 seconds
+
+/**
+ * Fetch with an abort timeout to prevent hanging requests.
+ */
+async function fetchWithTimeout(url: string, init?: RequestInit, timeoutMs: number = FETCH_TIMEOUT_MS): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
 
 /**
  * Fetch a fresh CSRF token from the server.
@@ -14,7 +28,7 @@ export async function getCSRFToken(): Promise<string> {
     return csrfToken;
   }
 
-  const res = await fetch('/api/auth/csrf-token');
+  const res = await fetchWithTimeout('/api/auth/csrf-token');
   if (!res.ok) throw new Error('Failed to fetch CSRF token');
   const data = await res.json();
   csrfToken = data.csrfToken as string;
@@ -29,7 +43,7 @@ export async function getCSRFToken(): Promise<string> {
  */
 export async function fetchWithCSRF(url: string, body: unknown): Promise<Response> {
   const token = await getCSRFToken();
-  let res = await fetch(url, {
+  let res = await fetchWithTimeout(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -43,7 +57,7 @@ export async function fetchWithCSRF(url: string, body: unknown): Promise<Respons
     csrfToken = null;
     csrfTokenFetchedAt = null;
     const freshToken = await getCSRFToken();
-    res = await fetch(url, {
+    res = await fetchWithTimeout(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -61,7 +75,7 @@ export async function fetchWithCSRF(url: string, body: unknown): Promise<Respons
  */
 export async function putWithCSRF(url: string, body: unknown): Promise<Response> {
   const token = await getCSRFToken();
-  let res = await fetch(url, {
+  let res = await fetchWithTimeout(url, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -74,7 +88,7 @@ export async function putWithCSRF(url: string, body: unknown): Promise<Response>
     csrfToken = null;
     csrfTokenFetchedAt = null;
     const freshToken = await getCSRFToken();
-    res = await fetch(url, {
+    res = await fetchWithTimeout(url, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -92,7 +106,7 @@ export async function putWithCSRF(url: string, body: unknown): Promise<Response>
  */
 export async function deleteWithCSRF(url: string, body: unknown): Promise<Response> {
   const token = await getCSRFToken();
-  let res = await fetch(url, {
+  let res = await fetchWithTimeout(url, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',
@@ -105,7 +119,7 @@ export async function deleteWithCSRF(url: string, body: unknown): Promise<Respon
     csrfToken = null;
     csrfTokenFetchedAt = null;
     const freshToken = await getCSRFToken();
-    res = await fetch(url, {
+    res = await fetchWithTimeout(url, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
@@ -123,7 +137,7 @@ export async function deleteWithCSRF(url: string, body: unknown): Promise<Respon
  */
 export async function patchWithCSRF(url: string, body: unknown): Promise<Response> {
   const token = await getCSRFToken();
-  let res = await fetch(url, {
+  let res = await fetchWithTimeout(url, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
@@ -136,7 +150,7 @@ export async function patchWithCSRF(url: string, body: unknown): Promise<Respons
     csrfToken = null;
     csrfTokenFetchedAt = null;
     const freshToken = await getCSRFToken();
-    res = await fetch(url, {
+    res = await fetchWithTimeout(url, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -161,7 +175,7 @@ export async function hydrateAppData(user?: User) {
 
   try {
     // Fetch all profiles (other users)
-    const profilesRes = await fetch('/api/profiles?limit=100');
+    const profilesRes = await fetchWithTimeout('/api/profiles?limit=100');
     if (!profilesRes.ok) throw new Error('Failed to fetch profiles');
     const profilesBody = await profilesRes.json();
     const allUsers: User[] = profilesBody.data ?? profilesBody;
@@ -176,21 +190,21 @@ export async function hydrateAppData(user?: User) {
     store.setOnlineUserIds(onlineIds);
 
     // Fetch matches with messages
-    const matchesRes = await fetch('/api/matches');
+    const matchesRes = await fetchWithTimeout('/api/matches');
     if (matchesRes.ok) {
       const matches: MatchWithUsers[] = await matchesRes.json();
       store.setMatches(matches);
     }
 
     // Fetch received likes (who liked you)
-    const likedYouRes = await fetch('/api/likes/received');
+    const likedYouRes = await fetchWithTimeout('/api/likes/received');
     if (likedYouRes.ok) {
       const likedYouUsers: User[] = await likedYouRes.json();
       store.setLikedYouProfiles(likedYouUsers);
     }
 
     // Build set of already-liked user IDs
-    const likeSentRes = await fetch('/api/likes/sent');
+    const likeSentRes = await fetchWithTimeout('/api/likes/sent');
     if (likeSentRes.ok) {
       const likes: { toUserId: string }[] = await likeSentRes.json();
       for (const like of likes) {
@@ -199,7 +213,7 @@ export async function hydrateAppData(user?: User) {
     }
 
     // Fetch blocked users
-    const blockedRes = await fetch('/api/block');
+    const blockedRes = await fetchWithTimeout('/api/block');
     if (blockedRes.ok) {
       const { blocks } = await blockedRes.json();
       const blockedIds: string[] = blocks.map((b: { blockedId: string }) => b.blockedId);
@@ -207,21 +221,21 @@ export async function hydrateAppData(user?: User) {
     }
 
     // Fetch moments
-    const momentsRes = await fetch('/api/moments');
+    const momentsRes = await fetchWithTimeout('/api/moments');
     if (momentsRes.ok) {
       const { data: momentsData } = await momentsRes.json();
       useAppStore.setState({ moments: momentsData ?? [] });
     }
 
     // Fetch achievements
-    const achievementsRes = await fetch('/api/achievements');
+    const achievementsRes = await fetchWithTimeout('/api/achievements');
     if (achievementsRes.ok) {
       const { unlocked } = await achievementsRes.json();
       useAppStore.setState({ unlockedAchievements: unlocked ?? [] });
     }
 
     // Load user settings
-    const settingsRes = await fetch('/api/settings');
+    const settingsRes = await fetchWithTimeout('/api/settings');
     if (settingsRes.ok) {
       const settings = await settingsRes.json();
       useAppStore.setState({
@@ -229,6 +243,10 @@ export async function hydrateAppData(user?: User) {
         profileVisible: settings.profileVisible ?? true,
         showOnlineStatus: settings.showOnlineStatus ?? true,
         language: settings.language ?? 'ru',
+        showDistance: settings.showDistance ?? false,
+        soundEnabled: settings.soundEnabled ?? true,
+        matchNotifications: settings.matchNotifications ?? true,
+        likeNotifications: settings.likeNotifications ?? true,
       });
     }
   } catch (error) {

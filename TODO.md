@@ -13,11 +13,11 @@
 
 ## Critical
 
-- [ ] **Implement real authentication** — NextAuth.js is installed but unused. Replace demo login with proper email/password auth, sessions, and token validation
-- [ ] **Реализовать настоящую аутентификацию** — NextAuth.js установлен, но не используется. Заменить демо-вход на полноценную авторизацию по email/паролю, сессии и валидацию токенов
+- [x] **Implement real authentication** — Custom auth built with email/password, sessions (httpOnly cookies), CSRF, 2FA/TOTP, password reset, email verification, rate limiting
+- [x] **Реализовать настоящую аутентификацию** — Построена кастомная аутентификация с email/паролем, сессиями (httpOnly cookies), CSRF, 2FA/TOTP, сбросом пароля, верификацией email, rate limiting
 
-- [ ] **Secure API routes** — All endpoints accept arbitrary `userId` without validation. Any user can act as any other. Add session-based auth checks to every route
-- [ ] **Защитить API-маршруты** — Все эндпоинты принимают произвольный `userId` без проверки. Любой пользователь может действовать от имени другого. Добавить проверку сессии в каждый маршрут
+- [x] **Secure API routes** — All mutation routes use `requireAuthWithCSRF`, all read routes use `requireAuth`; 19 API routes protected
+- [x] **Защитить API-маршруты** — Все mutation-маршруты используют `requireAuthWithCSRF`, read-маршруты используют `requireAuth`; защищено 19 API-маршрутов
 
 - [x] **Add input validation** — Zod validation used on all API routes with requireAuth guards
 - [x] **Добавить валидацию входных данных** — Zod используется во всех API-маршрутах с requireAuth
@@ -28,8 +28,8 @@
 - [x] **Enable ESLint** — ESLint extends next/core-web-vitals and typescript with sensible rules
 - [x] **Включить ESLint** — ESLint расширяет next/core-web-vitals и typescript с разумными правилами
 
-- [ ] **Remove build error suppression** — `next.config.ts` has `ignoreBuildErrors: true`. Fix underlying issues instead
-- [ ] **Убрать подавление ошибок сборки** — `next.config.ts` имеет `ignoreBuildErrors: true`. Вместо этого исправить underlying проблемы
+- [x] **Remove build error suppression** — `next.config.ts` does not have `ignoreBuildErrors`; build passes cleanly
+- [x] **Убрать подавление ошибок сборки** — `next.config.ts` не имеет `ignoreBuildErrors`; сборка проходит без ошибок
 
 - [x] **Fix `.env` path** — `DATABASE_URL` already uses relative path `file:./db/custom.db`
 - [x] **Починить путь в `.env`** — `DATABASE_URL` уже использует относительный путь `file:./db/custom.db`
@@ -48,8 +48,8 @@
 - [x] **Persist achievements** — Achievements synced to DB via `UserAchievement` model and `/api/achievements` endpoint
 - [x] **Сохранять достижения** — Достижения синхронизируются с БД через модель `UserAchievement` и эндпоинт `/api/achievements`
 
-- [ ] **Hydrate client state from DB** — Page refresh loses all client state (likedUserIds, matches, etc.). Re-fetch from API on mount/login
-- [ ] **Восстанавливать клиентское состояние из БД** — Перезагрузка страницы теряет всё клиентское состояние (лайкнутые ID, матчи и т.д.). Повторно загрузить из API при монтировании/входе
+- [x] **Hydrate client state from DB** — `hydrateAppData()` fetches profiles, matches, likes, blocked users, moments, achievements, and settings on login; all with 15s timeout
+- [x] **Восстанавливать клиентское состояние из БД** — `hydrateAppData()` загружает анкеты, мэтчи, лайки, блокировки, моменты, достижения и настройки при входе
 
 - [ ] **Connect i18n** — `next-intl` installed but app is hardcoded to Russian. Wire language selector to actual translation system
 - [ ] **Подключить i18n** — `next-intl` установлен, но приложение захардкожено на русский. Привязать селектор языка к реальной системе переводов
@@ -63,14 +63,14 @@
 - [x] **Add pagination** — `/api/profiles` already has cursor-based pagination with `cursor` and `limit` params
 - [x] **Добавить пагинацию** — `/api/profiles` уже имеет курсорную пагинацию с параметрами `cursor` и `limit`
 
-- [ ] **Enable TypeScript strictness** — `noImplicitAny: false` in tsconfig. Fix types and enable strict mode
-- [ ] **Включить строгий TypeScript** — `noImplicitAny: false` в tsconfig. Исправить типы и включить строгий режим
+- [x] **Enable TypeScript strictness** — `noImplicitAny: true` in tsconfig, all types fixed, zero lint errors
+- [x] **Включить строгий TypeScript** — `noImplicitAny: true` в tsconfig, все типы исправлены, 0 ошибок линта
 
-- [ ] **Implement account deletion** — Button shows toast but does nothing. Add actual delete endpoint with cascade
-- [ ] **Реализовать удаление аккаунта** — Кнопка показывает toast, но ничего не делает. Добавить настоящий эндпоинт удаления с каскадом
+- [x] **Implement account deletion** — `DELETE /api/account` with full cascade delete; settings-view calls it with confirmation dialog
+- [x] **Реализовать удаление аккаунта** — `DELETE /api/account` с полным каскадным удалением; settings-view вызывает с диалогом подтверждения
 
-- [ ] **Implement cache clearing** — Button shows toast but does nothing. Add actual cache clearing logic
-- [ ] **Реализовать очистку кеша** — Кнопка показывает toast, но ничего не делает. Добавить реальную логику очистки
+- [ ] **Implement cache clearing** — Settings button clears Zustand store state and resets app to fresh login state
+- [ ] **Реализовать очистку кеша** — Кнопка в настройках очищает Zustand store и сбрасывает приложение к состоянию входа
 
 - [ ] **Fix app naming** — UI says "Love Compas" (missing 's'), README says "Love Compass". Standardize
 - [ ] **Починить имя приложения** — В UI написано "Love Compas" (без 's'), в README — "Love Compass". Привести к единому виду
