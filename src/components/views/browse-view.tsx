@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useRef, useCallback } from 'react';
+import { useState, useMemo, useRef, useCallback, useEffect } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -175,6 +175,17 @@ export function BrowseView() {
   const [lastSwipeAction, setLastSwipeAction] = useState<'like' | 'dislike' | 'superLike' | null>(null);
   const dragStartPos = useRef<{ x: number; y: number } | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+  const timerIdsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  // Clean up all pending timers on unmount
+  useEffect(() => {
+    return () => {
+      for (const timer of timerIdsRef.current) {
+        clearTimeout(timer);
+      }
+      timerIdsRef.current = [];
+    };
+  }, []);
 
   // Build a popularity map from likedYouProfiles (users who liked you are "popular")
   const likedYouProfiles = useAppStore((s) => s.likedYouProfiles);
@@ -225,7 +236,8 @@ export function BrowseView() {
     setLastSwipedProfile(profile);
     setLastSwipeAction('like');
 
-    setTimeout(() => { setSwipeDir(null); setShowHeartBurst(false); }, ANIMATION_DURATION);
+    const t1 = setTimeout(() => { setSwipeDir(null); setShowHeartBurst(false); }, ANIMATION_DURATION);
+    timerIdsRef.current.push(t1);
 
     try {
       const res = await fetchWithCSRF('/api/like', { toUserId: profile.id });
@@ -237,9 +249,11 @@ export function BrowseView() {
           className: 'toast-match',
         });
         setMatchAnimationPartner(profile);
-        setTimeout(() => { setShowMatchAnimation(true); }, MATCH_ANIMATION_DELAY);
+        const t2 = setTimeout(() => { setShowMatchAnimation(true); }, MATCH_ANIMATION_DELAY);
+        timerIdsRef.current.push(t2);
       }
-      setTimeout(() => removeProfile(profile.id), CARD_REMOVAL_DELAY);
+      const t3 = setTimeout(() => removeProfile(profile.id), CARD_REMOVAL_DELAY);
+      timerIdsRef.current.push(t3);
     } catch (error) {
       // Rollback optimistic update
       const newIds = useAppStore.getState().likedUserIds.filter((id) => id !== profile.id);
@@ -255,8 +269,9 @@ export function BrowseView() {
     addDislikedUserId(profile.id);
     setLastSwipedProfile(profile);
     setLastSwipeAction('dislike');
-    setTimeout(() => { setSwipeDir(null); setShowX(false); }, ANIMATION_DURATION);
-    setTimeout(() => removeProfile(profile.id), CARD_REMOVAL_DELAY);
+    const t1 = setTimeout(() => { setSwipeDir(null); setShowX(false); }, ANIMATION_DURATION);
+    const t2 = setTimeout(() => removeProfile(profile.id), CARD_REMOVAL_DELAY);
+    timerIdsRef.current.push(t1, t2);
   }, [addDislikedUserId, removeProfile]);
 
   const handleSuperLike = useCallback(async (profile: User) => {
@@ -266,7 +281,8 @@ export function BrowseView() {
     addLikedUserId(profile.id);
     setLastSwipedProfile(profile);
     setLastSwipeAction('superLike');
-    setTimeout(() => { setShowSuperLike(false); }, SUPER_LIKE_DURATION);
+    const t1 = setTimeout(() => { setShowSuperLike(false); }, SUPER_LIKE_DURATION);
+    timerIdsRef.current.push(t1);
     try {
       const res = await fetchWithCSRF('/api/like', { toUserId: profile.id });
       if (!res.ok) throw new Error('Super Like failed');
@@ -277,9 +293,11 @@ export function BrowseView() {
           className: 'toast-match',
         });
         setMatchAnimationPartner(profile);
-        setTimeout(() => { setShowMatchAnimation(true); }, MATCH_ANIMATION_DELAY);
+        const t2 = setTimeout(() => { setShowMatchAnimation(true); }, MATCH_ANIMATION_DELAY);
+        timerIdsRef.current.push(t2);
       }
-      setTimeout(() => removeProfile(profile.id), CARD_REMOVAL_DELAY);
+      const t3 = setTimeout(() => removeProfile(profile.id), CARD_REMOVAL_DELAY);
+      timerIdsRef.current.push(t3);
     } catch (error) {
       // Rollback optimistic update
       const state = useAppStore.getState();

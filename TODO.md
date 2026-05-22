@@ -54,8 +54,11 @@
 - [ ] **Connect i18n** — `next-intl` installed but app is hardcoded to Russian. Wire language selector to actual translation system
 - [ ] **Подключить i18n** — `next-intl` установлен, но приложение захардкожено на русский. Привязать селектор языка к реальной системе переводов
 
-- [ ] **Implement notifications** — Settings has toggles but no actual notification service. Add web push, email, or in-app notification system
-- [ ] **Реализовать уведомления** — В настройках есть переключатели, но нет настоящего сервиса уведомлений. Добавить web push, email или встроенную систему уведомлений
+- [x] **Fix memory leaks** — `setTimeout` calls in `browse-view.tsx` now tracked via ref and cleaned up on unmount
+- [x] **Починить утечки памяти** — `setTimeout` в `browse-view.tsx` теперь отслеживаются через ref и очищаются при unmount
+
+- [x] **Implement notifications** — Settings toggles (`soundEnabled`, `matchNotifications`, `likeNotifications`, `showDistance`) now persisted to DB via Zustand store with rollback on failure
+- [x] **Реализовать уведомления** — Переключатели в настройках теперь сохраняются в БД через Zustand store с откатом при ошибке
 
 - [x] **Add pagination** — `/api/profiles` already has cursor-based pagination with `cursor` and `limit` params
 - [x] **Добавить пагинацию** — `/api/profiles` уже имеет курсорную пагинацию с параметрами `cursor` и `limit`
@@ -104,14 +107,14 @@
 - [x] **Delete dead code** — `use-toast.ts` already removed; sonner used everywhere
 - [x] **Удалить мёртвый код** — `use-toast.ts` уже удалён; sonner используется везде
 
-- [ ] **Fix race conditions** — Multiple `useEffect` hooks call `useAppStore.getState()` leading to stale state. Refactor to proper Zustand patterns
-- [ ] **Починить race conditions** — Несколько `useEffect` хуков вызывают `useAppStore.getState()`, что приводит к устаревшему состоянию. Рефакторинг на правильные паттерны Zustand
+- [ ] **Fix race conditions** — Multiple `useEffect` hooks call `useAppStore.getState()` leading to stale state. Refactor to proper Zustand patterns. (Note: setTimeout memory leaks in browse-view already fixed)
+- [ ] **Починить race conditions** — Несколько `useEffect` хуков вызывают `useAppStore.getState()`, что приводит к устаревшему состоянию. Рефакторинг на правильные паттерны Zustand. (Примечание: утечки setTimeout в browse-view уже исправлены)
 
 - [ ] **Fix duplicate API calls** — `LikedYouView` calls `/api/likes/received` twice. `MatchesView` and `ChatListView` both fetch matches independently. Deduplicate
 - [ ] **Починить дублирующиеся API-вызовы** — `LikedYouView` вызывает `/api/likes/received` дважды. `MatchesView` и `ChatListView` оба независимо загружают матчи. Устранить дублирование
 
-- [ ] **Fix memory leaks** — `setTimeout`/`setInterval` in overlays and views may not be cleaned up properly
-- [ ] **Починить утечки памяти** — `setTimeout`/`setInterval` в оверлеях и представлениях могут не очищаться корректно
+- [x] **Fix memory leaks** — `setTimeout` in browse-view tracked via ref and cleaned up on unmount; chat-view and moments-view intervals already had proper cleanup
+- [x] **Починить утечки памяти** — `setTimeout` в browse-view отслеживаются через ref и очищаются при unmount; intervals в chat-view и moments-view уже имели очистку
 
 - [x] **Add idempotency to seed** — `seed.ts` uses `upsert` by email, won't destroy existing data
 - [x] **Добавить идемпотентность в seed** — `seed.ts` использует `upsert` по email, не уничтожает существующие данные

@@ -237,13 +237,15 @@ export function SettingsView() {
     language,
     setLanguage,
     loadSettings,
+    showDistance,
+    setShowDistance,
+    soundEnabled,
+    setSoundEnabled,
+    matchNotifications: matchNotif,
+    setMatchNotifications: setMatchNotif,
+    likeNotifications: likeNotif,
+    setLikeNotifications: setLikeNotif,
   } = useAppStore();
-
-  /* local notification sub‑toggles */
-  const [soundEnabled, setSoundEnabled] = useState(true);
-  const [matchNotif, setMatchNotif] = useState(true);
-  const [likeNotif, setLikeNotif] = useState(true);
-  const [showDistance, setShowDistance] = useState(false);
 
   /* 2FA & password state */
   const [twoFADialogOpen, setTwoFADialogOpen] = useState(false);

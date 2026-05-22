@@ -8,6 +8,10 @@ const updateSettingsSchema = z.object({
   profileVisible: z.boolean().optional(),
   showOnlineStatus: z.boolean().optional(),
   language: z.string().max(10).optional(),
+  showDistance: z.boolean().optional(),
+  soundEnabled: z.boolean().optional(),
+  matchNotifications: z.boolean().optional(),
+  likeNotifications: z.boolean().optional(),
 });
 
 export async function GET(request: Request) {
@@ -24,6 +28,10 @@ export async function GET(request: Request) {
         profileVisible: true,
         showOnlineStatus: true,
         language: true,
+        showDistance: true,
+        soundEnabled: true,
+        matchNotifications: true,
+        likeNotifications: true,
       },
     });
 
@@ -56,6 +64,10 @@ export async function PUT(request: Request) {
         profileVisible: true,
         showOnlineStatus: true,
         language: true,
+        showDistance: true,
+        soundEnabled: true,
+        matchNotifications: true,
+        likeNotifications: true,
       },
     });
 

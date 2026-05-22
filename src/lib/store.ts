@@ -180,6 +180,10 @@ interface AppState {
   profileVisible: boolean;
   showOnlineStatus: boolean;
   language: string;
+  showDistance: boolean;
+  soundEnabled: boolean;
+  matchNotifications: boolean;
+  likeNotifications: boolean;
 
   // Achievements
   unlockedAchievements: string[];
@@ -252,12 +256,20 @@ interface AppState {
   setProfileVisible: (visible: boolean) => void;
   setShowOnlineStatus: (show: boolean) => void;
   setLanguage: (lang: string) => void;
+  setShowDistance: (show: boolean) => void;
+  setSoundEnabled: (enabled: boolean) => void;
+  setMatchNotifications: (enabled: boolean) => void;
+  setLikeNotifications: (enabled: boolean) => void;
   loadSettings: () => Promise<void>;
   saveSettings: (settings: {
     notificationsEnabled?: boolean;
     profileVisible?: boolean;
     showOnlineStatus?: boolean;
     language?: string;
+    showDistance?: boolean;
+    soundEnabled?: boolean;
+    matchNotifications?: boolean;
+    likeNotifications?: boolean;
   }) => Promise<void>;
 
   // Achievements
@@ -312,6 +324,10 @@ const clearState = {
   profileVisible: true,
   showOnlineStatus: true,
   language: 'ru',
+  showDistance: false,
+  soundEnabled: true,
+  matchNotifications: true,
+  likeNotifications: true,
   unlockedAchievements: [],
   showMatchAnimation: false,
   matchAnimationPartner: null,
@@ -486,6 +502,10 @@ export const useAppStore = create<AppState>((set, get) => ({
   profileVisible: true,
   showOnlineStatus: true,
   language: 'ru',
+  showDistance: false,
+  soundEnabled: true,
+  matchNotifications: true,
+  likeNotifications: true,
   setNotificationEnabled: (enabled) => {
     const prev = get().notificationsEnabled;
     set({ notificationsEnabled: enabled });
@@ -518,6 +538,38 @@ export const useAppStore = create<AppState>((set, get) => ({
       toast.error('Не удалось сохранить настройку');
     });
   },
+  setShowDistance: (show) => {
+    const prev = get().showDistance;
+    set({ showDistance: show });
+    get().saveSettings({ showDistance: show }).catch(() => {
+      set({ showDistance: prev });
+      toast.error('Не удалось сохранить настройку');
+    });
+  },
+  setSoundEnabled: (enabled) => {
+    const prev = get().soundEnabled;
+    set({ soundEnabled: enabled });
+    get().saveSettings({ soundEnabled: enabled }).catch(() => {
+      set({ soundEnabled: prev });
+      toast.error('Не удалось сохранить настройку');
+    });
+  },
+  setMatchNotifications: (enabled) => {
+    const prev = get().matchNotifications;
+    set({ matchNotifications: enabled });
+    get().saveSettings({ matchNotifications: enabled }).catch(() => {
+      set({ matchNotifications: prev });
+      toast.error('Не удалось сохранить настройку');
+    });
+  },
+  setLikeNotifications: (enabled) => {
+    const prev = get().likeNotifications;
+    set({ likeNotifications: enabled });
+    get().saveSettings({ likeNotifications: enabled }).catch(() => {
+      set({ likeNotifications: prev });
+      toast.error('Не удалось сохранить настройку');
+    });
+  },
   loadSettings: async () => {
     try {
       const res = await fetch('/api/settings');
@@ -528,6 +580,10 @@ export const useAppStore = create<AppState>((set, get) => ({
           profileVisible: settings.profileVisible ?? true,
           showOnlineStatus: settings.showOnlineStatus ?? true,
           language: settings.language ?? 'ru',
+          showDistance: settings.showDistance ?? false,
+          soundEnabled: settings.soundEnabled ?? true,
+          matchNotifications: settings.matchNotifications ?? true,
+          likeNotifications: settings.likeNotifications ?? true,
         });
       }
     } catch (error) {
