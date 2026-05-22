@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useRef, useCallback, useEffect } from 'react';
-import Image from 'next/image';
+import { SafeImage } from '@/components/ui/safe-image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import {
@@ -68,7 +68,7 @@ function ProfileDetailModal({
 
         {/* Photo */}
         <div className="relative w-full aspect-[4/3] overflow-hidden rounded-t-3xl md:rounded-t-3xl">
-          <Image src={profile.avatar || 'https://api.dicebear.com/9.x/notionists/svg?seed=Default'} alt={profile.name} fill className="object-cover" priority />
+          <SafeImage src={profile.avatar || 'https://api.dicebear.com/9.x/notionists/svg?seed=Default'} alt={profile.name} fill className="object-cover" priority />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
           <div className="absolute bottom-4 left-4">
             <h2 className="text-2xl md:text-3xl font-bold text-white">{profile.name}, {profile.age}</h2>
@@ -480,7 +480,7 @@ export function BrowseView() {
         >
           <Card className="overflow-hidden border-0 shadow-2xl rounded-3xl bg-card">
             <div className="relative aspect-[3/4] overflow-hidden rounded-3xl">
-              <Image src={currentProfile.avatar || 'https://api.dicebear.com/9.x/notionists/svg?seed=Default'} alt={currentProfile.name} fill className="object-cover" priority />
+              <SafeImage src={currentProfile.avatar || 'https://api.dicebear.com/9.x/notionists/svg?seed=Default'} alt={currentProfile.name} fill className="object-cover" priority />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
               {/* Swipe labels during drag */}
               {dragX > SWIPE_LABEL_THRESHOLD && (

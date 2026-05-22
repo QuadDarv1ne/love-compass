@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
+import { SafeImage } from '@/components/ui/safe-image';
 import { motion } from 'framer-motion';
 import {
   Heart, Compass, MessageCircle, Shield,
@@ -155,7 +155,7 @@ export function LandingView() {
                     className="flex flex-col items-center gap-1 p-1.5 md:p-2 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors"
                   >
                     <div className="relative w-12 h-12 md:w-14 md:h-14 rounded-full overflow-hidden border-2 border-rose-200 dark:border-rose-800 shadow-sm">
-                      <Image src={user.avatar} alt={user.name} fill className="object-cover" />
+                      <SafeImage src={user.avatar} alt={user.name} fill className="object-cover" />
                     </div>
                     <span className="text-[10px] md:text-xs font-medium text-rose-700 dark:text-rose-300 truncate w-full text-center">{user.name}</span>
                   </motion.button>

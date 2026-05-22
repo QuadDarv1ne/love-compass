@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import Image from 'next/image';
+import { useState, useEffect } from 'react';
+import { SafeImage } from '@/components/ui/safe-image';
 import { toast } from 'sonner';
 import {
   Heart, X, Star, LogOut, Edit3, MapPin, Zap, MessageSquare,
@@ -97,7 +97,7 @@ export function ProfileView() {
         <h2 className="text-xl font-bold text-rose-700 dark:text-rose-300 mb-6 md:mb-8">Мой профиль</h2>
         <Card className="border-rose-100 dark:border-rose-900/50 shadow-lg overflow-hidden rounded-2xl mb-6 bg-card">
           <div className="relative h-48 md:h-56">
-            <Image src={currentUser.avatar || 'https://api.dicebear.com/9.x/notionists/svg?seed=Default'} alt={currentUser.name} fill className="object-cover" />
+            <SafeImage src={currentUser.avatar || 'https://api.dicebear.com/9.x/notionists/svg?seed=Default'} alt={currentUser.name} fill className="object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
             <div className="absolute bottom-4 left-4">
               <h3 className="text-2xl font-bold text-white">{currentUser.name}, {currentUser.age}</h3>

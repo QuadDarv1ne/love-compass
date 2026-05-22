@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
+import { SafeImage } from '@/components/ui/safe-image';
 import { motion } from 'framer-motion';
 import { Heart, MessageCircle, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -89,13 +89,13 @@ export function MatchAnimationOverlay() {
           className="flex justify-center items-center gap-4 mb-8"
         >
           <div className="relative w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden border-4 border-white shadow-lg">
-            <Image src={currentUser.avatar || 'https://api.dicebear.com/9.x/notionists/svg?seed=Default'} alt={currentUser.name} fill className="object-cover" />
+            <SafeImage src={currentUser.avatar || 'https://api.dicebear.com/9.x/notionists/svg?seed=Default'} alt={currentUser.name} fill className="object-cover" />
           </div>
           <div className="match-pulse">
             <Heart className="w-10 h-10 fill-white text-white" />
           </div>
           <div className="relative w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden border-4 border-white shadow-lg">
-            <Image src={matchAnimationPartner.avatar || 'https://api.dicebear.com/9.x/notionists/svg?seed=Default'} alt={matchAnimationPartner.name} fill className="object-cover" />
+            <SafeImage src={matchAnimationPartner.avatar || 'https://api.dicebear.com/9.x/notionists/svg?seed=Default'} alt={matchAnimationPartner.name} fill className="object-cover" />
           </div>
         </motion.div>
 
