@@ -37,14 +37,18 @@ export async function getCSRFToken(): Promise<string> {
 }
 
 /**
- * Perform a mutation request with CSRF token included.
+ * Perform a mutation request with CSRF token included, for any HTTP method.
  * Automatically fetches the token if not already cached.
  * If the server returns 403, the token is invalidated and retried once.
  */
-export async function fetchWithCSRF(url: string, body: unknown): Promise<Response> {
+async function requestWithCSRF(
+  method: 'POST' | 'PUT' | 'DELETE' | 'PATCH',
+  url: string,
+  body: unknown,
+): Promise<Response> {
   const token = await getCSRFToken();
   let res = await fetchWithTimeout(url, {
-    method: 'POST',
+    method,
     headers: {
       'Content-Type': 'application/json',
       'x-csrf-token': token,
@@ -58,7 +62,7 @@ export async function fetchWithCSRF(url: string, body: unknown): Promise<Respons
     csrfTokenFetchedAt = null;
     const freshToken = await getCSRFToken();
     res = await fetchWithTimeout(url, {
-      method: 'POST',
+      method,
       headers: {
         'Content-Type': 'application/json',
         'x-csrf-token': freshToken,
@@ -68,99 +72,34 @@ export async function fetchWithCSRF(url: string, body: unknown): Promise<Respons
   }
 
   return res;
+}
+
+/**
+ * Perform a POST mutation request with CSRF token included.
+ */
+export async function fetchWithCSRF(url: string, body: unknown): Promise<Response> {
+  return requestWithCSRF('POST', url, body);
 }
 
 /**
  * Perform a PUT mutation request with CSRF token included.
  */
 export async function putWithCSRF(url: string, body: unknown): Promise<Response> {
-  const token = await getCSRFToken();
-  let res = await fetchWithTimeout(url, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-csrf-token': token,
-    },
-    body: JSON.stringify(body),
-  });
-
-  if (res.status === 403) {
-    csrfToken = null;
-    csrfTokenFetchedAt = null;
-    const freshToken = await getCSRFToken();
-    res = await fetchWithTimeout(url, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-csrf-token': freshToken,
-      },
-      body: JSON.stringify(body),
-    });
-  }
-
-  return res;
+  return requestWithCSRF('PUT', url, body);
 }
 
 /**
  * Perform a DELETE mutation request with CSRF token included.
  */
 export async function deleteWithCSRF(url: string, body: unknown): Promise<Response> {
-  const token = await getCSRFToken();
-  let res = await fetchWithTimeout(url, {
-    method: 'DELETE',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-csrf-token': token,
-    },
-    body: JSON.stringify(body),
-  });
-
-  if (res.status === 403) {
-    csrfToken = null;
-    csrfTokenFetchedAt = null;
-    const freshToken = await getCSRFToken();
-    res = await fetchWithTimeout(url, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-csrf-token': freshToken,
-      },
-      body: JSON.stringify(body),
-    });
-  }
-
-  return res;
+  return requestWithCSRF('DELETE', url, body);
 }
 
 /**
  * Perform a PATCH mutation request with CSRF token included.
  */
 export async function patchWithCSRF(url: string, body: unknown): Promise<Response> {
-  const token = await getCSRFToken();
-  let res = await fetchWithTimeout(url, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-csrf-token': token,
-    },
-    body: JSON.stringify(body),
-  });
-
-  if (res.status === 403) {
-    csrfToken = null;
-    csrfTokenFetchedAt = null;
-    const freshToken = await getCSRFToken();
-    res = await fetchWithTimeout(url, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-csrf-token': freshToken,
-      },
-      body: JSON.stringify(body),
-    });
-  }
-
-  return res;
+  return requestWithCSRF('PATCH', url, body);
 }
 
 /**

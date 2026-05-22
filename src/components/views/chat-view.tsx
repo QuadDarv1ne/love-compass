@@ -105,7 +105,10 @@ export function ChatView() {
             .map((m: Message) => m.id);
           if (unreadIds.length > 0) {
             fetchWithCSRF('/api/messages/mark-read', { messageIds: unreadIds })
-              .catch(() => {});
+              .catch((error) => {
+                console.error('Failed to mark messages as read:', error);
+                toast.error('Не удалось отметить сообщения как прочитанные');
+              });
             markMessagesAsRead(unreadIds);
           }
         }
