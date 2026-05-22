@@ -6,9 +6,12 @@
  */
 
 import { readFileSync, existsSync } from "fs";
-import { join } from "path";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
 
-const rootDir = join(import.meta.dir, "..");
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const rootDir = join(__dirname, "..");
 const envFile = join(rootDir, ".env");
 const envExampleFile = join(rootDir, ".env.example");
 

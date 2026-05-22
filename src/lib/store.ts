@@ -472,9 +472,18 @@ export const useAppStore = create<AppState>((set, get) => ({
   })),
   setShowMatchAnimation: (show) => set({ showMatchAnimation: show }),
   setMatchAnimationPartner: (user) => set({ matchAnimationPartner: user }),
-  addLikedUserId: (userId) => set((state) => ({ likedUserIds: [...state.likedUserIds, userId] })),
-  addDislikedUserId: (userId) => set((state) => ({ dislikedUserIds: [...state.dislikedUserIds, userId] })),
-  addSuperLikedUserId: (userId) => set((state) => ({ superLikedUserIds: [...state.superLikedUserIds, userId] })),
+  addLikedUserId: (userId) => set((state) => {
+    if (state.likedUserIds.includes(userId)) return state;
+    return { likedUserIds: [...state.likedUserIds, userId] };
+  }),
+  addDislikedUserId: (userId) => set((state) => {
+    if (state.dislikedUserIds.includes(userId)) return state;
+    return { dislikedUserIds: [...state.dislikedUserIds, userId] };
+  }),
+  addSuperLikedUserId: (userId) => set((state) => {
+    if (state.superLikedUserIds.includes(userId)) return state;
+    return { superLikedUserIds: [...state.superLikedUserIds, userId] };
+  }),
   removeProfile: (userId) => set((state) => ({
     profiles: state.profiles.filter((p) => p.id !== userId),
   })),
