@@ -197,6 +197,8 @@ export async function hydrateAppData(user?: User) {
       }
     }
   } catch (error) {
+    const { toast } = await import('sonner');
+    toast.error('Ошибка загрузки данных', { description: 'Некоторые данные могли не загрузиться. Обновите страницу.' });
     console.error('Failed to hydrate app data:', error);
   } finally {
     store.setIsLoading(false);

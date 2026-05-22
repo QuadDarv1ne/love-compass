@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useAppStore, type Message } from '@/lib/store';
+import { useAppStore, type Message, type MatchWithUsers } from '@/lib/store';
 import { OnlineIndicator, TypingIndicator } from './shared';
 import { fetchWithCSRF } from '@/lib/api';
 
@@ -89,6 +89,9 @@ export function ChatView() {
     ? selectedMatch.user1.id === currentUser?.id ? selectedMatch.user2 : selectedMatch.user1
     : null;
 
+  const currentUserRef = useRef<User | null | undefined>(null);
+  currentUserRef.current = currentUser;
+
   useEffect(() => {
     if (!selectedMatch) return;
     const abortController = new AbortController();
@@ -101,8 +104,9 @@ export function ChatView() {
         if (!cancelled) {
           setMessages(data);
           // Mark unread messages as read
+          const currentUserId = currentUserRef.current?.id;
           const unreadIds = data
-            .filter((m: Message) => m.senderId !== currentUser?.id && !m.read)
+            .filter((m: Message) => m.senderId !== currentUserId && !m.read)
             .map((m: Message) => m.id);
           if (unreadIds.length > 0) {
             try {
@@ -136,23 +140,27 @@ export function ChatView() {
     }
   }, [messages, partnerTyping]);
 
+  const selectedMatchRef = useRef<MatchWithUsers | null>(null);
+  selectedMatchRef.current = selectedMatch;
+
   // Auto-reply simulation — only triggers when the *latest* message is from current user
   const lastMessage = messages.length > 0 ? messages[messages.length - 1] : null;
   const lastMessageRef = useRef<Message | null>(null);
   lastMessageRef.current = lastMessage;
 
   useEffect(() => {
-    if (!lastMessage || !selectedMatch || !currentUser || !IS_DEMO_MODE) return;
-    if (lastMessage.senderId !== currentUser.id) return;
+    if (!lastMessage || !selectedMatchRef.current || !currentUserRef.current || !IS_DEMO_MODE) return;
+    if (lastMessage.senderId !== currentUserRef.current.id) return;
 
     const replyDelay = AUTO_REPLY_MIN_DELAY + Math.random() * AUTO_REPLY_MAX_DELAY;
     const typingDelay = TYPING_MIN_DELAY + Math.random() * TYPING_MAX_DELAY;
 
-    const matchId = selectedMatch.id;
+    const matchId = selectedMatchRef.current.id;
+    const senderId = currentUserRef.current.id;
     autoReplyTimerRef.current = setTimeout(() => {
       // Verify the message is still the latest (user didn't switch chats)
       const currentLast = lastMessageRef.current;
-      if (!currentLast || currentLast.id !== lastMessage.id || currentLast.senderId !== currentUser.id) return;
+      if (!currentLast || currentLast.id !== lastMessage.id || currentLast.senderId !== senderId) return;
 
       setPartnerTyping(true);
       innerTimerRef.current = setTimeout(() => {
@@ -189,6 +197,10 @@ export function ChatView() {
 
     try {
       const res = await fetchWithCSRF('/api/messages', { matchId: selectedMatch.id, content });
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || `Server error: ${res.status}`);
+      }
       const msg = await res.json();
       if (msg.id) addMessage(msg);
     } catch (error) {

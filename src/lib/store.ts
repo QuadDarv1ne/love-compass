@@ -423,6 +423,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       await fetchWithCSRF('/api/auth/logout', {});
     } catch (error) {
       console.error('Logout API call failed:', error);
+      toast.error('Ошибка выхода', { description: 'Не удалось завершить сессию на сервере' });
     }
     set({ ...clearState, authStatus: 'unauthenticated' });
   },
