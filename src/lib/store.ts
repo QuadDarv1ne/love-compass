@@ -212,6 +212,7 @@ interface AppState {
   setSelectedProfile: (profile: User | null) => void;
   setMessages: (messages: Message[]) => void;
   addMessage: (message: Message) => void;
+  markMessagesAsRead: (messageIds: string[]) => void;
   setShowMatchAnimation: (show: boolean) => void;
   setMatchAnimationPartner: (user: User | null) => void;
   addLikedUserId: (userId: string) => void;
@@ -456,6 +457,11 @@ export const useAppStore = create<AppState>((set, get) => ({
   setSelectedProfile: (profile) => set({ selectedProfile: profile }),
   setMessages: (messages) => set({ messages }),
   addMessage: (message) => set((state) => ({ messages: [...state.messages, message] })),
+  markMessagesAsRead: (messageIds) => set((state) => ({
+    messages: state.messages.map((m) =>
+      messageIds.includes(m.id) ? { ...m, read: true } : m
+    ),
+  })),
   setShowMatchAnimation: (show) => set({ showMatchAnimation: show }),
   setMatchAnimationPartner: (user) => set({ matchAnimationPartner: user }),
   addLikedUserId: (userId) => set((state) => ({ likedUserIds: [...state.likedUserIds, userId] })),

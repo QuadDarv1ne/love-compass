@@ -24,7 +24,7 @@ export function MatchesView() {
     for (const match of matches) {
       if (match.messages && match.messages.length > 0) {
         const lastMsg = match.messages[match.messages.length - 1];
-        if (lastMsg.senderId !== currentUser.id) {
+        if (lastMsg.senderId !== currentUser.id && !lastMsg.read) {
           unreadIds.push(match.id);
         }
       }

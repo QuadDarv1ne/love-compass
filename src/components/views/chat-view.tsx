@@ -24,6 +24,7 @@ const AUTO_REPLY_MIN_DELAY = 1500;
 const AUTO_REPLY_MAX_DELAY = 2500;
 const TYPING_MIN_DELAY = 500;
 const TYPING_MAX_DELAY = 800;
+const IS_DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
 
 const EMOJI_LIST = POPULAR_EMOJIS;
 
@@ -75,7 +76,7 @@ function EmojiPicker({ onSelect }: { onSelect: (emoji: string) => void }) {
 
 // ─── Chat View ──────────────────────────────────────────────────────────────
 export function ChatView() {
-  const { selectedMatch, currentUser, messages, setMessages, addMessage, navigateTo, onlineUserIds } = useAppStore();
+  const { selectedMatch, currentUser, messages, setMessages, addMessage, navigateTo, onlineUserIds, markMessagesAsRead } = useAppStore();
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [partnerTyping, setPartnerTyping] = useState(false);
@@ -96,7 +97,18 @@ export function ChatView() {
         const res = await fetch(`/api/messages?matchId=${selectedMatch.id}`);
         if (!res.ok) throw new Error('Failed to load messages');
         const data = await res.json();
-        if (!cancelled) setMessages(data);
+        if (!cancelled) {
+          setMessages(data);
+          // Mark unread messages as read
+          const unreadIds = data
+            .filter((m: Message) => m.senderId !== currentUser?.id && !m.read)
+            .map((m: Message) => m.id);
+          if (unreadIds.length > 0) {
+            fetchWithCSRF('/api/messages/mark-read', { messageIds: unreadIds })
+              .catch(() => {});
+            markMessagesAsRead(unreadIds);
+          }
+        }
       } catch (error) {
         if (!cancelled) console.error('Failed to load messages:', error);
       }
@@ -122,7 +134,7 @@ export function ChatView() {
   lastMessageRef.current = lastMessage;
 
   useEffect(() => {
-    if (!lastMessage || !selectedMatch || !currentUser) return;
+    if (!lastMessage || !selectedMatch || !currentUser || !IS_DEMO_MODE) return;
     if (lastMessage.senderId !== currentUser.id) return;
 
     const replyDelay = AUTO_REPLY_MIN_DELAY + Math.random() * AUTO_REPLY_MAX_DELAY;
