@@ -204,9 +204,13 @@ function StoryViewer({
   const [localMoments, setLocalMoments] = useState<Moment[]>(moments);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
   const containerRef = useRef<HTMLDivElement>(null);
   const dragStartY = useRef(0);
+
+  // Sync onCloseRef with latest onClose prop
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   const currentMoment = localMoments[currentIndex];
 

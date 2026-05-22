@@ -85,21 +85,30 @@ export async function GET(request: Request) {
       }),
     ]);
 
-    const toMap = <T extends { [key: string]: unknown }>(arr: T[], key: keyof T) =>
+    type GroupCountResult = {
+      _count: Record<string, number>;
+      [key: string]: unknown;
+    };
+    const toMap = (
+      arr: GroupCountResult[],
+      key: string,
+      countKey: string,
+    ) =>
       arr.reduce<Record<string, number>>((acc, item) => {
-        acc[String(item[key])] = (item as any)._count?.[key as string] ?? 0;
+        acc[item[key] as string] = item._count[countKey] ?? 0;
         return acc;
       }, {});
 
-    const likesSentMap = toMap(likesSent, 'fromUserId');
-    const likesReceivedMap = toMap(likesReceived, 'toUserId');
-    const matchCountsMap = toMap(matchCounts[0], 'user1Id');
+    const likesSentMap = toMap(likesSent, 'fromUserId', 'fromUserId');
+    const likesReceivedMap = toMap(likesReceived, 'toUserId', 'toUserId');
+    const matchCountsMap = toMap(matchCounts[0], 'user1Id', 'user1Id');
     for (const m of matchCounts[1]) {
       const id = String(m.user2Id);
-      matchCountsMap[id] = (matchCountsMap[id] || 0) + ((m as any)._count?.user2Id ?? 0);
+      const counts = m._count as Record<string, number> | undefined;
+      matchCountsMap[id] = (matchCountsMap[id] || 0) + (counts?.user2Id ?? 0);
     }
-    const messageCountsMap = toMap(messageCounts, 'senderId');
-    const momentCountsMap = toMap(momentCounts, 'userId');
+    const messageCountsMap = toMap(messageCounts, 'senderId', 'senderId');
+    const momentCountsMap = toMap(momentCounts, 'userId', 'userId');
 
     const lastActivity: Record<string, string> = {};
     for (const msg of lastActivityMap) {

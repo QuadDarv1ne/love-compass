@@ -31,7 +31,7 @@ export function MatchesView() {
     }
     useAppStore.getState().setUnreadMatchIds(unreadIds);
     setLocalLoading(false);
-  }, [currentUser?.id, matches]);
+  }, [currentUser, matches]);
 
   const getPartner = (match: MatchWithUsers): User => {
     return match.user1.id === currentUser?.id ? match.user2 : match.user1;
