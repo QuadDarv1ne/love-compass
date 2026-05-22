@@ -66,6 +66,9 @@ model Like {
   toUser     User     @relation("ReceivedLikes", fields: [toUserId], references: [id])
 
   @@unique([fromUserId, toUserId])
+  @@index([fromUserId])
+  @@index([toUserId])
+  @@index([createdAt])
 }
 
 model Match {
@@ -78,6 +81,9 @@ model Match {
   messages   Message[]
 
   @@unique([user1Id, user2Id])
+  @@index([user1Id])
+  @@index([user2Id])
+  @@index([createdAt])
 }
 
 model Message {
@@ -89,6 +95,10 @@ model Message {
   createdAt  DateTime @default(now())
   match      Match    @relation(fields: [matchId], references: [id])
   sender     User     @relation("SentMessages", fields: [senderId], references: [id])
+
+  @@index([matchId])
+  @@index([senderId])
+  @@index([createdAt])
 }
 
 model Block {
@@ -101,6 +111,9 @@ model Block {
   blocked    User     @relation("Blocked", fields: [blockedId], references: [id])
 
   @@unique([blockerId, blockedId])
+  @@index([blockerId])
+  @@index([blockedId])
+  @@index([createdAt])
 }
 
 model Report {
@@ -112,6 +125,10 @@ model Report {
   createdAt  DateTime @default(now())
   reporter   User     @relation("ReportedBy", fields: [reporterId], references: [id])
   reported   User     @relation("Reported", fields: [reportedId], references: [id])
+
+  @@index([reporterId])
+  @@index([reportedId])
+  @@index([createdAt])
 }
 
 model Session {

@@ -89,7 +89,7 @@ export function ChatView() {
     ? selectedMatch.user1.id === currentUser?.id ? selectedMatch.user2 : selectedMatch.user1
     : null;
 
-  const currentUserRef = useRef<User | null | undefined>(null);
+  const currentUserRef = useRef<typeof currentUser>(null);
   currentUserRef.current = currentUser;
 
   useEffect(() => {

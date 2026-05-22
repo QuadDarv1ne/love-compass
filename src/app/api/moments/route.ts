@@ -150,7 +150,7 @@ export async function PATCH(request: Request) {
         if (existing) {
           // Unlike: remove the like and decrement count
           await tx.momentLike.delete({ where: { id: existing.id } });
-          const updated = await db.moment.update({
+          const updated = await tx.moment.update({
             where: { id },
             data: { likes: { decrement: 1 } },
           });
@@ -161,7 +161,7 @@ export async function PATCH(request: Request) {
         await tx.momentLike.create({
           data: { momentId: id, userId: auth.user.id },
         });
-        const updated = await db.moment.update({
+        const updated = await tx.moment.update({
           where: { id },
           data: { likes: { increment: 1 } },
         });
