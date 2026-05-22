@@ -22,7 +22,7 @@ import { Separator } from '@/components/ui/separator';
 
 // ─── Main Page ──────────────────────────────────────────────────────────────
 export default function HomePage() {
-  const { currentView, matches, likedYouCount, viewDirection, authStatus, checkAuth } = useAppStore();
+  const { currentView, matches, likedYouCount, viewDirection, authStatus, checkAuth, showMatchAnimation } = useAppStore();
 
   // Check auth session on mount
   useEffect(() => {
@@ -53,13 +53,14 @@ export default function HomePage() {
     <div className="min-h-screen gradient-bg flex flex-col relative">
       {/* Match Animation Overlay */}
       <AnimatePresence>
-        {useAppStore.getState().showMatchAnimation && <MatchAnimationOverlay />}
+        {showMatchAnimation && <MatchAnimationOverlay />}
       </AnimatePresence>
 
       {currentView === 'landing' ? (
         <LandingView />
       ) : (
-        <div className="flex-1 flex flex-col md:flex-row">
+        <>
+          <div className="flex-1 flex flex-col md:flex-row">
           {/* Desktop Sidebar */}
           <div className="hidden md:flex md:flex-col md:w-72 lg:w-80 border-r border-rose-100 dark:border-rose-900/50 bg-card/60 backdrop-blur-sm">
             {/* Logo + Dark Mode */}
@@ -184,6 +185,7 @@ export default function HomePage() {
             © 2026 Love Compass. Все права защищены. Автор: Дуплей Максим Игоревич
           </p>
         </footer>
+        </>
       )}
     </div>
   );
