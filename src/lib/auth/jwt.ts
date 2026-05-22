@@ -6,7 +6,10 @@ const getSecret = () => {
     if (process.env.NODE_ENV === 'production') {
       throw new Error('JWT_SECRET environment variable is required in production');
     }
-    return new TextEncoder().encode('dev-only-fallback');
+    // Generate random secret at runtime for development
+    const randomBytes = new Uint8Array(32);
+    crypto.getRandomValues(randomBytes);
+    return randomBytes;
   }
   return new TextEncoder().encode(secret);
 };

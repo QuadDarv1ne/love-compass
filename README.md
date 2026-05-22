@@ -52,8 +52,8 @@ Love Compass — это веб-приложение для знакомств, �
 - **Стилизация:** Tailwind CSS 4, shadcn/ui
 - **Анимации:** Framer Motion
 - **База данных:** Prisma ORM
-- **Аутентификация:** NextAuth.js
-- **Управление состоянием:** Zustand, TanStack Query
+- **Аутентификация:** Custom JWT/session-based auth с 2FA (TOTP)
+- **Управление состоянием:** Zustand
 - **Формы:** React Hook Form + Zod
 - **Иконки:** Lucide React
 - **Сборщик:** Bun
@@ -98,7 +98,7 @@ love-compass/
 │   │   └── utils.ts                # Утилиты
 │   └── hooks/
 │       ├── use-mobile.ts           # Хук определения мобильного устройства
-│       └── use-toast.ts            # Хек уведомлений
+│       └── use-toast.ts            # Хук уведомлений
 ├── prisma/
 │   └── schema.prisma               # Схема базы данных
 ├── public/

@@ -614,15 +614,18 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   // Achievements
   unlockedAchievements: [],
-  unlockAchievement: (id) => {
+  unlockAchievement: async (id) => {
     const state = get();
     if (state.unlockedAchievements.includes(id)) return;
     // Fire and forget API call
-    import('@/lib/api').then(({ fetchWithCSRF }) => {
-      fetchWithCSRF('/api/achievements', { achievementId: id }).catch((error) => {
+    (async () => {
+      try {
+        const { fetchWithCSRF } = await import('@/lib/api');
+        await fetchWithCSRF('/api/achievements', { achievementId: id });
+      } catch (error) {
         console.error('Failed to unlock achievement:', error);
-      });
-    });
+      }
+    })();
     set({ unlockedAchievements: [...state.unlockedAchievements, id] });
   },
 

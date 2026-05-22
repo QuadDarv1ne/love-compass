@@ -3,7 +3,7 @@ import { hashPassword } from './src/lib/auth/password';
 
 const prisma = new PrismaClient();
 
-const DEFAULT_PASSWORD = 'Test1234!';
+const DEFAULT_PASSWORD = crypto.randomUUID().slice(0, 12) + '!A1';
 
 async function main() {
   const passwordHash = await hashPassword(DEFAULT_PASSWORD);

@@ -620,15 +620,18 @@ export function MomentsView() {
   useEffect(() => {
     if (storeMoments.length > 0) return;
     let cancelled = false;
-    fetch('/api/moments')
-      .then((r) => r.json())
-      .then(({ data }) => {
+    (async () => {
+      try {
+        const r = await fetch('/api/moments');
+        const { data } = await r.json();
         if (!cancelled) {
           setMoments(data ?? []);
           setStoreMoments(data ?? []);
         }
-      })
-      .catch(() => { if (!cancelled) setMoments([]); });
+      } catch {
+        if (!cancelled) setMoments([]);
+      }
+    })();
     return () => { cancelled = true; };
   }, [storeMoments, setStoreMoments]);
 

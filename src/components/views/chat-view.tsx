@@ -163,20 +163,21 @@ export function ChatView() {
       if (!currentLast || currentLast.id !== lastMessage.id || currentLast.senderId !== senderId) return;
 
       setPartnerTyping(true);
-      innerTimerRef.current = setTimeout(() => {
+      innerTimerRef.current = setTimeout(async () => {
         setPartnerTyping(false);
-        fetch('/api/messages/auto-reply', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ matchId }),
-        })
-          .then((res) => (res.ok ? res.json() : null))
-          .then((msg) => {
-            if (msg) addMessage(msg);
-          })
-          .catch((error) => {
-            console.error('Failed to send auto-reply:', error);
+        try {
+          const res = await fetch('/api/messages/auto-reply', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ matchId }),
           });
+          if (res.ok) {
+            const msg = await res.json();
+            if (msg) addMessage(msg);
+          }
+        } catch (error) {
+          console.error('Failed to send auto-reply:', error);
+        }
       }, replyDelay - typingDelay);
     }, typingDelay);
     return () => {
