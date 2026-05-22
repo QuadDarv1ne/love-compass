@@ -128,9 +128,7 @@ export async function DELETE(request: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    if (isZodError(error)) {
-      return NextResponse.json({ error: 'Validation failed', details: error.issues }, { status: 400 });
-    }
+    console.error('Failed to undo like:', error);
     return NextResponse.json({ error: 'Failed to undo like' }, { status: 500 });
   }
 }

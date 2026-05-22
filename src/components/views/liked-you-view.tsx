@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -16,11 +16,17 @@ import { fetchWithCSRF } from '@/lib/api';
 export function LikedYouView() {
   const { currentUser, likedYouProfiles, setLikedYouProfiles, setShowMatchAnimation, setMatchAnimationPartner, navigateTo } = useAppStore();
   const [loading, setLoading] = useState(true);
+  const matchAnimationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     // Data is already loaded via hydrateAppData() on login
     // Just mark loading as done
     setLoading(false);
+    return () => {
+      if (matchAnimationTimerRef.current) {
+        clearTimeout(matchAnimationTimerRef.current);
+      }
+    };
   }, []);
 
   const handleLikeBack = async (profile: User) => {
@@ -35,7 +41,7 @@ export function LikedYouView() {
           className: 'toast-match',
         });
         setMatchAnimationPartner(profile);
-        setTimeout(() => { setShowMatchAnimation(true); }, 300);
+        matchAnimationTimerRef.current = setTimeout(() => { setShowMatchAnimation(true); }, 300);
       } else {
         toast.info(`${profile.name} оценил(а) вашу анкету!`, {
           description: 'Вы лайкнули в ответ',

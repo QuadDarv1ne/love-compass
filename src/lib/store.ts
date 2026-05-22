@@ -297,6 +297,10 @@ interface AppState {
 
 const clearState = {
   currentUser: null,
+  authStatus: 'idle' as const,
+  isLoading: false,
+  chatListMatchId: null,
+  viewDirection: 'forward' as const,
   currentView: 'landing' as ViewType,
   previousView: null,
   profiles: [],

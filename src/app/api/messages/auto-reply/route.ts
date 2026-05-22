@@ -74,7 +74,7 @@ export async function POST(request: Request) {
     }
 
     // Determine the partner (the other participant)
-    const partner = match.user1Id === user.id ? match.user1 : match.user2;
+    const partner = match.user1Id === user.id ? match.user2 : match.user1;
 
     const replyText = AUTO_REPLIES[Math.floor(Math.random() * AUTO_REPLIES.length)];
 
