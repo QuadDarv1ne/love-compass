@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAdmin } from '@/lib/auth/guard';
+import { logger } from '@/lib/logger';
 
 export async function GET(request: Request) {
   try {
@@ -78,7 +79,7 @@ export async function GET(request: Request) {
       },
     });
   } catch (error) {
-    console.error('Admin stats error:', error);
+    logger.error('/api/admin/stats', 'Admin stats error', error);
     return NextResponse.json({ error: 'Failed to fetch stats' }, { status: 500 });
   }
 }

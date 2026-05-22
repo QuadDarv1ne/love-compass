@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAuth } from '@/lib/auth/guard';
+import { logger } from '@/lib/logger';
 
 export async function GET(request: Request) {
   try {
@@ -48,7 +49,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(pendingLikes);
   } catch (error) {
-    console.error('Failed to fetch received likes:', error);
+    logger.error('/api/likes/received', 'Failed to fetch received likes', error);
     return NextResponse.json({ error: 'Failed to fetch received likes' }, { status: 500 });
   }
 }

@@ -117,7 +117,7 @@ export async function hydrateAppData(user?: User) {
     const profilesRes = await fetchWithTimeout('/api/profiles?limit=100');
     if (!profilesRes.ok) throw new Error('Failed to fetch profiles');
     const profilesBody = await profilesRes.json();
-    const allUsers: User[] = profilesBody.data ?? profilesBody;
+    const allUsers: User[] = Array.isArray(profilesBody.data) ? profilesBody.data : Array.isArray(profilesBody) ? profilesBody : [];
     const currentUser = user ?? store.currentUser;
     const otherProfiles = currentUser ? allUsers.filter((u) => u.id !== currentUser.id) : allUsers;
     store.setProfiles(otherProfiles);
@@ -131,62 +131,70 @@ export async function hydrateAppData(user?: User) {
     // Fetch matches with messages
     const matchesRes = await fetchWithTimeout('/api/matches');
     if (matchesRes.ok) {
-      const matches: MatchWithUsers[] = await matchesRes.json();
+      const matchesBody = await matchesRes.json();
+      const matches: MatchWithUsers[] = Array.isArray(matchesBody) ? matchesBody : [];
       store.setMatches(matches);
     }
 
     // Fetch received likes (who liked you)
     const likedYouRes = await fetchWithTimeout('/api/likes/received');
     if (likedYouRes.ok) {
-      const likedYouUsers: User[] = await likedYouRes.json();
+      const likedYouBody = await likedYouRes.json();
+      const likedYouUsers: User[] = Array.isArray(likedYouBody) ? likedYouBody : [];
       store.setLikedYouProfiles(likedYouUsers);
     }
 
     // Build set of already-liked user IDs
     const likeSentRes = await fetchWithTimeout('/api/likes/sent');
     if (likeSentRes.ok) {
-      const likes: { toUserId: string }[] = await likeSentRes.json();
+      const likeSentBody = await likeSentRes.json();
+      const likes: { toUserId: string }[] = Array.isArray(likeSentBody) ? likeSentBody : [];
       for (const like of likes) {
-        store.addLikedUserId(like.toUserId);
+        if (like.toUserId) store.addLikedUserId(like.toUserId);
       }
     }
 
     // Fetch blocked users
     const blockedRes = await fetchWithTimeout('/api/block');
     if (blockedRes.ok) {
-      const { blocks } = await blockedRes.json();
-      const blockedIds: string[] = blocks.map((b: { blockedId: string }) => b.blockedId);
+      const blockedBody = await blockedRes.json();
+      const blocks: { blockedId: string }[] = Array.isArray(blockedBody?.blocks) ? blockedBody.blocks : [];
+      const blockedIds: string[] = blocks.map((b) => b.blockedId).filter(Boolean);
       useAppStore.setState({ blockedUserIds: blockedIds });
     }
 
     // Fetch moments
     const momentsRes = await fetchWithTimeout('/api/moments');
     if (momentsRes.ok) {
-      const { data: momentsData } = await momentsRes.json();
-      useAppStore.setState({ moments: momentsData ?? [] });
+      const momentsBody = await momentsRes.json();
+      const momentsData = Array.isArray(momentsBody?.data) ? momentsBody.data : [];
+      useAppStore.setState({ moments: momentsData });
     }
 
     // Fetch achievements
     const achievementsRes = await fetchWithTimeout('/api/achievements');
     if (achievementsRes.ok) {
-      const { unlocked } = await achievementsRes.json();
-      useAppStore.setState({ unlockedAchievements: unlocked ?? [] });
+      const achievementsBody = await achievementsRes.json();
+      const unlocked = Array.isArray(achievementsBody?.unlocked) ? achievementsBody.unlocked : [];
+      useAppStore.setState({ unlockedAchievements: unlocked });
     }
 
     // Load user settings
     const settingsRes = await fetchWithTimeout('/api/settings');
     if (settingsRes.ok) {
       const settings = await settingsRes.json();
-      useAppStore.setState({
-        notificationsEnabled: settings.notificationsEnabled ?? true,
-        profileVisible: settings.profileVisible ?? true,
-        showOnlineStatus: settings.showOnlineStatus ?? true,
-        language: settings.language ?? 'ru',
-        showDistance: settings.showDistance ?? false,
-        soundEnabled: settings.soundEnabled ?? true,
-        matchNotifications: settings.matchNotifications ?? true,
-        likeNotifications: settings.likeNotifications ?? true,
-      });
+      if (settings && typeof settings === 'object') {
+        useAppStore.setState({
+          notificationsEnabled: settings.notificationsEnabled ?? true,
+          profileVisible: settings.profileVisible ?? true,
+          showOnlineStatus: settings.showOnlineStatus ?? true,
+          language: settings.language ?? 'ru',
+          showDistance: settings.showDistance ?? false,
+          soundEnabled: settings.soundEnabled ?? true,
+          matchNotifications: settings.matchNotifications ?? true,
+          likeNotifications: settings.likeNotifications ?? true,
+        });
+      }
     }
   } catch (error) {
     console.error('Failed to hydrate app data:', error);

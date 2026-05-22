@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { z } from 'zod';
 import { requireAuthWithCSRF, isZodError } from '@/lib/auth/guard';
+import { logger } from '@/lib/logger';
 
 const likeSchema = z.object({
   toUserId: z.string().min(1),
@@ -80,6 +81,7 @@ export async function POST(request: Request) {
     if (isZodError(error)) {
       return NextResponse.json({ error: 'Validation failed', details: error.issues }, { status: 400 });
     }
+    logger.error('/api/like', 'Failed to create like', error);
     return NextResponse.json({ error: 'Failed to create like' }, { status: 500 });
   }
 }
@@ -128,7 +130,7 @@ export async function DELETE(request: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Failed to undo like:', error);
+    logger.error('/api/like', 'Failed to undo like', error);
     return NextResponse.json({ error: 'Failed to undo like' }, { status: 500 });
   }
 }

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getUserFromRequest } from '@/lib/auth/session';
+import { logger } from '@/lib/logger';
 
 export async function GET() {
   try {
@@ -14,7 +15,7 @@ export async function GET() {
       user: safeUser,
     });
   } catch (error) {
-    console.error('Session check error:', error);
+    logger.error('/api/auth/session', 'Session check error', error);
     return NextResponse.json(null, { status: 200 });
   }
 }

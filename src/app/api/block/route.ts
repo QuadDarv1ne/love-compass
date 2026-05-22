@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@/lib/db';
 import { requireAuth, requireAuthWithCSRF, isZodError } from '@/lib/auth/guard';
+import { logger } from '@/lib/logger';
 
 const blockSchema = z.object({
   blockedId: z.string().min(1),
@@ -57,7 +58,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ blocks });
   } catch (error) {
-    console.error('Failed to fetch blocked users:', error);
+    logger.error('/api/block', 'Failed to fetch blocked users', error);
     return NextResponse.json({ error: 'Failed to fetch blocked users' }, { status: 500 });
   }
 }

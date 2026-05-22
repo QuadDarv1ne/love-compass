@@ -420,7 +420,6 @@ export function TopView() {
               rest={rest}
               scoreLabel={currentTab.scoreLabel}
               scoreGetter={currentTab.scoreGetter}
-              _currentUserRank={currentUserRank}
             />
           </TabsContent>
 
@@ -431,7 +430,6 @@ export function TopView() {
               rest={rest}
               scoreLabel={currentTab.scoreLabel}
               scoreGetter={currentTab.scoreGetter}
-              _currentUserRank={currentUserRank}
             />
           </TabsContent>
 
@@ -442,7 +440,6 @@ export function TopView() {
               rest={rest}
               scoreLabel={currentTab.scoreLabel}
               scoreGetter={currentTab.scoreGetter}
-              _currentUserRank={currentUserRank}
             />
           </TabsContent>
         </Tabs>
@@ -502,13 +499,11 @@ function LeaderboardContent({
   rest,
   scoreLabel,
   scoreGetter,
-  _currentUserRank,
 }: {
   top3: RankedUser[];
   rest: RankedUser[];
   scoreLabel: string;
   scoreGetter: (r: RankedUser) => number;
-  _currentUserRank: { rank: number; total: number; user: RankedUser } | null;
 }) {
   // Ensure we have at least 3 entries in podium (pad with undefined if needed)
   const podiumEntries: (RankedUser | null)[] = [

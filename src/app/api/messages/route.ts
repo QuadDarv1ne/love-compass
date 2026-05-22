@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { z } from 'zod';
 import { requireAuth, requireAuthWithCSRF, isZodError } from '@/lib/auth/guard';
+import { logger } from '@/lib/logger';
 
 const sendMessageSchema = z.object({
   matchId: z.string().min(1),
@@ -37,7 +38,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(messages);
   } catch (error) {
-    console.error('Failed to fetch messages:', error);
+    logger.error('/api/messages', 'Failed to fetch messages', error);
     return NextResponse.json({ error: 'Failed to fetch messages' }, { status: 500 });
   }
 }

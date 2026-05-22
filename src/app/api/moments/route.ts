@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { z } from 'zod';
 import { requireAuth, requireAuthWithCSRF, isZodError } from '@/lib/auth/guard';
+import { logger } from '@/lib/logger';
 
 const createMomentSchema = z.object({
   content: z.string().min(1).max(200),
@@ -83,7 +84,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ data });
   } catch (error) {
-    console.error('GET /api/moments error:', error);
+    logger.error('/api/moments', 'GET error', error);
     return NextResponse.json({ error: 'Failed to fetch moments' }, { status: 500 });
   }
 }
@@ -115,7 +116,7 @@ export async function POST(request: Request) {
     if (isZodError(error)) {
       return NextResponse.json({ error: 'Invalid input', details: error.issues }, { status: 400 });
     }
-    console.error('POST /api/moments error:', error);
+    logger.error('/api/moments', 'POST error', error);
     return NextResponse.json({ error: 'Failed to create moment' }, { status: 500 });
   }
 }
@@ -237,7 +238,7 @@ export async function PATCH(request: Request) {
     if (isZodError(error)) {
       return NextResponse.json({ error: 'Invalid input', details: error.issues }, { status: 400 });
     }
-    console.error('PATCH /api/moments error:', error);
+    logger.error('/api/moments', 'PATCH error', error);
     return NextResponse.json({ error: 'Failed to update moment' }, { status: 500 });
   }
 }

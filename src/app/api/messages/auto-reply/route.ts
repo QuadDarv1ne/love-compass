@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { db } from '@/lib/db';
 import { requireAuth, isZodError } from '@/lib/auth/guard';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
+import { logger } from '@/lib/logger';
 
 const autoReplySchema = z.object({
   matchId: z.string().min(1),
@@ -97,7 +98,7 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    console.error('Auto-reply error:', error);
+    logger.error('/api/messages/auto-reply', 'Auto-reply error', error);
     return NextResponse.json(
       { error: 'Failed to send auto-reply' },
       { status: 500 }

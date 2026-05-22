@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { z } from 'zod';
 import { requireAuth, requireAuthWithCSRF, isZodError } from '@/lib/auth/guard';
+import { logger } from '@/lib/logger';
 
 const unlockSchema = z.object({
   achievementId: z.string(),
@@ -24,7 +25,7 @@ export async function GET(request: Request) {
       details: achievements,
     });
   } catch (error) {
-    console.error('GET /api/achievements error:', error);
+    logger.error('/api/achievements', 'GET error', error);
     return NextResponse.json({ error: 'Failed to fetch achievements' }, { status: 500 });
   }
 }
@@ -59,7 +60,7 @@ export async function POST(request: Request) {
     if (isZodError(error)) {
       return NextResponse.json({ error: 'Invalid input', details: error.issues }, { status: 400 });
     }
-    console.error('POST /api/achievements error:', error);
+    logger.error('/api/achievements', 'POST error', error);
     return NextResponse.json({ error: 'Failed to unlock achievement' }, { status: 500 });
   }
 }

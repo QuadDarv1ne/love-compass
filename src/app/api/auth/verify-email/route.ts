@@ -8,6 +8,7 @@ import {
 import { sendVerificationEmail } from '@/lib/email';
 import { generateRandomToken, getClientIp } from '@/lib/auth/crypto';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
+import { logger } from '@/lib/logger';
 
 export async function GET(request: Request) {
   try {
@@ -60,7 +61,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ success: true, email: user.email });
   } catch (error) {
-    console.error('Email verification error:', error);
+    logger.error('/api/auth/verify-email', 'Email verification error', error);
     return NextResponse.json(
       { error: 'Ошибка сервера' },
       { status: 500 }
@@ -111,7 +112,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Resend verification error:', error);
+    logger.error('/api/auth/verify-email', 'Resend verification error', error);
     return NextResponse.json(
       { error: 'Ошибка сервера' },
       { status: 500 }

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { z } from 'zod';
 import { requireAuth, requireAuthWithCSRF, isZodError } from '@/lib/auth/guard';
+import { logger } from '@/lib/logger';
 
 const updateProfileSchema = z.object({
   name: z.string().min(1).max(100).optional(),
@@ -52,7 +53,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(user);
   } catch (error) {
-    console.error('Failed to fetch profile:', error);
+    logger.error('/api/profile', 'Failed to fetch profile', error);
     return NextResponse.json({ error: 'Failed to fetch profile' }, { status: 500 });
   }
 }

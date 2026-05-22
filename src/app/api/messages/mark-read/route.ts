@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@/lib/db';
 import { requireAuth, isZodError } from '@/lib/auth/guard';
+import { logger } from '@/lib/logger';
 
 const markReadSchema = z.object({
   messageIds: z.array(z.string().min(1)).min(1),
@@ -46,7 +47,7 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    console.error('Mark-read error:', error);
+    logger.error('/api/messages/mark-read', 'Mark-read error', error);
     return NextResponse.json(
       { error: 'Failed to mark messages as read' },
       { status: 500 }

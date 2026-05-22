@@ -10,6 +10,7 @@ import {
 } from '@/lib/auth/session';
 import { signTempToken } from '@/lib/auth/jwt';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
+import { logger } from '@/lib/logger';
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -125,7 +126,7 @@ export async function POST(request: Request) {
     const { passwordHash: _passwordHash, ...safeUser } = user;
     return NextResponse.json({ user: safeUser });
   } catch (error) {
-    console.error('Login error:', error);
+    logger.error('/api/auth/login', 'Login error', error);
     return NextResponse.json(
       { error: 'Ошибка сервера' },
       { status: 500 }

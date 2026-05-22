@@ -7,6 +7,7 @@ import {
   hashBackupCodes,
 } from '@/lib/auth/totp';
 import { db } from '@/lib/db';
+import { logger } from '@/lib/logger';
 
 export async function POST(request: Request) {
   try {
@@ -35,7 +36,7 @@ export async function POST(request: Request) {
       backupCodes,
     });
   } catch (error) {
-    console.error('2FA setup error:', error);
+    logger.error('/api/auth/2fa/setup', '2FA setup error', error);
     return NextResponse.json(
       { error: 'Ошибка сервера' },
       { status: 500 }

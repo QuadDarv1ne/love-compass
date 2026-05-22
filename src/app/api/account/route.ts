@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAuthWithCSRF } from '@/lib/auth/guard';
 import { invalidateAllUserSessions, deleteSessionCookie } from '@/lib/auth/session';
+import { logger } from '@/lib/logger';
 
 export async function DELETE(request: Request) {
   try {
@@ -60,7 +61,7 @@ export async function DELETE(request: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Account deletion error:', error);
+    logger.error('/api/account', 'Account deletion error', error);
     return NextResponse.json({ error: 'Failed to delete account' }, { status: 500 });
   }
 }

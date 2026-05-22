@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { db } from '@/lib/db';
 import { hashPassword, validatePasswordStrength } from '@/lib/auth/password';
 import { invalidateAllUserSessions } from '@/lib/auth/session';
+import { logger } from '@/lib/logger';
 
 const resetSchema = z.object({
   token: z.string().min(1),
@@ -69,7 +70,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Reset password error:', error);
+    logger.error('/api/auth/reset-password', 'Reset password error', error);
     return NextResponse.json(
       { error: 'Ошибка сервера' },
       { status: 500 }

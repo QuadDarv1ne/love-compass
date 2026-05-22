@@ -5,6 +5,7 @@ import {
   deleteSessionCookie,
 } from '@/lib/auth/session';
 import { validateCSRFToken } from '@/lib/auth/csrf';
+import { logger } from '@/lib/logger';
 
 export async function POST(request: Request) {
   try {
@@ -23,7 +24,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Logout error:', error);
+    logger.error('/api/auth/logout', 'Logout error', error);
     return NextResponse.json(
       { error: 'Ошибка сервера' },
       { status: 500 }

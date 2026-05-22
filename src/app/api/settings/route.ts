@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { z } from 'zod';
 import { requireAuth, requireAuthWithCSRF, isZodError } from '@/lib/auth/guard';
+import { logger } from '@/lib/logger';
 
 const updateSettingsSchema = z.object({
   notificationsEnabled: z.boolean().optional(),
@@ -41,7 +42,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(dbUser);
   } catch (error) {
-    console.error('Failed to fetch settings:', error);
+    logger.error('/api/settings', 'Failed to fetch settings', error);
     return NextResponse.json({ error: 'Failed to fetch settings' }, { status: 500 });
   }
 }

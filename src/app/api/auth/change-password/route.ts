@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { verifyPassword, hashPassword, validatePasswordStrength } from '@/lib/auth/password';
 import { requireAuthWithCSRF } from '@/lib/auth/guard';
 import { invalidateAllUserSessions } from '@/lib/auth/session';
+import { logger } from '@/lib/logger';
 
 const changePasswordSchema = z.object({
   currentPassword: z.string().min(1),
@@ -59,7 +60,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Change password error:', error);
+    logger.error('/api/auth/change-password', 'Change password error', error);
     return NextResponse.json(
       { error: 'Ошибка сервера' },
       { status: 500 }

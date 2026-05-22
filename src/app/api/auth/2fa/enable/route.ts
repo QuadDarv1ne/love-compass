@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { requireAuthWithCSRF } from '@/lib/auth/guard';
 import { verifyTOTP } from '@/lib/auth/totp';
 import { db } from '@/lib/db';
+import { logger } from '@/lib/logger';
 
 const enableSchema = z.object({
   token: z.string().length(6),
@@ -49,7 +50,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('2FA enable error:', error);
+    logger.error('/api/auth/2fa/enable', '2FA enable error', error);
     return NextResponse.json(
       { error: 'Ошибка сервера' },
       { status: 500 }

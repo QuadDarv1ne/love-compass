@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { z } from 'zod';
 import { requireAuth, isZodError } from '@/lib/auth/guard';
+import { logger } from '@/lib/logger';
 
 const querySchema = z.object({
   sort: z.enum(['popular', 'active', 'new']).default('popular'),
@@ -92,7 +93,7 @@ export async function GET(request: Request) {
     if (isZodError(error)) {
       return NextResponse.json({ error: 'Invalid query parameters', details: error.issues }, { status: 400 });
     }
-    console.error('GET /api/leaderboard error:', error);
+    logger.error('/api/leaderboard', 'GET error', error);
     return NextResponse.json({ error: 'Failed to fetch leaderboard' }, { status: 500 });
   }
 }

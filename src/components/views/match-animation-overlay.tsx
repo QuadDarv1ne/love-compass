@@ -15,9 +15,14 @@ export function MatchAnimationOverlay() {
   const handleContinue = async () => {
     setShowMatchAnimation(false);
     if (currentUser) {
-      const res = await fetch('/api/matches');
-      const matches = await res.json();
-      useAppStore.getState().setMatches(matches);
+      try {
+        const res = await fetch('/api/matches');
+        if (!res.ok) throw new Error('Failed to fetch matches');
+        const matches = await res.json();
+        useAppStore.getState().setMatches(matches);
+      } catch (error) {
+        console.error('Failed to refresh matches:', error);
+      }
     }
     navigateTo('matches');
   };
@@ -25,13 +30,18 @@ export function MatchAnimationOverlay() {
   const handleSendMessage = async () => {
     setShowMatchAnimation(false);
     if (currentUser) {
-      const res = await fetch('/api/matches');
-      const matches = await res.json();
-      useAppStore.getState().setMatches(matches);
-      const latestMatch = matches[0];
-      if (latestMatch) {
-        setSelectedMatch(latestMatch);
-        navigateTo('chat');
+      try {
+        const res = await fetch('/api/matches');
+        if (!res.ok) throw new Error('Failed to fetch matches');
+        const matches = await res.json();
+        useAppStore.getState().setMatches(matches);
+        const latestMatch = matches[0];
+        if (latestMatch) {
+          setSelectedMatch(latestMatch);
+          navigateTo('chat');
+        }
+      } catch (error) {
+        console.error('Failed to refresh matches:', error);
       }
     }
   };

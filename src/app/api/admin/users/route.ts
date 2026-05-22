@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAdmin, isZodError } from '@/lib/auth/guard';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
 
 const querySchema = z.object({
   gender: z.enum(['all', 'male', 'female', 'other']).default('all'),
@@ -134,7 +135,7 @@ export async function GET(request: Request) {
     if (isZodError(error)) {
       return NextResponse.json({ error: 'Validation failed', details: error.issues }, { status: 400 });
     }
-    console.error('Admin users GET error:', error);
+    logger.error('/api/admin/users', 'Admin users GET error', error);
     return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 });
   }
 }

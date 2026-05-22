@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { generateRandomToken } from '@/lib/auth/crypto';
 import { sendPasswordResetEmail } from '@/lib/email';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
+import { logger } from '@/lib/logger';
 
 const forgotSchema = z.object({
   email: z.string().email(),
@@ -55,7 +56,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Forgot password error:', error);
+    logger.error('/api/auth/forgot-password', 'Forgot password error', error);
     return NextResponse.json(
       { error: 'Ошибка сервера' },
       { status: 500 }

@@ -5,6 +5,7 @@ import { hashPassword, validatePasswordStrength } from '@/lib/auth/password';
 import { generateRandomToken, getClientIp } from '@/lib/auth/crypto';
 import { sendVerificationEmail } from '@/lib/email';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
+import { logger } from '@/lib/logger';
 
 const registerSchema = z.object({
   email: z.string().email('Неверный формат email'),
@@ -98,7 +99,7 @@ export async function POST(request: Request) {
       { status: 201 }
     );
   } catch (error) {
-    console.error('Registration error:', error);
+    logger.error('/api/auth/register', 'Registration error', error);
     return NextResponse.json(
       { error: 'Ошибка сервера' },
       { status: 500 }

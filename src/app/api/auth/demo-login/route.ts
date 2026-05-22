@@ -6,6 +6,7 @@ import {
   createSession,
   setSessionCookie,
 } from '@/lib/auth/session';
+import { logger } from '@/lib/logger';
 
 const demoLoginSchema = z.object({
   userId: z.string().min(1),
@@ -52,7 +53,7 @@ export async function POST(request: Request) {
     const { passwordHash: _passwordHash, ...safeUser } = user;
     return NextResponse.json({ user: safeUser });
   } catch (error) {
-    console.error('Demo login error:', error);
+    logger.error('/api/auth/demo-login', 'Demo login error', error);
     return NextResponse.json(
       { error: 'Ошибка сервера' },
       { status: 500 }

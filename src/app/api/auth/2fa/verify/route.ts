@@ -10,6 +10,7 @@ import {
   setSessionCookie,
 } from '@/lib/auth/session';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
+import { logger } from '@/lib/logger';
 
 const verifySchema = z.object({
   tempToken: z.string().min(1),
@@ -98,7 +99,7 @@ export async function POST(request: Request) {
     const { passwordHash: _passwordHash, ...safeUser } = user;
     return NextResponse.json({ user: safeUser });
   } catch (error) {
-    console.error('2FA verify error:', error);
+    logger.error('/api/auth/2fa/verify', '2FA verify error', error);
     return NextResponse.json(
       { error: 'Ошибка сервера' },
       { status: 500 }
