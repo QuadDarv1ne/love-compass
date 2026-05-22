@@ -11,7 +11,8 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:reset": "prisma migrate reset",
-    "seed": "bun run seed.ts"
+    "seed": "bun run seed.ts",
+    "check-env": "bun run scripts/check-env.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.1.1",
