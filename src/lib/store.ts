@@ -460,7 +460,10 @@ export const useAppStore = create<AppState>((set, get) => ({
   setSelectedMatch: (match) => set({ selectedMatch: match }),
   setSelectedProfile: (profile) => set({ selectedProfile: profile }),
   setMessages: (messages) => set({ messages }),
-  addMessage: (message) => set((state) => ({ messages: [...state.messages, message] })),
+  addMessage: (message) => set((state) => {
+    if (state.messages.some((m) => m.id === message.id)) return state;
+    return { messages: [...state.messages, message] };
+  }),
   markMessagesAsRead: (messageIds) => set((state) => ({
     messages: state.messages.map((m) =>
       messageIds.includes(m.id) ? { ...m, read: true } : m
@@ -611,16 +614,15 @@ export const useAppStore = create<AppState>((set, get) => ({
   // Achievements
   unlockedAchievements: [],
   unlockAchievement: (id) => {
-    set((state) => {
-      if (state.unlockedAchievements.includes(id)) return state;
-      // Fire and forget API call
-      import('@/lib/api').then(({ fetchWithCSRF }) => {
-        fetchWithCSRF('/api/achievements', { achievementId: id }).catch((error) => {
-          console.error('Failed to unlock achievement:', error);
-        });
+    const state = get();
+    if (state.unlockedAchievements.includes(id)) return;
+    // Fire and forget API call
+    import('@/lib/api').then(({ fetchWithCSRF }) => {
+      fetchWithCSRF('/api/achievements', { achievementId: id }).catch((error) => {
+        console.error('Failed to unlock achievement:', error);
       });
-      return { unlockedAchievements: [...state.unlockedAchievements, id] };
     });
+    set({ unlockedAchievements: [...state.unlockedAchievements, id] });
   },
 
   // Admin state

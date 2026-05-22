@@ -91,10 +91,11 @@ export function ChatView() {
 
   useEffect(() => {
     if (!selectedMatch) return;
+    const abortController = new AbortController();
     let cancelled = false;
     const loadMessages = async () => {
       try {
-        const res = await fetch(`/api/messages?matchId=${selectedMatch.id}`);
+        const res = await fetch(`/api/messages?matchId=${selectedMatch.id}`, { signal: abortController.signal });
         if (!res.ok) throw new Error('Failed to load messages');
         const data = await res.json();
         if (!cancelled) {
@@ -104,21 +105,25 @@ export function ChatView() {
             .filter((m: Message) => m.senderId !== currentUser?.id && !m.read)
             .map((m: Message) => m.id);
           if (unreadIds.length > 0) {
-            fetchWithCSRF('/api/messages/mark-read', { messageIds: unreadIds })
-              .catch((error) => {
-                console.error('Failed to mark messages as read:', error);
-                toast.error('Не удалось отметить сообщения как прочитанные');
-              });
-            markMessagesAsRead(unreadIds);
+            try {
+              const markRes = await fetchWithCSRF('/api/messages/mark-read', { messageIds: unreadIds });
+              if (!markRes.ok) throw new Error('Failed to mark as read');
+              markMessagesAsRead(unreadIds);
+            } catch (error) {
+              console.error('Failed to mark messages as read:', error);
+              toast.error('Не удалось отметить сообщения как прочитанные');
+            }
           }
         }
       } catch (error) {
+        if ((error as Error).name === 'AbortError') return;
         if (!cancelled) console.error('Failed to load messages:', error);
       }
     };
     loadMessages();
     return () => {
       cancelled = true;
+      abortController.abort();
       if (autoReplyTimerRef.current) clearTimeout(autoReplyTimerRef.current);
     };
     // selectedMatch is used as a guard — only the stable .id is needed for re-trigger
