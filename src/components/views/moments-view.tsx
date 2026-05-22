@@ -280,7 +280,8 @@ function StoryViewer({
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={onClose}
-            className="w-9 h-9 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/50 transition-colors"
+            aria-label="Закрыть историю"
+            className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/30 transition-colors"
           >
             <X className="w-5 h-5" />
           </motion.button>

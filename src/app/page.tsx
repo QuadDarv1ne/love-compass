@@ -59,10 +59,9 @@ export default function HomePage() {
       {currentView === 'landing' ? (
         <LandingView />
       ) : (
-        <>
-          <div className="flex-1 flex flex-col md:flex-row">
+        <div className="flex-1 flex flex-col md:flex-row min-h-0">
           {/* Desktop Sidebar */}
-          <div className="hidden md:flex md:flex-col md:w-72 lg:w-80 border-r border-rose-100 dark:border-rose-900/50 bg-card/60 backdrop-blur-sm">
+          <aside className="hidden md:flex md:flex-col md:w-72 lg:w-80 border-r border-rose-100 dark:border-rose-900/50 bg-card/60 backdrop-blur-sm min-h-0">
             {/* Logo + Dark Mode */}
             <div className="flex items-center justify-between p-4 border-b border-rose-100 dark:border-rose-900/50">
               <div className="flex items-center gap-2">
@@ -127,13 +126,13 @@ export default function HomePage() {
             <Separator className="bg-rose-100 dark:bg-rose-900/50 mx-3" />
 
             {/* Chat List */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar">
+            <div className="flex-1 overflow-y-auto custom-scrollbar pb-2">
               <div className="p-3 pb-1">
                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-1">Сообщения</h3>
               </div>
               <ChatListView />
             </div>
-          </div>
+          </aside>
 
           {/* Main Content with transitions */}
           <main className="flex-1 flex flex-col min-h-0 overflow-hidden">
@@ -151,41 +150,39 @@ export default function HomePage() {
           </main>
 
           {/* Mobile Bottom Tab Bar */}
-          <nav className="md:hidden flex items-center justify-around border-t border-rose-100 dark:border-rose-900/50 bg-card/80 backdrop-blur-lg safe-area-pb">
+          <nav className="md:hidden flex items-center justify-around border-t border-rose-100 dark:border-rose-900/50 bg-card/80 backdrop-blur-lg safe-area-pb px-1 pt-1">
             {navItems.map(({ view, icon: Icon, label, badge }) => (
               <motion.button
                 key={view}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => useAppStore.getState().navigateTo(view)}
-                className={`flex flex-col items-center gap-0.5 py-2 px-3 transition-colors relative ${
+                className={`flex flex-col items-center gap-0.5 py-2 px-2 transition-colors relative min-w-0 ${
                   currentView === view
                     ? 'text-rose-600 dark:text-rose-400'
                     : 'text-gray-400 dark:text-gray-500 hover:text-rose-400'
                 }`}
               >
                 <Icon className="w-5 h-5" />
-                <span className="text-[10px] font-medium">{label}</span>
+                <span className="text-[10px] font-medium truncate">{label}</span>
                 {badge !== undefined && badge > 0 && (
-                  <span className="absolute top-0.5 right-1 bg-rose-500 text-white text-[8px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
+                  <span className="absolute top-0.5 right-0 bg-rose-500 text-white text-[8px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
                     {badge}
                   </span>
                 )}
               </motion.button>
             ))}
-            {/* Dark mode toggle in mobile nav */}
-            <div className="absolute right-2 top-1/2 -translate-y-1/2">
+            <div className="flex flex-col items-center gap-0.5 py-2 px-2">
               <DarkModeToggle />
             </div>
           </nav>
-        </div>
 
-        {/* Copyright Footer */}
-        <footer className="text-center py-3 border-t border-rose-100 dark:border-rose-900/30 bg-card/40 backdrop-blur-sm">
-          <p className="text-xs text-muted-foreground">
-            © 2026 Love Compass. Все права защищены. Автор: Дуплей Максим Игоревич
-          </p>
-        </footer>
-        </>
+          {/* Copyright Footer */}
+          <footer className="md:hidden text-center py-2 border-t border-rose-100 dark:border-rose-900/30 bg-card/40 backdrop-blur-sm safe-area-pb">
+            <p className="text-[10px] text-muted-foreground">
+              © 2026 Love Compass. Все права защищены
+            </p>
+          </footer>
+        </div>
       )}
     </div>
   );

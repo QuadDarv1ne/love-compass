@@ -479,21 +479,21 @@ export function BrowseView() {
           className="w-full max-w-sm md:max-w-md relative touch-none"
         >
           <Card className="overflow-hidden border-0 shadow-2xl rounded-3xl bg-card">
-            <div className="relative aspect-[3/4]">
+            <div className="relative aspect-[3/4] overflow-hidden rounded-3xl">
               <Image src={currentProfile.avatar || 'https://api.dicebear.com/9.x/notionists/svg?seed=Default'} alt={currentProfile.name} fill className="object-cover" priority />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
               {/* Swipe labels during drag */}
               {dragX > SWIPE_LABEL_THRESHOLD && (
-                <div className="absolute top-8 left-6 bg-green-500 text-white px-4 py-2 rounded-lg text-xl font-bold transform -rotate-12 border-[3px] border-green-400 shadow-lg" style={{ opacity: Math.min(dragX / SWIPE_THRESHOLD, 1) }}>НРАВИТСЯ</div>
+                <div className="absolute top-8 left-6 bg-green-500/90 text-white px-4 py-2 rounded-lg text-xl font-bold transform -rotate-12 border-[3px] border-green-400 shadow-lg pointer-events-none transition-opacity" style={{ opacity: Math.min((dragX - SWIPE_LABEL_THRESHOLD) / (SWIPE_THRESHOLD - SWIPE_LABEL_THRESHOLD), 1) }}>НРАВИТСЯ</div>
               )}
               {dragX < -SWIPE_LABEL_THRESHOLD && (
-                <div className="absolute top-8 right-6 bg-red-500 text-white px-4 py-2 rounded-lg text-xl font-bold transform rotate-12 border-[3px] border-red-400 shadow-lg" style={{ opacity: Math.min(Math.abs(dragX) / SWIPE_THRESHOLD, 1) }}>НЕТ</div>
+                <div className="absolute top-8 right-6 bg-red-500/90 text-white px-4 py-2 rounded-lg text-xl font-bold transform rotate-12 border-[3px] border-red-400 shadow-lg pointer-events-none transition-opacity" style={{ opacity: Math.min((Math.abs(dragX) - SWIPE_LABEL_THRESHOLD) / (SWIPE_THRESHOLD - SWIPE_LABEL_THRESHOLD), 1) }}>НЕТ</div>
               )}
               {swipeDir === 'right' && (
-                <div className="absolute top-8 left-6 bg-green-500 text-white px-4 py-2 rounded-lg text-xl font-bold transform -rotate-12 border-[3px] border-green-400 shadow-lg">НРАВИТСЯ</div>
+                <div className="absolute top-8 left-6 bg-green-500 text-white px-4 py-2 rounded-lg text-xl font-bold transform -rotate-12 border-[3px] border-green-400 shadow-lg pointer-events-none">НРАВИТСЯ</div>
               )}
               {swipeDir === 'left' && (
-                <div className="absolute top-8 right-6 bg-red-500 text-white px-4 py-2 rounded-lg text-xl font-bold transform rotate-12 border-[3px] border-red-400 shadow-lg">НЕТ</div>
+                <div className="absolute top-8 right-6 bg-red-500 text-white px-4 py-2 rounded-lg text-xl font-bold transform rotate-12 border-[3px] border-red-400 shadow-lg pointer-events-none">НЕТ</div>
               )}
               <div className="absolute bottom-0 left-0 right-0 p-6">
                 <div className="flex items-end justify-between">

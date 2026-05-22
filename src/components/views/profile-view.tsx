@@ -33,6 +33,17 @@ export function ProfileView() {
   const [interests, setInterests] = useState('');
   const [lookingFor, setLookingFor] = useState('all');
 
+  // Sync form values with currentUser when editing
+  useEffect(() => {
+    if (currentUser && editing) {
+      setName(currentUser.name);
+      setBio(currentUser.bio);
+      setCity(currentUser.city);
+      setInterests(currentUser.interests);
+      setLookingFor(currentUser.lookingFor);
+    }
+  }, [currentUser, editing]);
+
   const startEditing = () => {
     if (currentUser) {
       setName(currentUser.name);
@@ -45,6 +56,13 @@ export function ProfileView() {
   };
 
   const stopEditing = () => {
+    if (currentUser) {
+      setName(currentUser.name);
+      setBio(currentUser.bio);
+      setCity(currentUser.city);
+      setInterests(currentUser.interests);
+      setLookingFor(currentUser.lookingFor);
+    }
     setEditing(false);
   };
 

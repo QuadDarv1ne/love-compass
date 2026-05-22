@@ -50,7 +50,7 @@ function EmojiPicker({ onSelect }: { onSelect: (emoji: string) => void }) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 10 }}
             transition={{ duration: 0.15 }}
-            className="absolute bottom-14 right-0 bg-card border border-rose-200 dark:border-rose-800 rounded-2xl shadow-xl p-3 z-20"
+            className="absolute bottom-full right-0 mb-2 bg-card border border-rose-200 dark:border-rose-800 rounded-2xl shadow-xl p-3 z-20 max-h-[50vh] overflow-y-auto"
           >
             <div className="emoji-picker-grid grid grid-cols-6 gap-1">
               {EMOJI_LIST.map((emoji) => (

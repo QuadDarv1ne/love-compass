@@ -75,7 +75,7 @@ export function MatchesView() {
 
 
   return (
-    <div className="flex-1 px-4 py-4 md:py-6 overflow-y-auto custom-scrollbar">
+    <div className="flex-1 px-4 py-4 md:py-6 overflow-y-auto custom-scrollbar pb-4">
       <h2 className="text-xl font-bold text-rose-700 dark:text-rose-300 mb-4 md:mb-6">Ваши мэтчи</h2>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
         <AnimatePresence>

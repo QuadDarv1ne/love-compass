@@ -178,8 +178,8 @@ function TwoFASetupDialog({
             <code className="block text-center text-sm bg-gray-100 dark:bg-gray-800 p-2 rounded">
               {secret}
             </code>
-            <Button onClick={handleSetup} className="w-full" disabled={loading}>
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Далее'}
+            <Button onClick={() => setStep('verify')} className="w-full" disabled={!uri}>
+              Далее
             </Button>
           </div>
         ) : (
