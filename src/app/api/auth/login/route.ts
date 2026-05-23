@@ -130,7 +130,7 @@ export async function POST(request: Request) {
     // Check email verification
     if (!user.emailVerified) {
       return NextResponse.json(
-        { needsEmailVerification: true },
+        { needsEmailVerification: true, email: user.email },
         { status: 403 }
       );
     }

@@ -9,3 +9,21 @@ export const db = globalForPrisma.prisma ?? new PrismaClient({
 })
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = db
+
+/** Fields safe to expose in public profiles */
+export const profileSelect = {
+  id: true,
+  name: true,
+  age: true,
+  gender: true,
+  bio: true,
+  interests: true,
+  avatar: true,
+  city: true,
+  lookingFor: true,
+  profileVisible: true,
+  showOnlineStatus: true,
+  language: true,
+  createdAt: true,
+  updatedAt: true,
+};

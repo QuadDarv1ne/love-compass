@@ -1,7 +1,5 @@
-import { PrismaClient } from '@prisma/client';
+import { db } from './src/lib/db';
 import { hashPassword } from './src/lib/auth/password';
-
-const prisma = new PrismaClient();
 
 const DEFAULT_PASSWORD = crypto.randomUUID().slice(0, 12) + '!A1';
 
@@ -303,23 +301,23 @@ async function main() {
   ];
 
   for (const user of users) {
-    await prisma.user.upsert({
+    await db.user.upsert({
       where: { email: user.email },
       update: {},
       create: user,
     });
   }
 
-  const totalUsers = await prisma.user.count();
+  const totalUsers = await db.user.count();
   console.warn(`✅ ${totalUsers} пользователей в базе`);
   console.warn(`🔑 Пароль для входа: ${DEFAULT_PASSWORD}`);
 
   // Ensure at least one admin exists
-  const adminCount = await prisma.user.count({ where: { role: 'admin' } });
+  const adminCount = await db.user.count({ where: { role: 'admin' } });
   if (adminCount === 0) {
-    const firstUser = await prisma.user.findFirst({ orderBy: { createdAt: 'asc' } });
+    const firstUser = await db.user.findFirst({ orderBy: { createdAt: 'asc' } });
     if (firstUser) {
-      await prisma.user.update({
+      await db.user.update({
         where: { id: firstUser.id },
         data: { role: 'admin' },
       });
@@ -334,5 +332,5 @@ main()
     process.exit(1);
   })
   .finally(async () => {
-    await prisma.$disconnect();
+    await db.$disconnect();
   });

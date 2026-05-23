@@ -69,7 +69,12 @@ export async function POST(request: Request) {
       valid = true;
     } else {
       // Try backup codes
-      const storedCodes: string[] = JSON.parse(user.totpBackupCodes || '[]');
+      let storedCodes: string[] = [];
+      try {
+        storedCodes = JSON.parse(user.totpBackupCodes || '[]');
+      } catch {
+        // Corrupted backup codes — treat as empty
+      }
       if (storedCodes.length > 0) {
         const result = await verifyBackupCode(code, storedCodes);
         if (result.valid) {

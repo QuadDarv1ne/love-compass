@@ -47,12 +47,10 @@ export async function POST(request: Request) {
           passwordResetExpiry: expiry,
         },
       });
-    }
 
-    // Always send email to prevent timing-based enumeration
-    // For non-existent users, send to a dummy address (the email is never actually
-    // delivered since no user with this email exists to use the token)
-    await sendPasswordResetEmail(emailLower, resetToken);
+      // Only send reset email for existing users to avoid delivering real tokens
+      await sendPasswordResetEmail(emailLower, resetToken);
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -59,7 +59,8 @@ export async function requireAdmin(
   const auth = await requireAuth(request);
   if (auth instanceof NextResponse) return auth;
 
-  if ((auth.user as User & { role?: string }).role !== 'admin') {
+  const userWithRole = auth.user as { role: string };
+  if (userWithRole.role !== 'admin') {
     return NextResponse.json({ error: 'Доступ запрещён' }, { status: 403 });
   }
 

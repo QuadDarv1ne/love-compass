@@ -6,7 +6,7 @@ import { logger } from '@/lib/logger';
 
 const blockSchema = z.object({
   blockedId: z.string().min(1),
-  reason: z.string().optional(),
+  reason: z.string().max(500).optional(),
 });
 
 // Fields safe to expose for a blocked user profile

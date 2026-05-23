@@ -43,10 +43,8 @@ export async function checkRateLimit(
 
     if (!existing || existing.resetAt < now) {
       // New window or expired: create fresh entry with count=1
-      await tx.rateLimit.upsert({
-        where: { key },
-        create: { key, count: 1, resetAt },
-        update: { count: 1, resetAt },
+      await tx.rateLimit.create({
+        data: { key, count: 1, resetAt },
       });
       return { allowed: true, remaining: maxAttempts - 1 };
     }

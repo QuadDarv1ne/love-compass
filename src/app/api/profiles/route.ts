@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { db, profileSelect } from '@/lib/db';
 import { z } from 'zod';
 import { requireAuth, isZodError } from '@/lib/auth/guard';
 
@@ -7,24 +7,6 @@ const paginationSchema = z.object({
   cursor: z.string().optional(),
   limit: z.coerce.number().min(1).max(100).default(20),
 });
-
-// Fields safe to expose in public profiles
-const profileSelect = {
-  id: true,
-  name: true,
-  age: true,
-  gender: true,
-  bio: true,
-  interests: true,
-  avatar: true,
-  city: true,
-  lookingFor: true,
-  profileVisible: true,
-  showOnlineStatus: true,
-  language: true,
-  createdAt: true,
-  updatedAt: true,
-};
 
 export async function GET(request: Request) {
   try {

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { db, profileSelect } from '@/lib/db';
 import { z } from 'zod';
 import { requireAuth, requireAuthWithCSRF, isZodError } from '@/lib/auth/guard';
 import { logger } from '@/lib/logger';
@@ -11,24 +11,6 @@ const updateProfileSchema = z.object({
   interests: z.string().max(500).optional(),
   lookingFor: z.enum(['all', 'male', 'female']).optional(),
 });
-
-// Fields safe to expose in profiles
-const profileSelect = {
-  id: true,
-  name: true,
-  age: true,
-  gender: true,
-  bio: true,
-  interests: true,
-  avatar: true,
-  city: true,
-  lookingFor: true,
-  profileVisible: true,
-  showOnlineStatus: true,
-  language: true,
-  createdAt: true,
-  updatedAt: true,
-};
 
 export async function GET(request: Request) {
   try {
