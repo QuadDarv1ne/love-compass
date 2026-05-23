@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAuthWithCSRF } from '@/lib/auth/guard';
-import { invalidateAllUserSessions, deleteSessionCookie } from '@/lib/auth/session';
+import { deleteSessionCookie } from '@/lib/auth/session';
 import { logger } from '@/lib/logger';
 
 export async function DELETE(request: Request) {
@@ -57,10 +57,12 @@ export async function DELETE(request: Request) {
 
       // Finally delete the user
       await tx.user.delete({ where: { id } });
+
+      // Invalidate sessions inside the transaction for atomicity
+      await tx.session.deleteMany({ where: { userId: id } });
     });
 
-    // Invalidate sessions and clear cookie (outside transaction)
-    await invalidateAllUserSessions(id);
+    // Clear cookie after successful transaction
     await deleteSessionCookie();
 
     return NextResponse.json({ success: true });

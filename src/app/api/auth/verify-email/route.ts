@@ -59,7 +59,7 @@ export async function GET(request: Request) {
     await createSession(sessionToken, user.id, userAgent, ipAddress);
     await setSessionCookie(sessionToken);
 
-    return NextResponse.json({ success: true, email: user.email });
+    return NextResponse.json({ success: true });
   } catch (error) {
     logger.error('/api/auth/verify-email', 'Email verification error', error);
     return NextResponse.json(

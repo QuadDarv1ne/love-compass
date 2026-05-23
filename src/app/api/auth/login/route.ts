@@ -21,6 +21,32 @@ const MAX_LOGIN_ATTEMPTS = 20;
 const LOCKOUT_WINDOW = 15 * 60; // 15 minutes
 const LOCKOUT_DURATION = 30 * 60; // 30 minutes
 
+// Fields safe to return in login/2fa responses
+export const loginUserSelect = {
+  id: true,
+  email: true,
+  name: true,
+  age: true,
+  gender: true,
+  bio: true,
+  interests: true,
+  avatar: true,
+  city: true,
+  lookingFor: true,
+  emailVerified: true,
+  totpEnabled: true,
+  notificationsEnabled: true,
+  profileVisible: true,
+  showOnlineStatus: true,
+  language: true,
+  showDistance: true,
+  soundEnabled: true,
+  matchNotifications: true,
+  likeNotifications: true,
+  createdAt: true,
+  updatedAt: true,
+};
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -49,7 +75,10 @@ export async function POST(request: Request) {
       );
     }
 
-    const user = await db.user.findUnique({ where: { email: emailLower } });
+    const user = await db.user.findUnique({
+      where: { email: emailLower },
+      select: { ...loginUserSelect, passwordHash: true, totpSecret: true, totpBackupCodes: true, loginAttempts: true, lockedUntil: true },
+    });
 
     if (!user || !user.passwordHash) {
       return NextResponse.json(
@@ -123,8 +152,7 @@ export async function POST(request: Request) {
     await createSession(sessionToken, user.id, userAgent, ipAddress);
     await setSessionCookie(sessionToken);
 
-    const { passwordHash: _passwordHash, ...safeUser } = user;
-    return NextResponse.json({ user: safeUser });
+    return NextResponse.json({ user });
   } catch (error) {
     logger.error('/api/auth/login', 'Login error', error);
     return NextResponse.json(

@@ -11,6 +11,7 @@ import {
 } from '@/lib/auth/session';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';
+import { loginUserSelect } from '../login/route';
 
 const verifySchema = z.object({
   tempToken: z.string().min(1),
@@ -51,6 +52,7 @@ export async function POST(request: Request) {
 
     const user = await db.user.findUnique({
       where: { id: payload.userId },
+      select: { ...loginUserSelect, totpSecret: true, totpBackupCodes: true },
     });
 
     if (!user || !user.totpSecret) {
@@ -99,8 +101,7 @@ export async function POST(request: Request) {
     await createSession(sessionToken, user.id, userAgent, ipAddress);
     await setSessionCookie(sessionToken);
 
-    const { passwordHash: _passwordHash, ...safeUser } = user;
-    return NextResponse.json({ user: safeUser });
+    return NextResponse.json({ user });
   } catch (error) {
     logger.error('/api/auth/2fa/verify', '2FA verify error', error);
     return NextResponse.json(
