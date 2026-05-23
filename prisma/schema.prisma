@@ -62,8 +62,8 @@ model Like {
   fromUserId String
   toUserId   String
   createdAt  DateTime @default(now())
-  fromUser   User     @relation("SentLikes", fields: [fromUserId], references: [id])
-  toUser     User     @relation("ReceivedLikes", fields: [toUserId], references: [id])
+  fromUser   User     @relation("SentLikes", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser     User     @relation("ReceivedLikes", fields: [toUserId], references: [id], onDelete: Cascade)
 
   @@unique([fromUserId, toUserId])
   @@index([fromUserId])
@@ -76,8 +76,8 @@ model Match {
   user1Id    String
   user2Id    String
   createdAt  DateTime @default(now())
-  user1      User     @relation("User1Matches", fields: [user1Id], references: [id])
-  user2      User     @relation("User2Matches", fields: [user2Id], references: [id])
+  user1      User     @relation("User1Matches", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2      User     @relation("User2Matches", fields: [user2Id], references: [id], onDelete: Cascade)
   messages   Message[]
 
   @@unique([user1Id, user2Id])
@@ -93,8 +93,8 @@ model Message {
   content    String
   read       Boolean  @default(false)
   createdAt  DateTime @default(now())
-  match      Match    @relation(fields: [matchId], references: [id])
-  sender     User     @relation("SentMessages", fields: [senderId], references: [id])
+  match      Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
 
   @@index([matchId])
   @@index([senderId])
@@ -107,8 +107,8 @@ model Block {
   blockedId  String
   reason     String?
   createdAt  DateTime @default(now())
-  blocker    User     @relation("BlockedBy", fields: [blockerId], references: [id])
-  blocked    User     @relation("Blocked", fields: [blockedId], references: [id])
+  blocker    User     @relation("BlockedBy", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked    User     @relation("Blocked", fields: [blockedId], references: [id], onDelete: Cascade)
 
   @@unique([blockerId, blockedId])
   @@index([blockerId])
@@ -123,8 +123,8 @@ model Report {
   reason     String
   details    String?
   createdAt  DateTime @default(now())
-  reporter   User     @relation("ReportedBy", fields: [reporterId], references: [id])
-  reported   User     @relation("Reported", fields: [reportedId], references: [id])
+  reporter   User     @relation("ReportedBy", fields: [reporterId], references: [id], onDelete: Cascade)
+  reported   User     @relation("Reported", fields: [reportedId], references: [id], onDelete: Cascade)
 
   @@index([reporterId])
   @@index([reportedId])
