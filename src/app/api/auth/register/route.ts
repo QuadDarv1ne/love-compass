@@ -94,7 +94,6 @@ export async function POST(request: Request) {
       {
         success: true,
         message: 'Проверьте вашу почту для подтверждения email',
-        email: user.email,
       },
       { status: 201 }
     );

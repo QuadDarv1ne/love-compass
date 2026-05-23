@@ -100,10 +100,10 @@ export async function POST(request: Request) {
 
     // Check email verification
     if (!user.emailVerified) {
-      return NextResponse.json({
-        needsEmailVerification: true,
-        email: user.email,
-      });
+      return NextResponse.json(
+        { needsEmailVerification: true },
+        { status: 403 }
+      );
     }
 
     // Check 2FA

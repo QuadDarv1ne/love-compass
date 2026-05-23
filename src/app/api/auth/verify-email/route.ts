@@ -81,8 +81,10 @@ export async function POST(request: Request) {
       );
     }
 
+    const emailLower = email.toLowerCase();
+
     // Rate limit: 3 per hour
-    const rateLimit = await checkRateLimit(`verify:${email}`, 3, 3600);
+    const rateLimit = await checkRateLimit(`verify:${emailLower}`, 3, 3600);
     if (!rateLimit.allowed) {
       return NextResponse.json(
         { error: 'Слишком много попыток. Попробуйте позже' },
@@ -90,7 +92,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const user = await db.user.findUnique({ where: { email } });
+    const user = await db.user.findUnique({ where: { email: emailLower } });
 
     if (!user || user.emailVerified) {
       // Don't reveal if email exists or is verified
@@ -108,7 +110,7 @@ export async function POST(request: Request) {
       },
     });
 
-    await sendVerificationEmail(email, newToken);
+    await sendVerificationEmail(emailLower, newToken);
 
     return NextResponse.json({ success: true });
   } catch (error) {
