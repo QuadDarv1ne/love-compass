@@ -62,6 +62,7 @@ model Like {
   id         String   @id @default(cuid())
   fromUserId String
   toUserId   String
+  isSuperLike Boolean @default(false)
   createdAt  DateTime @default(now())
   fromUser   User     @relation("SentLikes", fields: [fromUserId], references: [id], onDelete: Cascade)
   toUser     User     @relation("ReceivedLikes", fields: [toUserId], references: [id], onDelete: Cascade)

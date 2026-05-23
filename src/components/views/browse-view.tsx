@@ -14,6 +14,9 @@ import { Card } from '@/components/ui/card';
 import { useAppStore, type User } from '@/lib/store';
 import { FilterPanel } from './shared';
 
+// ─── Super Like State ────────────────────────────────────────────────────────
+const SUPER_LIKE_DAILY_LIMIT = 3;
+
 // ─── Swipe & Animation Constants ─────────────────────────────────────────────
 const SWIPE_THRESHOLD = 120;
 const SWIPE_LABEL_THRESHOLD = 60;
@@ -169,6 +172,7 @@ export function BrowseView() {
   const [showHeartBurst, setShowHeartBurst] = useState(false);
   const [showX, setShowX] = useState(false);
   const [showSuperLike, setShowSuperLike] = useState(false);
+  const [superLikeRemaining, setSuperLikeRemaining] = useState(SUPER_LIKE_DAILY_LIMIT);
   const [dragX, setDragX] = useState(0);
   const [detailProfile, setDetailProfile] = useState<User | null>(null);
   const [lastSwipedProfile, setLastSwipedProfile] = useState<User | null>(null);
@@ -185,6 +189,22 @@ export function BrowseView() {
       }
       timerIdsRef.current = [];
     };
+  }, []);
+
+  // Load super like status
+  useEffect(() => {
+    const loadSuperLikeStatus = async () => {
+      try {
+        const res = await fetch('/api/superlike/status');
+        if (res.ok) {
+          const data = await res.json();
+          setSuperLikeRemaining(data.remaining);
+        }
+      } catch {
+        // Ignore errors
+      }
+    };
+    loadSuperLikeStatus();
   }, []);
 
   // Build a popularity map from likedYouProfiles (users who liked you are "popular")
@@ -284,8 +304,18 @@ export function BrowseView() {
     const t1 = setTimeout(() => { setShowSuperLike(false); }, SUPER_LIKE_DURATION);
     timerIdsRef.current.push(t1);
     try {
-      const res = await fetchWithCSRF('/api/like', { toUserId: profile.id });
-      if (!res.ok) throw new Error('Super Like failed');
+      const res = await fetchWithCSRF('/api/like', { toUserId: profile.id, isSuperLike: true });
+      if (!res.ok) {
+        const errorData = await res.json();
+        if (res.status === 429) {
+          toast.error('Дневной лимит супер-лайков достигнут', {
+            description: `Осталось ${errorData.remaining || 0} из ${errorData.limit || SUPER_LIKE_DAILY_LIMIT}`,
+          });
+          setSuperLikeRemaining(errorData.remaining || 0);
+        }
+        throw new Error(errorData.error || 'Super Like failed');
+      }
+      setSuperLikeRemaining((prev) => Math.max(0, prev - 1));
       const data = await res.json();
       if (data.isMutual) {
         toast.success(`Новый мэтч с ${profile.name}!`, {
@@ -538,8 +568,18 @@ export function BrowseView() {
             </Button>
           </motion.div>
           <motion.div whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.9 }}>
-            <Button onClick={() => handleSuperLike(currentProfile)} size="lg" className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-card border-2 border-blue-200 dark:border-blue-800 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-500 hover:text-blue-600 shadow-lg transition-all">
+            <Button
+              onClick={() => handleSuperLike(currentProfile)}
+              size="lg"
+              disabled={superLikeRemaining <= 0}
+              className="relative w-14 h-14 md:w-16 md:h-16 rounded-full bg-card border-2 border-blue-200 dark:border-blue-800 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-500 hover:text-blue-600 shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               <Star className="w-7 h-7 md:w-8 md:h-8" />
+              {superLikeRemaining < SUPER_LIKE_DAILY_LIMIT && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-blue-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                  {superLikeRemaining}
+                </span>
+              )}
             </Button>
           </motion.div>
         </div>

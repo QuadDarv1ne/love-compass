@@ -64,7 +64,7 @@ export function AvatarUpload({ currentAvatar, userId: _userId, userName }: Avata
   const handleRemove = async () => {
     setUploading(true);
     try {
-      const res = await deleteWithCSRF('/api/profile/avatar');
+      const res = await deleteWithCSRF('/api/profile/avatar', {});
       if (!res.ok) {
         const data = await res.json();
         toast.error(data.error);

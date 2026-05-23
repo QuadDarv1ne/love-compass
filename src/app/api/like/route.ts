@@ -6,7 +6,28 @@ import { logger } from '@/lib/logger';
 
 const likeSchema = z.object({
   toUserId: z.string().min(1),
+  isSuperLike: z.boolean().optional().default(false),
 });
+
+const SUPER_LIKE_DAILY_LIMIT = 3;
+
+async function getSuperLikeCountToday(userId: string): Promise<number> {
+  const now = new Date();
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const endOfDay = new Date(startOfDay);
+  endOfDay.setDate(endOfDay.getDate() + 1);
+
+  return db.like.count({
+    where: {
+      fromUserId: userId,
+      isSuperLike: true,
+      createdAt: {
+        gte: startOfDay,
+        lt: endOfDay,
+      },
+    },
+  });
+}
 
 export async function POST(request: Request) {
   try {
@@ -15,11 +36,22 @@ export async function POST(request: Request) {
 
     const { user } = auth;
     const body = await request.json();
-    const { toUserId } = likeSchema.parse(body);
+    const { toUserId, isSuperLike } = likeSchema.parse(body);
     const fromUserId = user.id;
 
     if (fromUserId === toUserId) {
       return NextResponse.json({ error: 'Cannot like yourself' }, { status: 400 });
+    }
+
+    // Check super like daily limit
+    if (isSuperLike) {
+      const count = await getSuperLikeCountToday(fromUserId);
+      if (count >= SUPER_LIKE_DAILY_LIMIT) {
+        return NextResponse.json(
+          { error: 'Daily super like limit reached', limit: SUPER_LIKE_DAILY_LIMIT, current: count },
+          { status: 429 }
+        );
+      }
     }
 
     // Execute all operations in a transaction to prevent race conditions
@@ -37,7 +69,7 @@ export async function POST(request: Request) {
 
       // Create the like
       const like = await tx.like.create({
-        data: { fromUserId, toUserId },
+        data: { fromUserId, toUserId, isSuperLike },
       });
 
       // Check if there is a reverse like (mutual like)
