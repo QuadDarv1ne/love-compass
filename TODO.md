@@ -69,8 +69,8 @@
 - [x] **Implement account deletion** — `DELETE /api/account` with full cascade delete; settings-view calls it with confirmation dialog
 - [x] **Реализовать удаление аккаунта** — `DELETE /api/account` с полным каскадным удалением; settings-view вызывает с диалогом подтверждения
 
-- [ ] **Implement cache clearing** — Settings button clears Zustand store state and resets app to fresh login state
-- [ ] **Реализовать очистку кеша** — Кнопка в настройках очищает Zustand store и сбрасывает приложение к состоянию входа
+- [x] **Implement cache clearing** — Settings button clears Zustand store state and resets app to fresh login state
+- [x] **Реализовать очистку кеша** — Кнопка в настройках очищает Zustand store и сбрасывает приложение к состоянию входа
 
 - [ ] **Fix app naming** — UI says "Love Compas" (missing 's'), README says "Love Compass". Standardize
 - [ ] **Починить имя приложения** — В UI написано "Love Compas" (без 's'), в README — "Love Compass". Привести к единому виду

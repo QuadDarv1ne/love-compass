@@ -695,6 +695,26 @@ export function SettingsView() {
 
                 <Button
                   variant="outline"
+                  className="w-full justify-start gap-2 border-orange-200 dark:border-orange-800 text-orange-600 dark:text-orange-300 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-xl"
+                  onClick={() => {
+                    const confirmed = window.confirm(
+                      'Вы уверены? Это сбросит все данные приложения (лайки, мэтчи, сообщения) к начальному состоянию. Ваш аккаунт будет сохранён.'
+                    );
+                    if (!confirmed) return;
+
+                    clearAllData();
+                    try { localStorage.clear(); } catch { /* ignore */ }
+                    toast.success('Кеш очищен', {
+                      description: 'Приложение сброшено к начальному состоянию',
+                    });
+                  }}
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Очистить кеш приложения
+                </Button>
+
+                <Button
+                  variant="outline"
                   className="w-full justify-start gap-2 border-destructive/40 text-destructive hover:bg-destructive/10 rounded-xl"
                   onClick={async () => {
                     const confirmed = window.confirm(
