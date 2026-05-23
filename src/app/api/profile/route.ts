@@ -10,6 +10,7 @@ const updateProfileSchema = z.object({
   city: z.string().max(100).optional(),
   interests: z.string().max(500).optional(),
   lookingFor: z.enum(['all', 'male', 'female']).optional(),
+  photos: z.array(z.string()).max(6).optional(),
 });
 
 export async function GET(request: Request) {

@@ -62,3 +62,9 @@ traefik/acme.json
 
 # IDE
 .vscode/
+
+# Uploaded files (keep directory structure)
+/public/uploads/avatars/*
+!/public/uploads/avatars/.gitkeep
+/public/uploads/photos/*
+!/public/uploads/photos/.gitkeep

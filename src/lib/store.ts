@@ -10,6 +10,7 @@ export interface User {
   bio: string;
   interests: string;
   avatar: string;
+  photos: string;
   city: string;
   lookingFor: string;
   emailVerified: boolean;
@@ -31,6 +32,7 @@ export interface AdminUser {
   gender: string;
   bio: string;
   avatar: string;
+  photos: string;
   city: string;
   role: string;
   emailVerified: boolean;
@@ -204,6 +206,7 @@ interface AppState {
   login: (user: User) => void;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
+  refreshUser: () => Promise<void>;
   clearAllData: () => void;
   setCurrentUser: (user: User | null) => void;
   setProfiles: (profiles: User[]) => void;
@@ -451,6 +454,18 @@ export const useAppStore = create<AppState>((set, get) => ({
       console.error('checkAuth failed:', error);
     }
     set({ authStatus: 'unauthenticated', currentView: 'landing' });
+  },
+
+  refreshUser: async () => {
+    try {
+      const res = await fetch('/api/profile');
+      if (res.ok) {
+        const user = await res.json();
+        set({ currentUser: user });
+      }
+    } catch (error) {
+      console.error('refreshUser failed:', error);
+    }
   },
 
   clearAllData: () => set({ ...clearState, authStatus: 'unauthenticated' }),

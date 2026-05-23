@@ -17,6 +17,7 @@ model User {
   bio                    String    @default("")
   interests              String    @default("")
   avatar                 String    @default("")
+  photos                 String    @default("[]")
   city                   String    @default("")
   lookingFor             String    @default("all")
   emailVerified          Boolean   @default(false)

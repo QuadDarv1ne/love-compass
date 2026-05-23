@@ -19,6 +19,7 @@ export const profileSelect = {
   bio: true,
   interests: true,
   avatar: true,
+  photos: true,
   city: true,
   lookingFor: true,
   profileVisible: true,

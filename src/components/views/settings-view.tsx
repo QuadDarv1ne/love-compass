@@ -48,6 +48,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { useAppStore } from '@/lib/store';
 import { QRCodeCanvas } from 'qrcode.react';
 import { fetchWithCSRF, deleteWithCSRF } from '@/lib/api';
+import { AvatarUpload } from '@/components/ui/avatar-upload';
 
 /* ─── shared animation ────────────────────────────────────────── */
 const fadeUp = {
@@ -633,6 +634,17 @@ export function SettingsView() {
               </h3>
 
               <Separator className="bg-rose-100 dark:bg-rose-900/50 mb-4" />
+
+              {/* Avatar Upload */}
+              {currentUser && (
+                <div className="mb-5">
+                  <AvatarUpload
+                    currentAvatar={currentUser.avatar}
+                    userId={currentUser.id}
+                    userName={currentUser.name}
+                  />
+                </div>
+              )}
 
               {/* email */}
               <div className="flex items-center gap-3 mb-3">
