@@ -41,9 +41,16 @@ export async function GET(request: Request) {
 
     // If no id provided, return own profile
     const targetId = id || sessionUser.id;
+    const isOwnProfile = targetId === sessionUser.id;
+
+    const where: Record<string, unknown> = { id: targetId };
+    // Only visible profiles can be viewed (users can always see their own)
+    if (!isOwnProfile) {
+      where.profileVisible = true;
+    }
 
     const user = await db.user.findUnique({
-      where: { id: targetId },
+      where,
       select: profileSelect,
     });
 

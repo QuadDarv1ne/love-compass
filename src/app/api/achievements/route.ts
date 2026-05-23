@@ -39,23 +39,29 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { achievementId } = unlockSchema.parse(body);
 
-    // Upsert: ignore if already exists
-    const existing = await db.userAchievement.findUnique({
-      where: { userId_achievementId: { userId: user.id, achievementId } },
-    });
+    try {
+      const achievement = await db.userAchievement.create({
+        data: {
+          userId: user.id,
+          achievementId,
+        },
+      });
 
-    if (existing) {
-      return NextResponse.json({ data: existing, alreadyUnlocked: true });
+      return NextResponse.json({ data: achievement }, { status: 201 });
+    } catch (dbError) {
+      // Handle unique constraint violation from concurrent requests
+      if (
+        dbError instanceof Error &&
+        (dbError.message.includes('Unique constraint') || dbError.message.includes('P2002'))
+      ) {
+        const existing = await db.userAchievement.findUnique({
+          where: { userId_achievementId: { userId: user.id, achievementId } },
+          select: { achievementId: true, unlockedAt: true },
+        });
+        return NextResponse.json({ data: existing, alreadyUnlocked: true });
+      }
+      throw dbError;
     }
-
-    const achievement = await db.userAchievement.create({
-      data: {
-        userId: user.id,
-        achievementId,
-      },
-    });
-
-    return NextResponse.json({ data: achievement }, { status: 201 });
   } catch (error) {
     if (isZodError(error)) {
       return NextResponse.json({ error: 'Invalid input', details: error.issues }, { status: 400 });
