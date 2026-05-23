@@ -45,8 +45,8 @@ export async function GET(request: Request) {
         profileVisible: true,
         NOT: {
           OR: [
-            { blockedBy: { some: { blockerId: user.id } } },
-            { blocked: { some: { blockedId: user.id } } },
+            { blockedBy: { some: { blockedId: user.id } } },
+            { blocked: { some: { blockerId: user.id } } },
           ],
         },
       },
