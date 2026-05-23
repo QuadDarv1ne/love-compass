@@ -212,25 +212,28 @@ export async function PATCH(request: Request) {
         return NextResponse.json({ error: 'Invalid input', details: reactionResult.error.issues }, { status: 400 });
       }
 
-      // Upsert: toggle reaction
-      const existing = await db.momentReaction.findUnique({
-        where: { momentId_userId_emoji: { momentId: id, userId: auth.user.id, emoji: reactionResult.data.emoji } },
+      // Atomic toggle: use transaction to prevent race condition
+      const result = await db.$transaction(async (tx) => {
+        const existing = await tx.momentReaction.findUnique({
+          where: { momentId_userId_emoji: { momentId: id, userId: auth.user.id, emoji: reactionResult.data.emoji } },
+        });
+
+        if (existing) {
+          await tx.momentReaction.delete({ where: { id: existing.id } });
+          return { removed: true };
+        }
+
+        await tx.momentReaction.create({
+          data: {
+            momentId: id,
+            userId: auth.user.id,
+            emoji: reactionResult.data.emoji,
+          },
+        });
+        return { added: true };
       });
 
-      if (existing) {
-        await db.momentReaction.delete({ where: { id: existing.id } });
-        return NextResponse.json({ data: { removed: true } });
-      }
-
-      await db.momentReaction.create({
-        data: {
-          momentId: id,
-          userId: auth.user.id,
-          emoji: reactionResult.data.emoji,
-        },
-      });
-
-      return NextResponse.json({ data: { added: true } });
+      return NextResponse.json({ data: result });
     }
 
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
