@@ -626,16 +626,14 @@ export const useAppStore = create<AppState>((set, get) => ({
   unlockAchievement: async (id) => {
     const state = get();
     if (state.unlockedAchievements.includes(id)) return;
-    // Fire and forget API call
-    (async () => {
-      try {
-        const { fetchWithCSRF } = await import('@/lib/api');
-        await fetchWithCSRF('/api/achievements', { achievementId: id });
-      } catch (error) {
-        console.error('Failed to unlock achievement:', error);
-      }
-    })();
-    set({ unlockedAchievements: [...state.unlockedAchievements, id] });
+    try {
+      const { fetchWithCSRF } = await import('@/lib/api');
+      await fetchWithCSRF('/api/achievements', { achievementId: id });
+      // Only update state after server confirms
+      set({ unlockedAchievements: [...state.unlockedAchievements, id] });
+    } catch (error) {
+      console.error('Failed to unlock achievement:', error);
+    }
   },
 
   // Admin state
