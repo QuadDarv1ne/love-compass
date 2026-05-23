@@ -1,15 +1,21 @@
 import { SignJWT, jwtVerify } from 'jose';
 
+// Cache the dev secret so sign and verify use the same key within a process
+let _devSecret: Uint8Array | undefined;
+
 const getSecret = () => {
   const secret = process.env.JWT_SECRET;
   if (!secret) {
     if (process.env.NODE_ENV === 'production') {
       throw new Error('JWT_SECRET environment variable is required in production');
     }
-    // Generate random secret at runtime for development
-    const randomBytes = new Uint8Array(32);
-    crypto.getRandomValues(randomBytes);
-    return randomBytes;
+    // Generate random secret once per process lifetime for development
+    if (!_devSecret) {
+      const randomBytes = new Uint8Array(32);
+      crypto.getRandomValues(randomBytes);
+      _devSecret = randomBytes;
+    }
+    return _devSecret;
   }
   return new TextEncoder().encode(secret);
 };
