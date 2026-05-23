@@ -78,10 +78,10 @@ export async function PUT(request: Request) {
     const updatedUser = await db.user.update({
       where: { id: user.id },
       data: validated,
+      select: profileSelect,
     });
 
-    const { passwordHash: _passwordHash, ...safeUser } = updatedUser;
-    return NextResponse.json(safeUser);
+    return NextResponse.json(updatedUser);
   } catch (error) {
     if (isZodError(error)) {
       return NextResponse.json({ error: 'Validation failed', details: error.issues }, { status: 400 });

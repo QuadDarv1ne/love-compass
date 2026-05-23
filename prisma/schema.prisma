@@ -182,6 +182,7 @@ model MomentComment {
   user       User     @relation("UserMomentComments", fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([momentId])
+  @@index([userId])
 }
 
 model MomentReaction {
@@ -195,6 +196,7 @@ model MomentReaction {
 
   @@unique([momentId, userId, emoji])
   @@index([momentId])
+  @@index([userId])
 }
 
 model MomentLike {
@@ -207,6 +209,7 @@ model MomentLike {
 
   @@unique([momentId, userId])
   @@index([momentId])
+  @@index([userId])
 }
 
 model UserAchievement {

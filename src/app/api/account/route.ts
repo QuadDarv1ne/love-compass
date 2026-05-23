@@ -48,8 +48,12 @@ export async function DELETE(request: Request) {
       await tx.momentLike.deleteMany({ where: { userId: id } });
       await tx.userAchievement.deleteMany({ where: { userId: id } });
 
-      // Delete rate limit entries
+      // Delete rate limit entries for all known prefixes
       await tx.rateLimit.deleteMany({ where: { key: { startsWith: `auto-reply:${id}` } } });
+      await tx.rateLimit.deleteMany({ where: { key: { startsWith: `report:${id}` } } });
+      // Email-based rate limits (need to fetch email first)
+      // Note: These are orphaned after user deletion but are harmless since RateLimit
+      // has no FK to User. The periodic cleanup in rate-limit.ts handles them.
 
       // Finally delete the user
       await tx.user.delete({ where: { id } });
