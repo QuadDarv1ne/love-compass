@@ -40,11 +40,26 @@ export async function GET(request: Request) {
     const mutualUserIds = new Set(mutualLikes.map((like) => like.toUserId));
     const pendingUserIds = likedUserIds.filter((id) => !mutualUserIds.has(id));
 
+    // Safe profile fields for public-facing profiles
+    const pendingUserSelect = {
+      id: true,
+      name: true,
+      age: true,
+      gender: true,
+      bio: true,
+      interests: true,
+      avatar: true,
+      city: true,
+      lookingFor: true,
+      createdAt: true,
+    };
+
     // Fetch pending user profiles in a single query
     const pendingLikes = await db.user.findMany({
       where: {
         id: { in: pendingUserIds },
       },
+      select: pendingUserSelect,
     });
 
     return NextResponse.json(pendingLikes);

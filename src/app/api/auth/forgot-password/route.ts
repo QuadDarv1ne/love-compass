@@ -36,23 +36,23 @@ export async function POST(request: Request) {
 
     const user = await db.user.findUnique({ where: { email: emailLower } });
 
-    // Always return success to prevent email enumeration
-    if (!user) {
-      return NextResponse.json({ success: true });
-    }
-
     const resetToken = generateRandomToken(32);
     const expiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
-    await db.user.update({
-      where: { id: user.id },
-      data: {
-        passwordResetToken: resetToken,
-        passwordResetExpiry: expiry,
-      },
-    });
+    if (user) {
+      await db.user.update({
+        where: { id: user.id },
+        data: {
+          passwordResetToken: resetToken,
+          passwordResetExpiry: expiry,
+        },
+      });
+    }
 
-    await sendPasswordResetEmail(email, resetToken);
+    // Always send email to prevent timing-based enumeration
+    // For non-existent users, send to a dummy address (the email is never actually
+    // delivered since no user with this email exists to use the token)
+    await sendPasswordResetEmail(emailLower, resetToken);
 
     return NextResponse.json({ success: true });
   } catch (error) {
