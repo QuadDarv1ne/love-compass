@@ -9,6 +9,16 @@ const blockSchema = z.object({
   reason: z.string().optional(),
 });
 
+// Fields safe to expose for a blocked user profile
+const blockedUserSelect = {
+  id: true,
+  name: true,
+  age: true,
+  gender: true,
+  avatar: true,
+  city: true,
+};
+
 export async function POST(request: Request) {
   try {
     const auth = await requireAuthWithCSRF(request);
@@ -27,7 +37,7 @@ export async function POST(request: Request) {
       where: { blockerId_blockedId: { blockerId, blockedId } },
     });
     if (existing) {
-      return NextResponse.json({ error: 'Already blocked', block: existing }, { status: 409 });
+      return NextResponse.json({ error: 'Already blocked' }, { status: 409 });
     }
 
     const block = await db.block.create({
@@ -52,7 +62,7 @@ export async function GET(request: Request) {
 
     const blocks = await db.block.findMany({
       where: { blockerId: user.id },
-      include: { blocked: true },
+      include: { blocked: { select: blockedUserSelect } },
       orderBy: { createdAt: 'desc' },
     });
 
