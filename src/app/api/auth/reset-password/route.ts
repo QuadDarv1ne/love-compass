@@ -36,27 +36,28 @@ export async function POST(request: Request) {
     const hashedPassword = await hashPassword(newPassword);
 
     // Atomic: find user by token, update password, and capture userId in one transaction
-    const resetResult = await db.$transaction(async (tx) => {
-      const user = await tx.user.findFirst({
-        where: {
+    const resetResult = await db.transaction(async (tx) => {
+      const users = await tx.user.findMany(
+        {
           passwordResetToken: token,
           passwordResetExpiry: { gt: new Date() },
         },
-        select: { id: true },
-      });
+        { take: 1 },
+      );
 
+      const user = users[0];
       if (!user) return null;
 
-      await tx.user.update({
-        where: { id: user.id },
-        data: {
+      await tx.user.update(
+        { id: user.id },
+        {
           passwordHash: hashedPassword,
           passwordResetToken: null,
           passwordResetExpiry: null,
           loginAttempts: 0,
           lockedUntil: null,
         },
-      });
+      );
 
       return user.id;
     });

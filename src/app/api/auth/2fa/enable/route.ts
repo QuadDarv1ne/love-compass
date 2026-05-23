@@ -43,10 +43,10 @@ export async function POST(request: Request) {
       );
     }
 
-    await db.user.update({
-      where: { id: user.id },
-      data: { totpEnabled: true },
-    });
+    await db.user.update(
+      { id: user.id },
+      { totpEnabled: true },
+    );
 
     return NextResponse.json({ success: true });
   } catch (error) {

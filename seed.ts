@@ -301,11 +301,7 @@ async function main() {
   ];
 
   for (const user of users) {
-    await db.user.upsert({
-      where: { email: user.email },
-      update: {},
-      create: user,
-    });
+    await db.user.upsert({ email: user.email }, user, {});
   }
 
   const totalUsers = await db.user.count();
@@ -313,14 +309,12 @@ async function main() {
   console.warn(`🔑 Пароль для входа: ${DEFAULT_PASSWORD}`);
 
   // Ensure at least one admin exists
-  const adminCount = await db.user.count({ where: { role: 'admin' } });
+  const adminCount = await db.user.count({ role: 'admin' });
   if (adminCount === 0) {
-    const firstUser = await db.user.findFirst({ orderBy: { createdAt: 'asc' } });
+    const firstUsers = await db.user.findMany({}, { take: 1 });
+    const firstUser = firstUsers[0];
     if (firstUser) {
-      await db.user.update({
-        where: { id: firstUser.id },
-        data: { role: 'admin' },
-      });
+      await db.user.update({ id: firstUser.id }, { role: 'admin' });
       console.warn(`👑 User "${firstUser.name}" promoted to admin`);
     }
   }
@@ -332,5 +326,5 @@ main()
     process.exit(1);
   })
   .finally(async () => {
-    await db.$disconnect();
+    await db.disconnect();
   });

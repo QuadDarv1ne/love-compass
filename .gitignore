@@ -51,6 +51,10 @@ prompt
 
 server.log
 
+# stray files
+2
+dev.log
+
 # deploy artifacts
 /deploy/backups/
 *.db

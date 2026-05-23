@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db, profileSelect } from '@/lib/db';
+import { db } from '@/lib/db';
 import { z } from 'zod';
 import { requireAuth, requireAuthWithCSRF, isZodError } from '@/lib/auth/guard';
 import { logger } from '@/lib/logger';
@@ -32,10 +32,7 @@ export async function GET(request: Request) {
       where.profileVisible = true;
     }
 
-    const user = await db.user.findUnique({
-      where,
-      select: profileSelect,
-    });
+    const user = await db.user.findUnique(where);
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -58,11 +55,15 @@ export async function PUT(request: Request) {
     const body = await request.json();
     const validated = updateProfileSchema.parse(body);
 
-    const updatedUser = await db.user.update({
-      where: { id: user.id },
-      data: validated,
-      select: profileSelect,
-    });
+    const updateData: Record<string, any> = { ...validated };
+    if (validated.photos) {
+      updateData.photos = JSON.stringify(validated.photos);
+    }
+
+    const updatedUser = await db.user.update(
+      { id: user.id },
+      updateData
+    );
 
     return NextResponse.json(updatedUser);
   } catch (error) {

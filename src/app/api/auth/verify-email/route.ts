@@ -22,9 +22,7 @@ export async function GET(request: Request) {
       );
     }
 
-    const user = await db.user.findUnique({
-      where: { emailVerificationToken: token },
-    });
+    const user = await db.user.findUnique({ emailVerificationToken: token });
 
     if (!user) {
       return NextResponse.json(
@@ -43,14 +41,14 @@ export async function GET(request: Request) {
       );
     }
 
-    await db.user.update({
-      where: { id: user.id },
-      data: {
+    await db.user.update(
+      { id: user.id },
+      {
         emailVerified: true,
         emailVerificationToken: null,
         emailVerificationExpiry: null,
       },
-    });
+    );
 
     // Auto-login after verification
     const sessionToken = generateSessionToken();
@@ -92,7 +90,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const user = await db.user.findUnique({ where: { email: emailLower } });
+    const user = await db.user.findUnique({ email: emailLower });
 
     if (!user || user.emailVerified) {
       // Don't reveal if email exists or is verified
@@ -102,13 +100,13 @@ export async function POST(request: Request) {
     const newToken = generateRandomToken(32);
     const expiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-    await db.user.update({
-      where: { id: user.id },
-      data: {
+    await db.user.update(
+      { id: user.id },
+      {
         emailVerificationToken: newToken,
         emailVerificationExpiry: expiry,
       },
-    });
+    );
 
     await sendVerificationEmail(emailLower, newToken);
 

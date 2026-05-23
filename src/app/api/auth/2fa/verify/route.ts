@@ -11,7 +11,7 @@ import {
 } from '@/lib/auth/session';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';
-import { loginUserSelect } from '../login/route';
+import { loginUserSelect } from '@/lib/auth/projections';
 
 const verifySchema = z.object({
   tempToken: z.string().min(1),
@@ -50,10 +50,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const user = await db.user.findUnique({
-      where: { id: payload.userId },
-      select: { ...loginUserSelect, totpSecret: true, totpBackupCodes: true },
-    });
+    const user = await db.user.findUnique({ id: payload.userId });
 
     if (!user || !user.totpSecret) {
       return NextResponse.json(
@@ -80,10 +77,10 @@ export async function POST(request: Request) {
         if (result.valid) {
           // Remove used backup code
           storedCodes.splice(result.index, 1);
-          await db.user.update({
-            where: { id: user.id },
-            data: { totpBackupCodes: JSON.stringify(storedCodes) },
-          });
+          await db.user.update(
+            { id: user.id },
+            { totpBackupCodes: JSON.stringify(storedCodes) },
+          );
           valid = true;
         }
       }

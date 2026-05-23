@@ -33,7 +33,7 @@ export async function POST(request: Request) {
 
     const { userId } = result.data;
 
-    const user = await db.user.findUnique({ where: { id: userId } });
+    const user = await db.user.findUnique({ id: userId });
 
     if (!user) {
       return NextResponse.json(

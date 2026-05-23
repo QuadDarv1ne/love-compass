@@ -36,19 +36,11 @@ export async function GET(request: Request) {
       db.moment.count(),
       db.report.count(),
       db.block.count(),
-      db.user.count({ where: { createdAt: { gte: startOfDay } } }),
-      db.user.count({ where: { createdAt: { gte: startOfWeek } } }),
+      db.user.count({ createdAt: { gte: startOfDay } }),
+      db.user.count({ createdAt: { gte: startOfWeek } }),
       Promise.all([
-        db.like.findMany({
-          where: { createdAt: { gte: sevenDaysAgo } },
-          select: { fromUserId: true },
-          distinct: ['fromUserId'],
-        }),
-        db.message.findMany({
-          where: { createdAt: { gte: sevenDaysAgo } },
-          select: { senderId: true },
-          distinct: ['senderId'],
-        }),
+        db.like.findMany({ createdAt: { gte: sevenDaysAgo } }),
+        db.message.findMany({ createdAt: { gte: sevenDaysAgo } }),
       ]),
     ]);
 

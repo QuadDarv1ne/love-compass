@@ -10,10 +10,9 @@ export async function GET(request: Request) {
 
     const { user } = auth;
 
-    const likes = await db.like.findMany({
-      where: { fromUserId: user.id },
-      select: { toUserId: true },
-    });
+    const likes = await db.like.findMany(
+      { fromUserId: user.id }
+    );
 
     return NextResponse.json(likes);
   } catch (error) {

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getUserFromRequest } from './session';
 import { validateCSRFToken } from './csrf';
-import type { User } from '@prisma/client';
+import type { DbUser } from '@/lib/db';
 
 /**
  * Check if an error is a Zod validation error.
@@ -13,7 +13,7 @@ export function isZodError(error: unknown): error is { name: 'ZodError'; issues:
 
 export async function requireAuth(
   _request: Request
-): Promise<{ user: User } | NextResponse> {
+): Promise<{ user: DbUser } | NextResponse> {
   const user = await getUserFromRequest();
 
   if (!user) {
@@ -25,7 +25,7 @@ export async function requireAuth(
 
 export async function requireAuthWithCSRF(
   request: Request
-): Promise<{ user: User } | NextResponse> {
+): Promise<{ user: DbUser } | NextResponse> {
   const auth = await requireAuth(request);
   if (auth instanceof NextResponse) return auth;
 
@@ -39,7 +39,7 @@ export async function requireAuthWithCSRF(
 
 export async function requireVerifiedEmail(
   request: Request
-): Promise<{ user: User } | NextResponse> {
+): Promise<{ user: DbUser } | NextResponse> {
   const auth = await requireAuth(request);
   if (auth instanceof NextResponse) return auth;
 
@@ -55,7 +55,7 @@ export async function requireVerifiedEmail(
 
 export async function requireAdmin(
   request: Request
-): Promise<{ user: User } | NextResponse> {
+): Promise<{ user: DbUser } | NextResponse> {
   const auth = await requireAuth(request);
   if (auth instanceof NextResponse) return auth;
 
@@ -69,7 +69,7 @@ export async function requireAdmin(
 
 export async function requireAdminWithCSRF(
   request: Request
-): Promise<{ user: User } | NextResponse> {
+): Promise<{ user: DbUser } | NextResponse> {
   const auth = await requireAdmin(request);
   if (auth instanceof NextResponse) return auth;
 

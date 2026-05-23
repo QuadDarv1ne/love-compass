@@ -62,33 +62,29 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { matchId } = autoReplySchema.parse(body);
 
-    const match = await db.match.findUnique({
-      where: { id: matchId },
-      include: {
-        user1: { select: { id: true, name: true, avatar: true } },
-        user2: { select: { id: true, name: true, avatar: true } },
-      },
-    });
+    const match = await db.match.findUnique({ id: matchId });
 
     if (!match || (match.user1Id !== user.id && match.user2Id !== user.id)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
     // Determine the partner (the other participant)
-    const partner = match.user1Id === user.id ? match.user2 : match.user1;
+    const partnerId = match.user1Id === user.id ? match.user2Id : match.user1Id;
 
-    const replyText = AUTO_REPLIES[Math.floor(Math.random() * AUTO_REPLIES.length)];
-
-    const message = await db.message.create({
-      data: {
+    // Fetch sender data and create message
+    const [sender, createdMessage] = await Promise.all([
+      db.user.findUnique({ id: partnerId }),
+      db.message.create({
         matchId,
-        senderId: partner.id,
-        content: replyText,
-      },
-      include: {
-        sender: { select: { id: true, name: true, avatar: true } },
-      },
-    });
+        senderId: partnerId,
+        content: AUTO_REPLIES[Math.floor(Math.random() * AUTO_REPLIES.length)],
+      }),
+    ]);
+
+    const message = {
+      ...createdMessage,
+      sender: { id: sender!.id, name: sender!.name, avatar: sender!.avatar },
+    };
 
     return NextResponse.json(message, { status: 201 });
   } catch (error) {

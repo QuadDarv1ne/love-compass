@@ -22,25 +22,22 @@ export async function GET(request: Request) {
 
     const { user } = auth;
 
-    const dbUser = await db.user.findUnique({
-      where: { id: user.id },
-      select: {
-        notificationsEnabled: true,
-        profileVisible: true,
-        showOnlineStatus: true,
-        language: true,
-        showDistance: true,
-        soundEnabled: true,
-        matchNotifications: true,
-        likeNotifications: true,
-      },
-    });
+    const dbUser = await db.user.findUnique({ id: user.id });
 
     if (!dbUser) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    return NextResponse.json(dbUser);
+    return NextResponse.json({
+      notificationsEnabled: dbUser.notificationsEnabled,
+      profileVisible: dbUser.profileVisible,
+      showOnlineStatus: dbUser.showOnlineStatus,
+      language: dbUser.language,
+      showDistance: dbUser.showDistance,
+      soundEnabled: dbUser.soundEnabled,
+      matchNotifications: dbUser.matchNotifications,
+      likeNotifications: dbUser.likeNotifications,
+    });
   } catch (error) {
     logger.error('/api/settings', 'Failed to fetch settings', error);
     return NextResponse.json({ error: 'Failed to fetch settings' }, { status: 500 });
@@ -57,20 +54,10 @@ export async function PUT(request: Request) {
     const body = await request.json();
     const validated = updateSettingsSchema.parse(body);
 
-    const updatedUser = await db.user.update({
-      where: { id: user.id },
-      data: validated,
-      select: {
-        notificationsEnabled: true,
-        profileVisible: true,
-        showOnlineStatus: true,
-        language: true,
-        showDistance: true,
-        soundEnabled: true,
-        matchNotifications: true,
-        likeNotifications: true,
-      },
-    });
+    const updatedUser = await db.user.update(
+      { id: user.id },
+      validated
+    );
 
     return NextResponse.json(updatedUser);
   } catch (error) {

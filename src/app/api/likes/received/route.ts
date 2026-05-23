@@ -12,12 +12,7 @@ export async function GET(request: Request) {
 
     // Get all users who liked the current user
     const receivedLikes = await db.like.findMany({
-      where: {
-        toUserId: user.id,
-      },
-      select: {
-        fromUserId: true,
-      },
+      toUserId: user.id,
     });
 
     if (receivedLikes.length === 0) {
@@ -28,13 +23,8 @@ export async function GET(request: Request) {
 
     // Single query to find which of those users the current user has NOT liked back
     const mutualLikes = await db.like.findMany({
-      where: {
-        fromUserId: user.id,
-        toUserId: { in: likedUserIds },
-      },
-      select: {
-        toUserId: true,
-      },
+      fromUserId: user.id,
+      toUserId: { in: likedUserIds },
     });
 
     const mutualUserIds = new Set(mutualLikes.map((like) => like.toUserId));
@@ -55,13 +45,17 @@ export async function GET(request: Request) {
     };
 
     // Fetch pending user profiles in a single query
-    const pendingLikes = await db.user.findMany({
-      where: {
-        id: { in: pendingUserIds },
-      },
-      select: pendingUserSelect,
-    });
+    const pendingUsers = await db.user.findMany(
+      { id: { in: pendingUserIds } }
+    );
 
+    const pendingLikes = pendingUsers.map(u => {
+      const result: Record<string, any> = {};
+      for (const key of Object.keys(pendingUserSelect)) {
+        result[key] = (u as any)[key];
+      }
+      return result;
+    });
     return NextResponse.json(pendingLikes);
   } catch (error) {
     logger.error('/api/likes/received', 'Failed to fetch received likes', error);

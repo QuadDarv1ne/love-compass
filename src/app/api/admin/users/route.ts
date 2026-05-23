@@ -43,19 +43,12 @@ export async function GET(request: Request) {
     }
 
     const [users, total] = await Promise.all([
-      db.user.findMany({
-        where,
-        select: {
-          id: true, email: true, name: true, age: true, gender: true,
-          bio: true, avatar: true, city: true, role: true,
-          emailVerified: true, profileVisible: true,
-          createdAt: true, updatedAt: true,
-        },
+      db.user.findMany(where, {
         orderBy,
         skip: (page - 1) * limit,
         take: limit,
       }),
-      db.user.count({ where }),
+      db.user.count(where),
     ]);
 
     // Batch aggregations
@@ -78,9 +71,7 @@ export async function GET(request: Request) {
       db.message.groupBy({ by: ['senderId'], where: { senderId: { in: userIds } }, _count: { senderId: true } }),
       db.moment.groupBy({ by: ['userId'], where: { userId: { in: userIds } }, _count: { userId: true } }),
       // Last activity = max message createdAt per sender
-      db.message.findMany({
-        where: { senderId: { in: userIds } },
-        select: { senderId: true, createdAt: true },
+      db.message.findMany({ senderId: { in: userIds } }, {
         orderBy: { createdAt: 'desc' },
         take: userIds.length * 2,
       }),

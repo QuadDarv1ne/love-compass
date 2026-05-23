@@ -15,10 +15,9 @@ export async function GET(request: Request) {
 
     const { user } = auth;
 
-    const achievements = await db.userAchievement.findMany({
-      where: { userId: user.id },
-      select: { achievementId: true, unlockedAt: true },
-    });
+    const achievements = await db.userAchievement.findMany(
+      { userId: user.id }
+    );
 
     return NextResponse.json({
       unlocked: achievements.map((a) => a.achievementId),
@@ -41,10 +40,8 @@ export async function POST(request: Request) {
 
     try {
       const achievement = await db.userAchievement.create({
-        data: {
-          userId: user.id,
-          achievementId,
-        },
+        userId: user.id,
+        achievementId,
       });
 
       return NextResponse.json({ data: achievement }, { status: 201 });
@@ -54,10 +51,9 @@ export async function POST(request: Request) {
         dbError instanceof Error &&
         (dbError.message.includes('Unique constraint') || dbError.message.includes('P2002'))
       ) {
-        const existing = await db.userAchievement.findUnique({
-          where: { userId_achievementId: { userId: user.id, achievementId } },
-          select: { achievementId: true, unlockedAt: true },
-        });
+        const existing = await db.userAchievement.findUnique(
+          { userId: user.id, achievementId }
+        );
         return NextResponse.json({ data: existing, alreadyUnlocked: true });
       }
       throw dbError;

@@ -1,7 +1,6 @@
 import { cookies } from 'next/headers';
-import { db } from '@/lib/db';
+import { db, DbUser } from '@/lib/db';
 import { generateRandomToken } from './crypto';
-import type { User } from '@prisma/client';
 
 export const SESSION_COOKIE_NAME = '__session';
 export const SESSION_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
@@ -19,29 +18,29 @@ export async function createSession(
   const expiresAt = new Date(Date.now() + SESSION_MAX_AGE * 1000);
 
   return db.session.create({
-    data: {
-      token,
-      userId,
-      expiresAt,
-      userAgent: userAgent || undefined,
-      ipAddress: ipAddress || undefined,
-    },
+    token,
+    userId,
+    expiresAt,
+    userAgent: userAgent || undefined,
+    ipAddress: ipAddress || undefined,
   });
 }
 
 export async function validateSessionToken(token: string): Promise<{
   session: { id: string; userId: string; expiresAt: Date };
-  user: User;
+  user: DbUser;
 } | null> {
-  const session = await db.session.findUnique({
-    where: { token },
-    include: { user: true },
-  });
+  const result = await db.session.findUnique({ token }, true);
 
-  if (!session || session.expiresAt < new Date()) {
-    if (session) {
+  if (!result || !('user' in result) || !result.user) {
+    return null;
+  }
+
+  const session = result as any;
+  if (session.expiresAt < new Date()) {
+    if (session.id) {
       try {
-        await db.session.delete({ where: { id: session.id } });
+        await db.session.delete({ id: session.id });
       } catch {
         // Session may have been deleted by a concurrent request — safe to ignore
       }
@@ -53,23 +52,18 @@ export async function validateSessionToken(token: string): Promise<{
   const halfLife = SESSION_MAX_AGE / 2;
   const timeLeft = session.expiresAt.getTime() - Date.now();
   if (timeLeft < halfLife * 1000) {
-    await db.session.update({
-      where: { id: session.id },
-      data: { expiresAt: new Date(Date.now() + SESSION_MAX_AGE * 1000) },
-    });
+    await db.session.update({ id: session.id }, { expiresAt: new Date(Date.now() + SESSION_MAX_AGE * 1000) });
   }
 
   return { session, user: session.user };
 }
 
 export async function invalidateSession(token: string): Promise<void> {
-  await db.session.deleteMany({ where: { token } });
+  await db.session.delete({ token });
 }
 
-export async function invalidateAllUserSessions(
-  userId: string
-): Promise<void> {
-  await db.session.deleteMany({ where: { userId } });
+export async function invalidateAllUserSessions(userId: string): Promise<void> {
+  await db.session.deleteMany({ userId });
 }
 
 export async function setSessionCookie(token: string): Promise<void> {
@@ -103,7 +97,7 @@ export async function getSessionTokenFromCookie(): Promise<string | null> {
   return cookieStore.get(SESSION_COOKIE_NAME)?.value || null;
 }
 
-export async function getUserFromRequest(): Promise<User | null> {
+export async function getUserFromRequest(): Promise<DbUser | null> {
   const token = await getSessionTokenFromCookie();
   if (!token) return null;
 

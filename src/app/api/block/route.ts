@@ -34,15 +34,13 @@ export async function POST(request: Request) {
     }
 
     const existing = await db.block.findUnique({
-      where: { blockerId_blockedId: { blockerId, blockedId } },
+      blockerId, blockedId,
     });
     if (existing) {
       return NextResponse.json({ error: 'Already blocked' }, { status: 409 });
     }
 
-    const block = await db.block.create({
-      data: { blockerId, blockedId, reason },
-    });
+    const block = await db.block.create({ blockerId, blockedId, reason });
 
     return NextResponse.json({ block }, { status: 201 });
   } catch (error) {
@@ -60,11 +58,9 @@ export async function GET(request: Request) {
 
     const { user } = auth;
 
-    const blocks = await db.block.findMany({
-      where: { blockerId: user.id },
-      include: { blocked: { select: blockedUserSelect } },
-      orderBy: { createdAt: 'desc' },
-    });
+    const blocks = await db.block.findMany(
+      { blockerId: user.id }
+    );
 
     return NextResponse.json({ blocks });
   } catch (error) {
@@ -84,9 +80,7 @@ export async function DELETE(request: Request) {
       blockedId: z.string().min(1),
     }).parse(body);
 
-    await db.block.deleteMany({
-      where: { blockerId: user.id, blockedId },
-    });
+    await db.block.deleteMany({ blockerId: user.id, blockedId });
 
     return NextResponse.json({ success: true });
   } catch (error) {

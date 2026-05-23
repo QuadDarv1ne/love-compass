@@ -22,21 +22,28 @@ export async function GET(request: Request) {
     }
 
     // Verify user is a participant in this match
-    const match = await db.match.findUnique({
-      where: { id: matchId },
-    });
+    const match = await db.match.findUnique({ id: matchId });
 
     if (!match || (match.user1Id !== auth.user.id && match.user2Id !== auth.user.id)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    const messages = await db.message.findMany({
-      where: { matchId },
-      include: { sender: { select: { id: true, name: true, avatar: true } } },
-      orderBy: { createdAt: 'asc' },
-    });
+    const messages = await db.message.findMany(
+      { matchId },
+      { orderBy: { createdAt: 'asc' } }
+    );
 
-    return NextResponse.json(messages);
+    // Fetch sender data separately
+    const senderIds = [...new Set(messages.map((m) => m.senderId))];
+    const senders = await db.user.findMany({ id: { in: senderIds } });
+    const senderMap = new Map(senders.map((s) => [s.id, s]));
+
+    const data = messages.map((m) => ({
+      ...m,
+      sender: senderMap.get(m.senderId),
+    }));
+
+    return NextResponse.json(data);
   } catch (error) {
     logger.error('/api/messages', 'Failed to fetch messages', error);
     return NextResponse.json({ error: 'Failed to fetch messages' }, { status: 500 });
@@ -53,20 +60,18 @@ export async function POST(request: Request) {
     const { matchId, content } = sendMessageSchema.parse(body);
 
     // Verify user is a participant in this match
-    const match = await db.match.findUnique({
-      where: { id: matchId },
-    });
+    const match = await db.match.findUnique({ id: matchId });
 
     if (!match || (match.user1Id !== user.id && match.user2Id !== user.id)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    const message = await db.message.create({
-      data: { matchId, senderId: user.id, content },
-      include: { sender: { select: { id: true, name: true, avatar: true } } },
-    });
+    const [message, sender] = await Promise.all([
+      db.message.create({ matchId, senderId: user.id, content }),
+      db.user.findUnique({ id: user.id }),
+    ]);
 
-    return NextResponse.json(message, { status: 201 });
+    return NextResponse.json({ ...message, sender: { id: sender!.id, name: sender!.name, avatar: sender!.avatar } }, { status: 201 });
   } catch (error) {
     if (isZodError(error)) {
       return NextResponse.json({ error: 'Validation failed', details: error.issues }, { status: 400 });

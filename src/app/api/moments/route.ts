@@ -29,58 +29,68 @@ export async function GET(request: Request) {
     const auth = await requireAuth(request);
     if (auth instanceof NextResponse) return auth;
 
-    const moments = await db.moment.findMany({
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            avatar: true,
-          },
-        },
-        comments: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                avatar: true,
-              },
-            },
-          },
-          orderBy: { createdAt: 'asc' },
-        },
-        reactions: {
-          select: {
-            emoji: true,
-          },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+    const moments = await db.moment.findMany({}, { orderBy: { createdAt: 'desc' } });
 
-    const data = moments.map((moment) => ({
-      id: moment.id,
-      userId: moment.userId,
-      userName: moment.user.name,
-      userAvatar: moment.user.avatar,
-      content: moment.content,
-      gradient: moment.gradient,
-      createdAt: moment.createdAt.toISOString(),
-      likes: moment.likes,
-      comments: moment.comments.map((c) => ({
-        id: c.id,
-        userId: c.userId,
-        userName: c.user.name,
-        userAvatar: c.user.avatar,
-        content: c.content,
-        createdAt: c.createdAt.toISOString(),
-      })),
-      reactions: moment.reactions.reduce<Record<string, number>>((acc, r) => {
-        acc[r.emoji] = (acc[r.emoji] || 0) + 1;
-        return acc;
-      }, {}),
-    }));
+    // Fetch related data separately
+    const userIds = [...new Set(moments.map((m) => m.userId))];
+    const momentIds = moments.map((m) => m.id);
+
+    const [users, comments, reactions] = await Promise.all([
+      db.user.findMany({ id: { in: userIds } }),
+      db.momentComment.findMany({ momentId: { in: momentIds } }, { orderBy: { createdAt: 'asc' } }),
+      db.momentReaction.findMany({ momentId: { in: momentIds } }),
+    ]);
+
+    // Fetch comment users
+    const commentUserIds = [...new Set(comments.map((c) => c.userId))];
+    const commentUsers = await db.user.findMany({ id: { in: commentUserIds } });
+    const commentUserMap = new Map(commentUsers.map((u) => [u.id, u]));
+
+    const userMap = new Map(users.map((u) => [u.id, u]));
+
+    const commentsByMoment = new Map<string, typeof comments>();
+    for (const c of comments) {
+      if (!commentsByMoment.has(c.momentId)) commentsByMoment.set(c.momentId, []);
+      commentsByMoment.get(c.momentId)!.push(c);
+    }
+
+    const reactionsByMoment = new Map<string, typeof reactions>();
+    for (const r of reactions) {
+      if (!reactionsByMoment.has(r.momentId)) reactionsByMoment.set(r.momentId, []);
+      reactionsByMoment.get(r.momentId)!.push(r);
+    }
+
+    const data = moments.map((moment) => {
+      const momentComments = commentsByMoment.get(moment.id) || [];
+      const momentReactions = reactionsByMoment.get(moment.id) || [];
+      const user = userMap.get(moment.userId);
+
+      return {
+        id: moment.id,
+        userId: moment.userId,
+        userName: user?.name,
+        userAvatar: user?.avatar,
+        content: moment.content,
+        gradient: moment.gradient,
+        createdAt: moment.createdAt.toISOString(),
+        likes: moment.likes,
+        comments: momentComments.map((c) => {
+          const cu = commentUserMap.get(c.userId);
+          return {
+            id: c.id,
+            userId: c.userId,
+            userName: cu?.name,
+            userAvatar: cu?.avatar,
+            content: c.content,
+            createdAt: c.createdAt.toISOString(),
+          };
+        }),
+        reactions: momentReactions.reduce<Record<string, number>>((acc, r) => {
+          acc[r.emoji] = (acc[r.emoji] || 0) + 1;
+          return acc;
+        }, {}),
+      };
+    });
 
     return NextResponse.json({ data });
   } catch (error) {
@@ -104,11 +114,9 @@ export async function POST(request: Request) {
     const { content, gradient } = result.data;
 
     const moment = await db.moment.create({
-      data: {
-        userId: user.id,
-        content,
-        gradient,
-      },
+      userId: user.id,
+      content,
+      gradient,
     });
 
     return NextResponse.json({ data: moment }, { status: 201 });
@@ -136,35 +144,35 @@ export async function PATCH(request: Request) {
     const { id, action, emoji, content } = result.data;
 
     // Verify moment exists
-    const moment = await db.moment.findUnique({ where: { id } });
+    const moment = await db.moment.findUnique({ id });
     if (!moment) {
       return NextResponse.json({ error: 'Moment not found' }, { status: 404 });
     }
 
     if (action === 'like') {
-      const result = await db.$transaction(async (tx) => {
+      const result = await db.transaction(async (tx) => {
         const existing = await tx.momentLike.findUnique({
-          where: { momentId_userId: { momentId: id, userId: auth.user.id } },
+          momentId: id, userId: auth.user.id,
         });
 
         if (existing) {
           // Unlike: remove the like and decrement count
-          await tx.momentLike.delete({ where: { id: existing.id } });
-          const updated = await tx.moment.update({
-            where: { id },
-            data: { likes: { decrement: 1 } },
-          });
+          await tx.momentLike.delete({ id: existing.id });
+          const current = await tx.moment.findUnique({ id });
+          const updated = await tx.moment.update(
+            { id },
+            { likes: (current as any).likes - 1 }
+          );
           return { likes: updated.likes, liked: false };
         }
 
         // Like: create record and increment count
-        await tx.momentLike.create({
-          data: { momentId: id, userId: auth.user.id },
-        });
-        const updated = await tx.moment.update({
-          where: { id },
-          data: { likes: { increment: 1 } },
-        });
+        await tx.momentLike.create({ momentId: id, userId: auth.user.id });
+        const current = await tx.moment.findUnique({ id });
+        const updated = await tx.moment.update(
+          { id },
+          { likes: (current as any).likes + 1 }
+        );
         return { likes: updated.likes, liked: true };
       });
 
@@ -180,23 +188,21 @@ export async function PATCH(request: Request) {
         return NextResponse.json({ error: 'Invalid input', details: commentResult.error.issues }, { status: 400 });
       }
 
-      const comment = await db.momentComment.create({
-        data: {
+      const [comment, commenter] = await Promise.all([
+        db.momentComment.create({
           momentId: id,
           userId: auth.user.id,
           content: commentResult.data.content,
-        },
-        include: {
-          user: { select: { id: true, name: true, avatar: true } },
-        },
-      });
+        }),
+        db.user.findUnique({ id: auth.user.id }),
+      ]);
 
       return NextResponse.json({
         data: {
           id: comment.id,
           userId: comment.userId,
-          userName: comment.user.name,
-          userAvatar: comment.user.avatar,
+          userName: commenter!.name,
+          userAvatar: commenter!.avatar,
           content: comment.content,
           createdAt: comment.createdAt.toISOString(),
         },
@@ -213,22 +219,20 @@ export async function PATCH(request: Request) {
       }
 
       // Atomic toggle: use transaction to prevent race condition
-      const result = await db.$transaction(async (tx) => {
+      const result = await db.transaction(async (tx) => {
         const existing = await tx.momentReaction.findUnique({
-          where: { momentId_userId_emoji: { momentId: id, userId: auth.user.id, emoji: reactionResult.data.emoji } },
+          momentId: id, userId: auth.user.id, emoji: reactionResult.data.emoji,
         });
 
         if (existing) {
-          await tx.momentReaction.delete({ where: { id: existing.id } });
+          await tx.momentReaction.delete({ id: existing.id });
           return { removed: true };
         }
 
         await tx.momentReaction.create({
-          data: {
-            momentId: id,
-            userId: auth.user.id,
-            emoji: reactionResult.data.emoji,
-          },
+          momentId: id,
+          userId: auth.user.id,
+          emoji: reactionResult.data.emoji,
         });
         return { added: true };
       });

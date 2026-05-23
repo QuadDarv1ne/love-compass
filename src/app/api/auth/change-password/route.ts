@@ -50,10 +50,10 @@ export async function POST(request: Request) {
 
     const passwordHash = await hashPassword(newPassword);
 
-    await db.user.update({
-      where: { id: user.id },
-      data: { passwordHash },
-    });
+    await db.user.update(
+      { id: user.id },
+      { passwordHash },
+    );
 
     // Invalidate all sessions after password change
     await invalidateAllUserSessions(user.id);

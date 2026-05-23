@@ -51,13 +51,51 @@ Love Compass — это веб-приложение для знакомств, �
 - **Backend:** Next.js 16, React 19, TypeScript
 - **Стилизация:** Tailwind CSS 4, shadcn/ui
 - **Анимации:** Framer Motion
-- **База данных:** Prisma ORM
+- **База данных:** Multi-DB Adapter (SQLite, PostgreSQL, MongoDB)
 - **Аутентификация:** Custom JWT/session-based auth с 2FA (TOTP)
 - **Управление состоянием:** Zustand
 - **Формы:** React Hook Form + Zod
 - **Иконки:** Lucide React
 - **Сборщик:** Bun
 - **Интерфейс:** Radix UI (50+ компонентов)
+
+---
+
+## Поддержка баз данных
+
+Приложение поддерживает **3 базы данных** с автоматическим определением типа по `DATABASE_URL`:
+
+| База данных | Формат DATABASE_URL | DB_PROVIDER | Где работает |
+|-------------|---------------------|-------------|--------------|
+| **SQLite** | `file:./db/custom.db` | `sqlite` | Локальная разработка, VPS, Docker |
+| **PostgreSQL** | `postgresql://user:pass@host/db` | `postgresql` | Vercel, Railway, Neon, Supabase |
+| **MongoDB** | `mongodb://host/db` или `mongodb+srv://...` | _(авто)_ | Vercel, MongoDB Atlas, любой cloud |
+
+### Автоопределение
+
+Файл `src/lib/db.ts` автоматически определяет тип базы данных по формату URL:
+- `file:` или `sqlite:` → SQLite (через Prisma)
+- `postgresql://` или `postgres://` → PostgreSQL (через Prisma)
+- `mongodb://` или `mongodb+srv://` → MongoDB (через нативный драйвер)
+
+### Настройка для деплоя
+
+**Vercel / Cloud платформы (рекомендуется PostgreSQL):**
+```env
+DATABASE_URL=postgresql://user:password@db.neon.tech/love_compass
+DB_PROVIDER=postgresql
+```
+
+**MongoDB Atlas:**
+```env
+DATABASE_URL=mongodb+srv://user:password@cluster.mongodb.net/love_compass
+```
+
+**Локальная разработка (SQLite):**
+```env
+DATABASE_URL=file:./db/custom.db
+DB_PROVIDER=sqlite
+```
 
 ---
 
@@ -124,7 +162,7 @@ love-compass/
 
 - **Node.js** 18.17 или выше
 - **Bun** 1.0 или выше (рекомендуется)
-- **PostgreSQL** (или другая СУБД, поддерживаемая Prisma)
+- **База данных:** SQLite (локально), PostgreSQL или MongoDB (для деплоя)
 
 ### Установка
 
@@ -136,14 +174,37 @@ cd love-compass
 # Установка зависимостей
 bun install
 
-# Генерация Prisma клиента
+# Генерация Prisma клиента (для SQLite/PostgreSQL)
 bun run db:generate
 
-# Применение миграций базы данных
+# Применение схемы базы данных
 bun run db:push
 
 # Заполнение начальными данными (опционально)
 bun run seed
+```
+
+### Деплой на Vercel
+
+1. Создайте базу данных PostgreSQL (Neon, Supabase, Railway)
+2. В настройках Vercel добавьте переменные окружения:
+   - `DATABASE_URL` — строка подключения PostgreSQL
+   - `DB_PROVIDER=postgresql`
+   - `JWT_SECRET` — случайная строка (генерация: `openssl rand -base64 32`)
+   - `RESEND_API_KEY` — ключ от Resend для email
+   - `NEXT_PUBLIC_APP_URL` — URL вашего приложения
+3. Подключите репозиторий к Vercel и деплой запустится автоматически
+
+### Деплой на VPS (Docker)
+
+```bash
+# В .env файле настройте SQLite или PostgreSQL
+DATABASE_URL=file:./db/custom.db
+DB_PROVIDER=sqlite
+
+# Сборка и запуск
+docker build -t love-compass -f deploy/Dockerfile .
+docker run -p 3000:3000 --env-file .env love-compass
 ```
 
 ### Запуск в режиме разработки

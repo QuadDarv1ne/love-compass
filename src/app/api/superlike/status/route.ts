@@ -18,13 +18,11 @@ export async function GET(request: Request) {
     endOfDay.setDate(endOfDay.getDate() + 1);
 
     const count = await db.like.count({
-      where: {
-        fromUserId: user.id,
-        isSuperLike: true,
-        createdAt: {
-          gte: startOfDay,
-          lt: endOfDay,
-        },
+      fromUserId: user.id,
+      isSuperLike: true,
+      createdAt: {
+        gte: startOfDay,
+        lt: endOfDay,
       },
     });
 

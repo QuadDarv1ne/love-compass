@@ -18,13 +18,11 @@ async function getSuperLikeCountToday(userId: string): Promise<number> {
   endOfDay.setDate(endOfDay.getDate() + 1);
 
   return db.like.count({
-    where: {
-      fromUserId: userId,
-      isSuperLike: true,
-      createdAt: {
-        gte: startOfDay,
-        lt: endOfDay,
-      },
+    fromUserId: userId,
+    isSuperLike: true,
+    createdAt: {
+      gte: startOfDay,
+      lt: endOfDay,
     },
   });
 }
@@ -55,12 +53,10 @@ export async function POST(request: Request) {
     }
 
     // Execute all operations in a transaction to prevent race conditions
-    const result = await db.$transaction(async (tx) => {
+    const result = await db.transaction(async (tx) => {
       // Check if like already exists
       const existingLike = await tx.like.findUnique({
-        where: {
-          fromUserId_toUserId: { fromUserId, toUserId },
-        },
+        fromUserId, toUserId,
       });
 
       if (existingLike) {
@@ -68,15 +64,11 @@ export async function POST(request: Request) {
       }
 
       // Create the like
-      const like = await tx.like.create({
-        data: { fromUserId, toUserId, isSuperLike },
-      });
+      const like = await tx.like.create({ fromUserId, toUserId, isSuperLike });
 
       // Check if there is a reverse like (mutual like)
       const reverseLike = await tx.like.findUnique({
-        where: {
-          fromUserId_toUserId: { fromUserId: toUserId, toUserId: fromUserId },
-        },
+        fromUserId: toUserId, toUserId: fromUserId,
       });
 
       if (!reverseLike) {
@@ -85,12 +77,10 @@ export async function POST(request: Request) {
 
       // Check for existing match
       const existingMatch = await tx.match.findFirst({
-        where: {
-          OR: [
-            { user1Id: fromUserId, user2Id: toUserId },
-            { user1Id: toUserId, user2Id: fromUserId },
-          ],
-        },
+        OR: [
+          { user1Id: fromUserId, user2Id: toUserId },
+          { user1Id: toUserId, user2Id: fromUserId },
+        ],
       });
 
       if (existingMatch) {
@@ -99,10 +89,8 @@ export async function POST(request: Request) {
 
       // Create new match (consistent ordering by ID)
       const match = await tx.match.create({
-        data: {
-          user1Id: fromUserId < toUserId ? fromUserId : toUserId,
-          user2Id: fromUserId < toUserId ? toUserId : fromUserId,
-        },
+        user1Id: fromUserId < toUserId ? fromUserId : toUserId,
+        user2Id: fromUserId < toUserId ? toUserId : fromUserId,
       });
 
       return { like, match, isMutual: true };
@@ -131,31 +119,27 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'Missing toUserId parameter' }, { status: 400 });
     }
 
-    await db.$transaction(async (tx) => {
+    await db.transaction(async (tx) => {
       // Delete the like
       await tx.like.deleteMany({
-        where: {
-          AND: [{ fromUserId: user.id }, { toUserId }],
-        },
+        AND: [{ fromUserId: user.id }, { toUserId }],
       });
 
       // If a match exists, delete it too
       const match = await tx.match.findFirst({
-        where: {
-          OR: [
-            { user1Id: user.id, user2Id: toUserId },
-            { user1Id: toUserId, user2Id: user.id },
-          ],
-        },
+        OR: [
+          { user1Id: user.id, user2Id: toUserId },
+          { user1Id: toUserId, user2Id: user.id },
+        ],
       });
 
       if (match) {
         // Only delete match if the reverse like also doesn't exist
         const reverseLike = await tx.like.findUnique({
-          where: { fromUserId_toUserId: { fromUserId: toUserId, toUserId: user.id } },
+          fromUserId: toUserId, toUserId: user.id,
         });
         if (!reverseLike) {
-          await tx.match.delete({ where: { id: match.id } });
+          await tx.match.delete({ id: match.id });
         }
       }
     });

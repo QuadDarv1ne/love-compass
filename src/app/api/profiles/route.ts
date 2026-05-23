@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db, profileSelect } from '@/lib/db';
+import { db } from '@/lib/db';
 import { z } from 'zod';
 import { requireAuth, isZodError } from '@/lib/auth/guard';
 
@@ -16,36 +16,45 @@ export async function GET(request: Request) {
     const { user } = auth;
 
     const { searchParams } = new URL(request.url);
-    const pagination = paginationSchema.parse({
+    const pagination = z.object({
+      cursor: z.string().optional(),
+      limit: z.coerce.number().min(1).max(100).default(20),
+    }).parse({
       cursor: searchParams.get('cursor') || undefined,
-      limit: searchParams.get('limit') || 20,
+      limit: parseInt(searchParams.get('limit') || '20'),
     });
 
-    const profiles = await db.user.findMany({
-      where: {
-        id: { not: user.id },
+    const skip = pagination.cursor ? 1 : 0;
+    const profiles = await db.user.findMany(
+      {
         profileVisible: true,
-        NOT: {
-          OR: [
-            { blockedBy: { some: { blockedId: user.id } } },
-            { blocked: { some: { blockerId: user.id } } },
-          ],
-        },
       },
-      select: profileSelect,
-      take: pagination.limit + 1,
-      cursor: pagination.cursor ? { id: pagination.cursor } : undefined,
-      orderBy: { createdAt: 'desc' },
-    });
+      {
+        take: pagination.limit + 1,
+        skip,
+        orderBy: { createdAt: 'desc' },
+      }
+    );
+
+    // Filter out current user and blocked users in memory
+    const blocked = await db.block.findMany({ blockerId: user.id });
+    const blockedBy = await db.block.findMany({ blockedId: user.id });
+    const blockedIds = new Set([
+      ...blocked.map(b => b.blockedId),
+      ...blockedBy.map(b => b.blockerId),
+      user.id,
+    ]);
+
+    const filteredProfiles = profiles.filter(p => !blockedIds.has(p.id));
 
     let nextCursor: string | undefined = undefined;
-    if (profiles.length > pagination.limit) {
-      const nextItem = profiles.pop();
+    if (filteredProfiles.length > pagination.limit) {
+      const nextItem = filteredProfiles.pop();
       nextCursor = nextItem?.id;
     }
 
     return NextResponse.json({
-      data: profiles,
+      data: filteredProfiles,
       nextCursor,
     });
   } catch (error) {

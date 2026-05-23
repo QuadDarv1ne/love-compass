@@ -5,10 +5,7 @@ import { db } from '@/lib/db';
  * Safe to call periodically; returns the number of deleted rows.
  */
 export async function cleanupExpiredRateLimits(): Promise<number> {
-  const result = await db.rateLimit.deleteMany({
-    where: { resetAt: { lt: new Date() } },
-  });
-  return result.count;
+  return db.rateLimit.deleteMany({ resetAt: { lt: new Date() } });
 }
 
 /**
@@ -16,7 +13,6 @@ export async function cleanupExpiredRateLimits(): Promise<number> {
  * Keeps the table lean without requiring a cron job.
  */
 async function maybeCleanup() {
-  // 1% chance on each call — averages to once per 100 requests
   if (Math.random() < 0.01) {
     try {
       await cleanupExpiredRateLimits();
@@ -34,18 +30,13 @@ export async function checkRateLimit(
   const now = new Date();
   const resetAt = new Date(now.getTime() + windowSeconds * 1000);
 
-  // Probabilistic cleanup of expired entries
   await maybeCleanup();
 
-  // Use transaction for atomic read-check-increment
-  const result = await db.$transaction(async (tx) => {
-    const existing = await tx.rateLimit.findUnique({ where: { key } });
+  return db.transaction(async (tx) => {
+    const existing = await tx.rateLimit.findUnique({ key });
 
     if (!existing || existing.resetAt < now) {
-      // New window or expired: create fresh entry with count=1
-      await tx.rateLimit.create({
-        data: { key, count: 1, resetAt },
-      });
+      await tx.rateLimit.create({ key, count: 1, resetAt });
       return { allowed: true, remaining: maxAttempts - 1 };
     }
 
@@ -53,18 +44,11 @@ export async function checkRateLimit(
       return { allowed: false, remaining: 0 };
     }
 
-    // Atomically increment
-    const updated = await tx.rateLimit.update({
-      where: { key },
-      data: { count: { increment: 1 } },
-    });
-
+    const updated = await tx.rateLimit.update({ key }, { count: existing.count + 1 });
     return { allowed: true, remaining: maxAttempts - updated.count };
   });
-
-  return result;
 }
 
 export async function resetRateLimit(key: string): Promise<void> {
-  await db.rateLimit.deleteMany({ where: { key } });
+  await db.rateLimit.deleteMany({ key });
 }

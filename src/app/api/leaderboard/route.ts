@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db, profileSelect } from '@/lib/db';
+import { db } from '@/lib/db';
 import { z } from 'zod';
 import { requireAuth, isZodError } from '@/lib/auth/guard';
 import { logger } from '@/lib/logger';
@@ -20,10 +20,9 @@ export async function GET(request: Request) {
     });
 
     // Fetch all visible users except current
-    const users = await db.user.findMany({
-      where: { id: { not: user.id }, profileVisible: true },
-      select: profileSelect,
-    });
+    const users = await db.user.findMany(
+      { id: { not: user.id }, profileVisible: true }
+    );
 
     // Count likes received per user
     const likeCounts = await db.like.groupBy({

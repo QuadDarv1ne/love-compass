@@ -34,19 +34,19 @@ export async function POST(request: Request) {
       );
     }
 
-    const user = await db.user.findUnique({ where: { email: emailLower } });
+    const user = await db.user.findUnique({ email: emailLower });
 
     const resetToken = generateRandomToken(32);
     const expiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
     if (user) {
-      await db.user.update({
-        where: { id: user.id },
-        data: {
+      await db.user.update(
+        { id: user.id },
+        {
           passwordResetToken: resetToken,
           passwordResetExpiry: expiry,
         },
-      });
+      );
 
       // Only send reset email for existing users to avoid delivering real tokens
       await sendPasswordResetEmail(emailLower, resetToken);

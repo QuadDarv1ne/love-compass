@@ -34,9 +34,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const report = await db.report.create({
-      data: { reporterId, reportedId, reason, details },
-    });
+    const report = await db.report.create({ reporterId, reportedId, reason, details });
 
     return NextResponse.json({ report }, { status: 201 });
   } catch (error) {

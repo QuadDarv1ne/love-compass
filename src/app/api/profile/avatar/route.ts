@@ -66,10 +66,10 @@ export async function POST(request: Request) {
       }
     }
 
-    await db.user.update({
-      where: { id: user.id },
-      data: { avatar: avatarUrl },
-    });
+    await db.user.update(
+      { id: user.id },
+      { avatar: avatarUrl }
+    );
 
     return NextResponse.json({ avatar: avatarUrl });
   } catch (error) {
@@ -96,10 +96,10 @@ export async function DELETE(request: Request) {
       }
     }
 
-    await db.user.update({
-      where: { id: user.id },
-      data: { avatar: '' },
-    });
+    await db.user.update(
+      { id: user.id },
+      { avatar: '' }
+    );
 
     return NextResponse.json({ success: true });
   } catch (error) {

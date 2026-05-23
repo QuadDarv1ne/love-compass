@@ -1,30 +1,58 @@
-import { PrismaClient } from '@prisma/client'
+import { detectDbType, getOptimalPort, getDatabaseInfo } from './db/detect';
+import { PrismaAdapter, prisma, profileSelect } from './db/prisma-adapter';
+import { MongoDBAdapter } from './db/mongo-adapter';
+import type { DatabaseAdapter, DbType } from './db/types';
 
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined
+export type { DbType };
+export type {
+  DatabaseAdapter,
+  DbUser, DbSession, DbLike, DbMatch, DbMessage,
+  DbBlock, DbReport, DbRateLimit, DbMoment, DbMomentComment,
+  DbMomentReaction, DbMomentLike, DbUserAchievement,
+  SessionWithUser, ProfileSelect,
+} from './db/types';
+
+export { profileSelect };
+
+function createAdapter(): DatabaseAdapter {
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) {
+    throw new Error('DATABASE_URL environment variable is required');
+  }
+
+  const dbType = detectDbType(databaseUrl);
+
+  switch (dbType) {
+    case 'sqlite':
+    case 'postgresql':
+      return new PrismaAdapter();
+    case 'mongodb':
+      return new MongoDBAdapter(databaseUrl);
+    default:
+      throw new Error(`Unsupported database type: ${dbType}`);
+  }
 }
 
-export const db = globalForPrisma.prisma ?? new PrismaClient({
-  log: process.env.NODE_ENV === 'development' ? ['query'] : [],
-})
+export const db: DatabaseAdapter = createAdapter();
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = db
+export const dbType = db.dbType;
 
-/** Fields safe to expose in public profiles */
-export const profileSelect = {
-  id: true,
-  name: true,
-  age: true,
-  gender: true,
-  bio: true,
-  interests: true,
-  avatar: true,
-  photos: true,
-  city: true,
-  lookingFor: true,
-  profileVisible: true,
-  showOnlineStatus: true,
-  language: true,
-  createdAt: true,
-  updatedAt: true,
-};
+export async function getDbInfo() {
+  return {
+    type: dbType,
+    ...getDatabaseInfo(dbType),
+    port: await getOptimalPort(),
+  };
+}
+
+export async function connectDb() {
+  await db.connect();
+}
+
+export async function disconnectDb() {
+  await db.disconnect();
+}
+
+process.on('beforeExit', async () => {
+  await disconnectDb();
+});

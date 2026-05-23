@@ -54,9 +54,7 @@ export async function POST(request: Request) {
     }
 
     // Check email uniqueness
-    const existing = await db.user.findUnique({
-      where: { email: userData.email.toLowerCase() },
-    });
+    const existing = await db.user.findUnique({ email: userData.email.toLowerCase() });
     if (existing) {
       // Return generic response to prevent email enumeration
       return NextResponse.json(
@@ -73,18 +71,16 @@ export async function POST(request: Request) {
     const emailVerificationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
 
     const user = await db.user.create({
-      data: {
-        ...userData,
-        email: userData.email.toLowerCase(),
-        passwordHash,
-        emailVerificationToken,
-        emailVerificationExpiry,
-        bio: userData.bio || '',
-        interests: userData.interests || '',
-        avatar: userData.avatar || '',
-        city: userData.city || '',
-        lookingFor: userData.lookingFor || 'all',
-      },
+      ...userData,
+      email: userData.email.toLowerCase(),
+      passwordHash,
+      emailVerificationToken,
+      emailVerificationExpiry,
+      bio: userData.bio || '',
+      interests: userData.interests || '',
+      avatar: userData.avatar || '',
+      city: userData.city || '',
+      lookingFor: userData.lookingFor || 'all',
     });
 
     // Send verification email

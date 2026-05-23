@@ -19,7 +19,7 @@ export async function GET() {
 
   // Check database connection using the shared singleton
   try {
-    await db.$queryRaw`SELECT 1`;
+    await db.user.count();
     health.database = "connected";
   } catch {
     health.database = "disconnected";

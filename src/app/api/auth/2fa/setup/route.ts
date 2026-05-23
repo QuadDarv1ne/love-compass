@@ -22,13 +22,13 @@ export async function POST(request: Request) {
     const hashedCodes = await hashBackupCodes(backupCodes);
 
     // Store secret and backup codes (not yet enabled)
-    await db.user.update({
-      where: { id: user.id },
-      data: {
+    await db.user.update(
+      { id: user.id },
+      {
         totpSecret: secret,
         totpBackupCodes: JSON.stringify(hashedCodes),
       },
-    });
+    );
 
     return NextResponse.json({
       secret,

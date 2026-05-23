@@ -3,19 +3,6 @@ import { db } from '@/lib/db';
 import { requireAuth } from '@/lib/auth/guard';
 import { logger } from '@/lib/logger';
 
-// Fields safe to expose in match user profiles
-const matchUserSelect = {
-  id: true,
-  name: true,
-  age: true,
-  gender: true,
-  bio: true,
-  interests: true,
-  avatar: true,
-  city: true,
-  lookingFor: true,
-};
-
 export async function GET(request: Request) {
   try {
     const auth = await requireAuth(request);
@@ -23,23 +10,43 @@ export async function GET(request: Request) {
 
     const { user } = auth;
 
-    const matches = await db.match.findMany({
-      where: {
+    const matches = await db.match.findMany(
+      {
         OR: [{ user1Id: user.id }, { user2Id: user.id }],
       },
-      include: {
-        user1: { select: matchUserSelect },
-        user2: { select: matchUserSelect },
-        messages: {
-          orderBy: { createdAt: 'desc' },
-          take: 1,
-          select: { id: true, content: true, createdAt: true, senderId: true },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+      {
+        orderBy: { createdAt: 'desc' },
+      }
+    );
 
-    return NextResponse.json({ data: matches });
+    // Fetch related data separately
+    const userIds = new Set<string>();
+    for (const m of matches) {
+      userIds.add(m.user1Id);
+      userIds.add(m.user2Id);
+    }
+
+    const [users, lastMessages] = await Promise.all([
+      db.user.findMany({ id: { in: [...userIds] } }),
+      Promise.all(
+        matches.map((m) =>
+          db.message.findMany({ matchId: m.id }, { orderBy: { createdAt: 'desc' }, take: 1 })
+            .then((msgs) => ({ matchId: m.id, last: msgs[0] || null }))
+        )
+      ),
+    ]);
+
+    const userMap = new Map(users.map((u) => [u.id, u]));
+    const lastMsgMap = new Map(lastMessages.map((lm) => [lm.matchId, lm.last]));
+
+    const data = matches.map((m) => ({
+      ...m,
+      user1: userMap.get(m.user1Id),
+      user2: userMap.get(m.user2Id),
+      messages: lastMsgMap.get(m.id) ? [lastMsgMap.get(m.id)] : [],
+    }));
+
+    return NextResponse.json({ data });
   } catch (error) {
     logger.error('/api/matches', 'Failed to fetch matches', error);
     return NextResponse.json({ error: 'Failed to fetch matches' }, { status: 500 });

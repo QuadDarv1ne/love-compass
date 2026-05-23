@@ -19,25 +19,24 @@ export async function POST(request: Request) {
     const { messageIds } = markReadSchema.parse(body);
 
     // Verify all messages belong to matches the user participates in
-    const messages = await db.message.findMany({
-      where: {
+    const messages = await db.message.findMany(
+      {
         id: { in: messageIds },
         match: {
           OR: [{ user1Id: user.id }, { user2Id: user.id }],
         },
-      },
-      select: { id: true, matchId: true },
-    });
+      }
+    );
 
     const foundIds = messages.map((m) => m.id);
 
-    await db.message.updateMany({
-      where: {
+    await db.message.updateMany(
+      {
         id: { in: foundIds },
         read: false,
       },
-      data: { read: true },
-    });
+      { read: true }
+    );
 
     return NextResponse.json({ marked: foundIds.length });
   } catch (error) {

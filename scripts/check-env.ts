@@ -51,11 +51,19 @@ function detectEnvVars(): EnvVar[] {
   const vars: EnvVar[] = [
     {
       name: "DATABASE_URL",
-      description: "Database connection string (SQLite or PostgreSQL)",
+      description: "Database connection string. Supports: file:./path.db (SQLite), postgresql://user:pass@host/db (PostgreSQL), mongodb://host/db (MongoDB)",
       defaultValue: "file:./db/custom.db",
       required: true,
       currentValue: currentVars.get("DATABASE_URL"),
       isSet: currentVars.has("DATABASE_URL"),
+    },
+    {
+      name: "DB_PROVIDER",
+      description: "Database provider for Prisma (sqlite or postgresql). Auto-detected for MongoDB.",
+      defaultValue: "sqlite",
+      required: false,
+      currentValue: currentVars.get("DB_PROVIDER"),
+      isSet: currentVars.has("DB_PROVIDER"),
     },
     {
       name: "RESEND_API_KEY",

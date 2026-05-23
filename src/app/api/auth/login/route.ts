@@ -11,41 +11,16 @@ import {
 import { signTempToken } from '@/lib/auth/jwt';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';
-
-const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(1),
-});
+export { loginUserSelect } from '@/lib/auth/projections';
 
 const MAX_LOGIN_ATTEMPTS = 20;
 const LOCKOUT_WINDOW = 15 * 60; // 15 minutes
 const LOCKOUT_DURATION = 30 * 60; // 30 minutes
 
-// Fields safe to return in login/2fa responses
-export const loginUserSelect = {
-  id: true,
-  email: true,
-  name: true,
-  age: true,
-  gender: true,
-  bio: true,
-  interests: true,
-  avatar: true,
-  city: true,
-  lookingFor: true,
-  emailVerified: true,
-  totpEnabled: true,
-  notificationsEnabled: true,
-  profileVisible: true,
-  showOnlineStatus: true,
-  language: true,
-  showDistance: true,
-  soundEnabled: true,
-  matchNotifications: true,
-  likeNotifications: true,
-  createdAt: true,
-  updatedAt: true,
-};
+const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(1),
+});
 
 export async function POST(request: Request) {
   try {
@@ -75,10 +50,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const user = await db.user.findUnique({
-      where: { email: emailLower },
-      select: { ...loginUserSelect, passwordHash: true, totpSecret: true, totpBackupCodes: true, loginAttempts: true, lockedUntil: true },
-    });
+    const user = await db.user.findUnique({ email: emailLower });
 
     if (!user || !user.passwordHash) {
       return NextResponse.json(
@@ -105,13 +77,13 @@ export async function POST(request: Request) {
           ? new Date(Date.now() + LOCKOUT_DURATION * 1000)
           : undefined;
 
-      await db.user.update({
-        where: { id: user.id },
-        data: {
+      await db.user.update(
+        { id: user.id },
+        {
           loginAttempts: newAttempts,
           lockedUntil,
         },
-      });
+      );
 
       return NextResponse.json(
         { error: 'Неверный email или пароль' },
@@ -121,10 +93,10 @@ export async function POST(request: Request) {
 
     // Reset login attempts on successful password verification
     if (user.loginAttempts > 0) {
-      await db.user.update({
-        where: { id: user.id },
-        data: { loginAttempts: 0, lockedUntil: null },
-      });
+      await db.user.update(
+        { id: user.id },
+        { loginAttempts: 0, lockedUntil: null },
+      );
     }
 
     // Check email verification
