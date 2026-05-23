@@ -123,7 +123,63 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ u
     return NextResponse.json({ error: 'Нельзя удалить свой аккаунт' }, { status: 400 });
   }
 
-  await db.user.delete({ where: { id: userId } });
+  // Verify user exists
+  const user = await db.user.findUnique({ where: { id: userId } });
+  if (!user) {
+    return NextResponse.json({ error: 'Пользователь не найден' }, { status: 404 });
+  }
+
+  try {
+    // Delete all related data in a transaction to avoid FK constraint violations
+    await db.$transaction(async (tx) => {
+      // Matches and their messages
+      const matches = await tx.match.findMany({ where: { OR: [{ user1Id: userId }, { user2Id: userId }] } });
+      for (const match of matches) {
+        await tx.message.deleteMany({ where: { matchId: match.id } });
+      }
+      await tx.match.deleteMany({ where: { OR: [{ user1Id: userId }, { user2Id: userId }] } });
+
+      // Direct likes
+      await tx.like.deleteMany({ where: { OR: [{ fromUserId: userId }, { toUserId: userId }] } });
+
+      // Blocks
+      await tx.block.deleteMany({ where: { OR: [{ blockerId: userId }, { blockedId: userId }] } });
+
+      // Reports
+      await tx.report.deleteMany({ where: { OR: [{ reporterId: userId }, { reportedId: userId }] } });
+
+      // Moments and their comments/reactions
+      const moments = await tx.moment.findMany({ where: { userId } });
+      for (const moment of moments) {
+        await tx.momentComment.deleteMany({ where: { momentId: moment.id } });
+        await tx.momentReaction.deleteMany({ where: { momentId: moment.id } });
+        await tx.momentLike.deleteMany({ where: { momentId: moment.id } });
+      }
+      await tx.moment.deleteMany({ where: { userId } });
+
+      // Remaining moment comments/reactions by this user on others' moments
+      await tx.momentComment.deleteMany({ where: { userId } });
+      await tx.momentReaction.deleteMany({ where: { userId } });
+
+      // Achievements
+      await tx.userAchievement.deleteMany({ where: { userId } });
+
+      // Sessions
+      await tx.session.deleteMany({ where: { userId } });
+
+      // Rate limits
+      await tx.rateLimit.deleteMany({ where: { key: { startsWith: `login:${user.email.toLowerCase()}` } } });
+      await tx.rateLimit.deleteMany({ where: { key: { startsWith: `verify:${user.email.toLowerCase()}` } } });
+
+      // Finally delete the user
+      await tx.user.delete({ where: { id: userId } });
+    });
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('Record to delete')) {
+      return NextResponse.json({ error: 'Не удалось удалить пользователя: существуют связанные данные' }, { status: 409 });
+    }
+    return NextResponse.json({ error: 'Ошибка сервера при удалении пользователя' }, { status: 500 });
+  }
 
   return NextResponse.json({ success: true });
 }

@@ -40,7 +40,11 @@ export async function validateSessionToken(token: string): Promise<{
 
   if (!session || session.expiresAt < new Date()) {
     if (session) {
-      await db.session.delete({ where: { id: session.id } });
+      try {
+        await db.session.delete({ where: { id: session.id } });
+      } catch {
+        // Session may have been deleted by a concurrent request — safe to ignore
+      }
     }
     return null;
   }
