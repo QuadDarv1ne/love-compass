@@ -81,9 +81,13 @@ export async function POST(request: Request) {
       }),
     ]);
 
+    if (!sender) {
+      return NextResponse.json({ error: 'User not found' }, { status: 500 });
+    }
+
     const message = {
       ...createdMessage,
-      sender: { id: sender!.id, name: sender!.name, avatar: sender!.avatar },
+      sender: { id: sender.id, name: sender.name, avatar: sender.avatar },
     };
 
     return NextResponse.json(message, { status: 201 });

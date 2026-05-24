@@ -36,7 +36,7 @@ export async function validateSessionToken(token: string): Promise<{
     return null;
   }
 
-  const session = result as any;
+  const session = result as { id: string; userId: string; expiresAt: Date; user: DbUser };
   if (session.expiresAt < new Date()) {
     if (session.id) {
       try {

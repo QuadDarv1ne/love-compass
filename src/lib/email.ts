@@ -9,6 +9,18 @@ const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
 const isDev = process.env.NODE_ENV !== 'production';
 
+/**
+ * Escape HTML entities to prevent XSS in email templates.
+ */
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+}
+
 export async function sendVerificationEmail(
   email: string,
   token: string
@@ -94,7 +106,7 @@ export async function sendWelcomeEmail(
     subject: 'Добро пожаловать! — Love Compass',
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h1 style="color: #e11d48;">Привет, ${name}!</h1>
+        <h1 style="color: #e11d48;">Привет, ${escapeHtml(name)}!</h1>
         <p>Ваш email подтверждён. Добро пожаловать в Love Compass!</p>
         <p>Теперь вы можете искать свою вторую половинку. Удачи!</p>
       </div>

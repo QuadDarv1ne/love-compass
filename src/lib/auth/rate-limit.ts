@@ -35,7 +35,14 @@ export async function checkRateLimit(
   return db.transaction(async (tx) => {
     const existing = await tx.rateLimit.findUnique({ key });
 
-    if (!existing || existing.resetAt < now) {
+    if (!existing) {
+      await tx.rateLimit.create({ key, count: 1, resetAt });
+      return { allowed: true, remaining: maxAttempts - 1 };
+    }
+
+    if (existing.resetAt < now) {
+      // Delete expired entry before creating new one to prevent stale records
+      await tx.rateLimit.deleteMany({ key });
       await tx.rateLimit.create({ key, count: 1, resetAt });
       return { allowed: true, remaining: maxAttempts - 1 };
     }

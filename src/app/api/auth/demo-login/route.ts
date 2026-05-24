@@ -6,6 +6,7 @@ import {
   createSession,
   setSessionCookie,
 } from '@/lib/auth/session';
+import { getClientIp } from '@/lib/auth/crypto';
 import { logger } from '@/lib/logger';
 
 const demoLoginSchema = z.object({
@@ -45,7 +46,7 @@ export async function POST(request: Request) {
     // Create session
     const sessionToken = generateSessionToken();
     const userAgent = request.headers.get('user-agent');
-    const ipAddress = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip');
+    const ipAddress = getClientIp(request);
 
     await createSession(sessionToken, user.id, userAgent, ipAddress);
     await setSessionCookie(sessionToken);

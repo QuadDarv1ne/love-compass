@@ -71,7 +71,11 @@ export async function POST(request: Request) {
       db.user.findUnique({ id: user.id }),
     ]);
 
-    return NextResponse.json({ ...message, sender: { id: sender!.id, name: sender!.name, avatar: sender!.avatar } }, { status: 201 });
+    if (!sender) {
+      return NextResponse.json({ error: 'User not found' }, { status: 500 });
+    }
+
+    return NextResponse.json({ ...message, sender: { id: sender.id, name: sender.name, avatar: sender.avatar } }, { status: 201 });
   } catch (error) {
     if (isZodError(error)) {
       return NextResponse.json({ error: 'Validation failed', details: error.issues }, { status: 400 });

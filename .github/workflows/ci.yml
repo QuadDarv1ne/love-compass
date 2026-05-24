@@ -2,12 +2,13 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [master, develop]
+    branches: [main]
   pull_request:
-    branches: [master]
+    branches: [main]
 
 env:
   NODE_ENV: test
+  DB_PROVIDER: sqlite
   DATABASE_URL: "file:./db/test.db"
 
 jobs:
@@ -56,7 +57,7 @@ jobs:
     name: Deploy to Production
     needs: [lint, test, security]
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment: production
     steps:
       - uses: actions/checkout@v4
@@ -80,7 +81,7 @@ jobs:
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
             cd /opt/love-compass
-            git pull origin master
+            git pull origin main
             docker compose -f deploy/docker-compose.yml down
             docker compose -f deploy/docker-compose.yml build --pull
             docker compose -f deploy/docker-compose.yml up -d
