@@ -9,11 +9,9 @@ const getSecret = () => {
     if (process.env.NODE_ENV === 'production') {
       throw new Error('JWT_SECRET environment variable is required in production');
     }
-    // Generate random secret once per process lifetime for development
+    // Use a stable dev secret so tokens survive server restarts in development
     if (!_devSecret) {
-      const randomBytes = new Uint8Array(32);
-      crypto.getRandomValues(randomBytes);
-      _devSecret = randomBytes;
+      _devSecret = new TextEncoder().encode('love-compass-dev-jwt-secret-do-not-use-in-prod');
     }
     return _devSecret;
   }

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { z } from 'zod';
 import { requireAuthWithCSRF, isZodError } from '@/lib/auth/guard';
+import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';
 
 const likeSchema = z.object({
@@ -20,6 +21,12 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { toUserId, isSuperLike } = likeSchema.parse(body);
     const fromUserId = user.id;
+
+    // Rate limit likes to prevent spam
+    const rateLimit = await checkRateLimit(`like:${fromUserId}`, 30, 600);
+    if (!rateLimit.allowed) {
+      return NextResponse.json({ error: 'Too many likes, try again later' }, { status: 429 });
+    }
 
     if (fromUserId === toUserId) {
       return NextResponse.json({ error: 'Cannot like yourself' }, { status: 400 });
@@ -95,6 +102,12 @@ export async function POST(request: Request) {
         { error: 'Daily super like limit reached', limit: SUPER_LIKE_DAILY_LIMIT, current: (error as any).current },
         { status: 429 }
       );
+    }
+    // Gracefully handle race condition where both users liked each other simultaneously
+    // and both transactions tried to create a match (unique constraint violation)
+    if (error instanceof Error && (error as any).code === 'P2002') {
+      logger.warn('/api/like', 'Match race condition caught, returning existing match');
+      return NextResponse.json({ error: 'Match already exists', raceHandled: true }, { status: 200 });
     }
     logger.error('/api/like', 'Failed to create like', error);
     return NextResponse.json({ error: 'Failed to create like' }, { status: 500 });

@@ -143,7 +143,7 @@ export async function hydrateAppData(user?: User) {
         const matchesRes = await fetchWithTimeout('/api/matches');
         if (matchesRes.ok) {
           const matchesBody = await matchesRes.json();
-          const matches: MatchWithUsers[] = Array.isArray(matchesBody) ? matchesBody : [];
+          const matches: MatchWithUsers[] = Array.isArray(matchesBody?.data) ? matchesBody.data : [];
           store.setMatches(matches);
         }
       } catch (e) {
