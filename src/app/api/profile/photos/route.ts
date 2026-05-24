@@ -76,7 +76,7 @@ export async function DELETE(request: Request) {
     const auth = await requireAuthWithCSRF(request);
     if (auth instanceof NextResponse) return auth;
 
-    const { user: _user } = auth;
+    const { user } = auth;
     const { searchParams } = new URL(request.url);
     const photoUrl = searchParams.get('url');
 
@@ -84,7 +84,19 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'No photo URL provided' }, { status: 400 });
     }
 
-    const filePath = path.join(process.cwd(), 'public', photoUrl);
+    // Validate ownership: photo must belong to the authenticated user
+    const expectedPrefix = `/uploads/photos/${user.id}-`;
+    if (!photoUrl.startsWith(expectedPrefix)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    }
+
+    // Prevent path traversal: extract only the filename and use known-safe upload dir
+    const filename = path.basename(photoUrl);
+    if (!filename.startsWith(`${user.id}-`)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    }
+
+    const filePath = path.join(UPLOAD_DIR, filename);
     if (existsSync(filePath)) {
       try {
         unlinkSync(filePath);

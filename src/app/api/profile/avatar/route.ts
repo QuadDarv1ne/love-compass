@@ -55,8 +55,9 @@ export async function POST(request: Request) {
     const avatarUrl = `/uploads/avatars/${filename}`;
 
     // Delete old avatar if it was a custom upload
-    if (user.avatar && !user.avatar.startsWith('https://') && user.avatar !== '') {
-      const oldPath = path.join(process.cwd(), 'public', user.avatar);
+    if (user.avatar && user.avatar.startsWith('/uploads/avatars/')) {
+      const oldFilename = path.basename(user.avatar);
+      const oldPath = path.join(UPLOAD_DIR, oldFilename);
       if (existsSync(oldPath)) {
         try {
           unlinkSync(oldPath);
@@ -85,8 +86,9 @@ export async function DELETE(request: Request) {
 
     const { user } = auth;
 
-    if (user.avatar && !user.avatar.startsWith('https://') && user.avatar !== '') {
-      const filePath = path.join(process.cwd(), 'public', user.avatar);
+    if (user.avatar && user.avatar.startsWith('/uploads/avatars/')) {
+      const filename = path.basename(user.avatar);
+      const filePath = path.join(UPLOAD_DIR, filename);
       if (existsSync(filePath)) {
         try {
           unlinkSync(filePath);
