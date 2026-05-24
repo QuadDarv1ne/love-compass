@@ -636,13 +636,6 @@ export function MomentsView() {
     return () => { cancelled = true; };
   }, [storeMoments, setStoreMoments]);
 
-  // Sync store moments to local state when store updates
-  useEffect(() => {
-    if (storeMoments.length > 0) {
-      setMoments(storeMoments);
-    }
-  }, [storeMoments]);
-
   // Unique users for stories row
   const storyUsers = getUniqueUsersFromMoments(moments);
 

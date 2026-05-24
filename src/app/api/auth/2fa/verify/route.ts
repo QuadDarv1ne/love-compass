@@ -11,7 +11,7 @@ import {
 } from '@/lib/auth/session';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';
-import { loginUserSelect, sanitizeUser } from '@/lib/auth/projections';
+import { sanitizeUser } from '@/lib/auth/projections';
 
 const verifySchema = z.object({
   tempToken: z.string().min(1),

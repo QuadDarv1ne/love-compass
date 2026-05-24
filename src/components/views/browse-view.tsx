@@ -342,6 +342,13 @@ export function BrowseView() {
   const handleUndo = useCallback(async () => {
     if (!lastSwipedProfile || !lastSwipeAction) return;
 
+    // Cancel all pending removal timers first to prevent the profile
+    // from being removed after we re-add it (race condition fix).
+    for (const timer of timerIdsRef.current) {
+      clearTimeout(timer);
+    }
+    timerIdsRef.current = [];
+
     // If it was a like or superLike, call API to delete it
     if (lastSwipeAction === 'like' || lastSwipeAction === 'superLike') {
       try {
@@ -352,9 +359,8 @@ export function BrowseView() {
       }
     }
 
-    // Add profile back only if not already present (avoids duplicates with filters)
-    const alreadyExists = profiles.some((p) => p.id === lastSwipedProfile.id);
-    if (!alreadyExists) {
+    // Re-add the profile if not already present (pending removals were cancelled)
+    if (!profiles.some((p) => p.id === lastSwipedProfile.id)) {
       setProfiles([lastSwipedProfile, ...profiles]);
     }
     // Remove from the appropriate list

@@ -9,16 +9,6 @@ const blockSchema = z.object({
   reason: z.string().max(500).optional(),
 });
 
-// Fields safe to expose for a blocked user profile
-const blockedUserSelect = {
-  id: true,
-  name: true,
-  age: true,
-  gender: true,
-  avatar: true,
-  city: true,
-};
-
 export async function POST(request: Request) {
   try {
     const auth = await requireAuthWithCSRF(request);
