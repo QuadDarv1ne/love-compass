@@ -26,7 +26,8 @@ export async function GET(request: Request) {
       totalBlocks,
       newUsersToday,
       newUsersThisWeek,
-      activeUserIds,
+      activeLikers,
+      activeSenders,
     ] = await Promise.all([
       db.user.count(),
       db.user.groupBy({ by: ['gender'], _count: { gender: true } }),
@@ -53,8 +54,8 @@ export async function GET(request: Request) {
     const otherCount = totalUsers - maleCount - femaleCount;
 
     const activeUserIdSet = new Set([
-      ...activeUserIds[0].map((l: { fromUserId: string }) => l.fromUserId),
-      ...activeUserIds[1].map((m: { senderId: string }) => m.senderId),
+      ...activeLikers.map((l: { fromUserId: string }) => l.fromUserId),
+      ...activeSenders.map((m: { senderId: string }) => m.senderId),
     ]);
 
     return NextResponse.json({
