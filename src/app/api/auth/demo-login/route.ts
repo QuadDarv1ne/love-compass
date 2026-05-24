@@ -7,6 +7,7 @@ import {
   setSessionCookie,
 } from '@/lib/auth/session';
 import { getClientIp } from '@/lib/auth/crypto';
+import { sanitizeUser } from '@/lib/auth/projections';
 import { logger } from '@/lib/logger';
 
 const demoLoginSchema = z.object({
@@ -51,8 +52,7 @@ export async function POST(request: Request) {
     await createSession(sessionToken, user.id, userAgent, ipAddress);
     await setSessionCookie(sessionToken);
 
-    const { passwordHash: _passwordHash, ...safeUser } = user;
-    return NextResponse.json({ user: safeUser });
+    return NextResponse.json({ user: sanitizeUser(user) });
   } catch (error) {
     logger.error('/api/auth/demo-login', 'Demo login error', error);
     return NextResponse.json(

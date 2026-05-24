@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getUserFromRequest } from '@/lib/auth/session';
+import { sanitizeUser } from '@/lib/auth/projections';
 import { logger } from '@/lib/logger';
 
 export async function GET() {
@@ -10,9 +11,8 @@ export async function GET() {
       return NextResponse.json(null, { status: 200 });
     }
 
-    const { passwordHash: _passwordHash, ...safeUser } = user;
     return NextResponse.json({
-      user: safeUser,
+      user: sanitizeUser(user),
     });
   } catch (error) {
     logger.error('/api/auth/session', 'Session check error', error);

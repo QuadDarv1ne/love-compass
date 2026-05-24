@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAuth } from '@/lib/auth/guard';
+import { sanitizeUser } from '@/lib/auth/projections';
 import { logger } from '@/lib/logger';
 
 export async function GET(request: Request) {
@@ -39,12 +40,16 @@ export async function GET(request: Request) {
     const userMap = new Map(users.map((u) => [u.id, u]));
     const lastMsgMap = new Map(lastMessages.map((lm) => [lm.matchId, lm.last]));
 
-    const data = matches.map((m) => ({
+    const data = matches.map((m) => {
+      const u1 = userMap.get(m.user1Id);
+      const u2 = userMap.get(m.user2Id);
+      return {
       ...m,
-      user1: userMap.get(m.user1Id),
-      user2: userMap.get(m.user2Id),
+      user1: u1 ? sanitizeUser(u1) : null,
+      user2: u2 ? sanitizeUser(u2) : null,
       messages: lastMsgMap.get(m.id) ? [lastMsgMap.get(m.id)] : [],
-    }));
+      };
+    });
 
     return NextResponse.json({ data });
   } catch (error) {

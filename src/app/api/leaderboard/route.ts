@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { z } from 'zod';
 import { requireAuth, isZodError } from '@/lib/auth/guard';
+import { sanitizeUser } from '@/lib/auth/projections';
 import { logger } from '@/lib/logger';
 
 const querySchema = z.object({
@@ -55,8 +56,9 @@ export async function GET(request: Request) {
       const popularityScore = likesReceived * 10 + matchCount * 5;
       const activityScore = popularityScore + matchCount * 50;
 
+      const safe = sanitizeUser(u);
       return {
-        ...u,
+        ...safe,
         createdAt: u.createdAt.toISOString(),
         updatedAt: u.updatedAt.toISOString(),
         popularityScore,

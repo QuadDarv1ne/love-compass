@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { z } from 'zod';
 import { requireAuth, requireAuthWithCSRF, isZodError } from '@/lib/auth/guard';
+import { sanitizeUser } from '@/lib/auth/projections';
 import { logger } from '@/lib/logger';
 
 const updateSettingsSchema = z.object({
@@ -59,7 +60,7 @@ export async function PUT(request: Request) {
       validated
     );
 
-    return NextResponse.json(updatedUser);
+    return NextResponse.json(sanitizeUser(updatedUser));
   } catch (error) {
     if (isZodError(error)) {
       return NextResponse.json({ error: 'Validation failed', details: error.issues }, { status: 400 });

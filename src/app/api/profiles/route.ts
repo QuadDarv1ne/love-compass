@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { z } from 'zod';
 import { requireAuth, isZodError } from '@/lib/auth/guard';
+import { sanitizeUser } from '@/lib/auth/projections';
 
 const paginationSchema = z.object({
   cursor: z.string().optional(),
@@ -54,7 +55,7 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json({
-      data: filteredProfiles,
+      data: filteredProfiles.map(sanitizeUser),
       nextCursor,
     });
   } catch (error) {

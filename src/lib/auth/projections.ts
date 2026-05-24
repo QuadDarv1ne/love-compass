@@ -22,3 +22,27 @@ export const loginUserSelect = {
   createdAt: true,
   updatedAt: true,
 };
+
+const SENSITIVE_FIELDS: ReadonlyArray<keyof any> = [
+  'passwordHash',
+  'totpSecret',
+  'totpBackupCodes',
+  'passwordResetToken',
+  'passwordResetExpiry',
+  'emailVerificationToken',
+  'emailVerificationExpiry',
+  'loginAttempts',
+  'lockedUntil',
+];
+
+/**
+ * Strip all sensitive fields from a user object before returning it to the client.
+ * Prevents password hash, TOTP secrets, and reset tokens from leaking via API responses.
+ */
+export function sanitizeUser<T>(user: T): T {
+  const safe = { ...user } as Record<string, unknown>;
+  for (const field of SENSITIVE_FIELDS) {
+    delete safe[field as string];
+  }
+  return safe as T;
+}

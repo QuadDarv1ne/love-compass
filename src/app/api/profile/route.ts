@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { z } from 'zod';
 import { requireAuth, requireAuthWithCSRF, isZodError } from '@/lib/auth/guard';
+import { sanitizeUser } from '@/lib/auth/projections';
 import { logger } from '@/lib/logger';
 
 const updateProfileSchema = z.object({
@@ -38,7 +39,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    return NextResponse.json(user);
+    return NextResponse.json(sanitizeUser(user));
   } catch (error) {
     logger.error('/api/profile', 'Failed to fetch profile', error);
     return NextResponse.json({ error: 'Failed to fetch profile' }, { status: 500 });
@@ -65,7 +66,7 @@ export async function PUT(request: Request) {
       updateData
     );
 
-    return NextResponse.json(updatedUser);
+    return NextResponse.json(sanitizeUser(updatedUser));
   } catch (error) {
     if (isZodError(error)) {
       return NextResponse.json({ error: 'Validation failed', details: error.issues }, { status: 400 });

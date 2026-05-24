@@ -11,7 +11,7 @@ import {
 } from '@/lib/auth/session';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';
-import { loginUserSelect } from '@/lib/auth/projections';
+import { loginUserSelect, sanitizeUser } from '@/lib/auth/projections';
 
 const verifySchema = z.object({
   tempToken: z.string().min(1),
@@ -103,7 +103,7 @@ export async function POST(request: Request) {
     await createSession(sessionToken, user.id, userAgent, ipAddress);
     await setSessionCookie(sessionToken);
 
-    return NextResponse.json({ user });
+    return NextResponse.json({ user: sanitizeUser(user) });
   } catch (error) {
     logger.error('/api/auth/2fa/verify', '2FA verify error', error);
     return NextResponse.json(

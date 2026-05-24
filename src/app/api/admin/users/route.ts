@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAdmin, isZodError } from '@/lib/auth/guard';
+import { sanitizeUser } from '@/lib/auth/projections';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 
@@ -109,8 +110,10 @@ export async function GET(request: Request) {
       }
     }
 
-    const data = users.map((u) => ({
-      ...u,
+    const data = users.map((u) => {
+      const safe = sanitizeUser(u);
+      return {
+      ...safe,
       createdAt: u.createdAt.toISOString(),
       updatedAt: u.updatedAt.toISOString(),
       likesSent: likesSentMap[u.id] ?? 0,
@@ -119,7 +122,8 @@ export async function GET(request: Request) {
       messageCount: messageCountsMap[u.id] ?? 0,
       momentsCount: momentCountsMap[u.id] ?? 0,
       lastActivity: lastActivity[u.id] ?? u.updatedAt.toISOString(),
-    }));
+      };
+    });
 
     return NextResponse.json({ data, total, page, limit });
   } catch (error) {

@@ -12,6 +12,7 @@ import { signTempToken } from '@/lib/auth/jwt';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';
 export { loginUserSelect } from '@/lib/auth/projections';
+import { sanitizeUser } from '@/lib/auth/projections';
 
 const MAX_LOGIN_ATTEMPTS = 20;
 const LOCKOUT_WINDOW = 15 * 60; // 15 minutes
@@ -124,7 +125,7 @@ export async function POST(request: Request) {
     await createSession(sessionToken, user.id, userAgent, ipAddress);
     await setSessionCookie(sessionToken);
 
-    return NextResponse.json({ user });
+    return NextResponse.json({ user: sanitizeUser(user) });
   } catch (error) {
     logger.error('/api/auth/login', 'Login error', error);
     return NextResponse.json(

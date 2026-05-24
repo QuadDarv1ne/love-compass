@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAdmin, requireAdminWithCSRF } from '@/lib/auth/guard';
+import { sanitizeUser } from '@/lib/auth/projections';
 import { z } from 'zod';
 
 export async function GET(request: Request, { params }: { params: Promise<{ userId: string }> }) {
@@ -15,13 +16,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
     return NextResponse.json({ error: 'User not found' }, { status: 404 });
   }
 
-  const safeUser = {
-    id: user.id, email: user.email, name: user.name, age: user.age, gender: user.gender,
-    bio: user.bio, interests: user.interests, avatar: user.avatar, city: user.city, lookingFor: user.lookingFor,
-    role: (user as any).role, emailVerified: user.emailVerified, profileVisible: user.profileVisible,
-    showOnlineStatus: user.showOnlineStatus, language: user.language, notificationsEnabled: user.notificationsEnabled,
-    createdAt: user.createdAt, updatedAt: user.updatedAt,
-  };
+  const safeUser = sanitizeUser(user);
 
   const [
     likesSent,
