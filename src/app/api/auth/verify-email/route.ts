@@ -6,7 +6,7 @@ import {
   setSessionCookie,
 } from '@/lib/auth/session';
 import { sendVerificationEmail } from '@/lib/email';
-import { generateRandomToken, getClientIp } from '@/lib/auth/crypto';
+import { generateRandomToken, hashToken, getClientIp } from '@/lib/auth/crypto';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';
 
@@ -22,7 +22,8 @@ export async function GET(request: Request) {
       );
     }
 
-    const user = await db.user.findUnique({ emailVerificationToken: token });
+    const hashedToken = hashToken(token);
+    const user = await db.user.findUnique({ emailVerificationToken: hashedToken });
 
     if (!user) {
       return NextResponse.json(
@@ -98,12 +99,13 @@ export async function POST(request: Request) {
     }
 
     const newToken = generateRandomToken(32);
+    const hashedNewToken = hashToken(newToken);
     const expiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     await db.user.update(
       { id: user.id },
       {
-        emailVerificationToken: newToken,
+        emailVerificationToken: hashedNewToken,
         emailVerificationExpiry: expiry,
       },
     );

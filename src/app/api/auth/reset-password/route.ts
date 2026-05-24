@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { db } from '@/lib/db';
 import { hashPassword, validatePasswordStrength } from '@/lib/auth/password';
 import { invalidateAllUserSessions } from '@/lib/auth/session';
+import { hashToken } from '@/lib/auth/crypto';
 import { logger } from '@/lib/logger';
 
 const resetSchema = z.object({
@@ -34,12 +35,13 @@ export async function POST(request: Request) {
     }
 
     const hashedPassword = await hashPassword(newPassword);
+    const hashedTokenValue = hashToken(token);
 
     // Atomic: find user by token, update password, and capture userId in one transaction
     const resetResult = await db.transaction(async (tx) => {
       const users = await tx.user.findMany(
         {
-          passwordResetToken: token,
+          passwordResetToken: hashedTokenValue,
           passwordResetExpiry: { gt: new Date() },
         },
         { take: 1 },

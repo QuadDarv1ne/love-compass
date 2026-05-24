@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@/lib/db';
-import { generateRandomToken } from '@/lib/auth/crypto';
+import { generateRandomToken, hashToken } from '@/lib/auth/crypto';
 import { sendPasswordResetEmail } from '@/lib/email';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';
@@ -37,13 +37,14 @@ export async function POST(request: Request) {
     const user = await db.user.findUnique({ email: emailLower });
 
     const resetToken = generateRandomToken(32);
+    const hashedResetToken = hashToken(resetToken);
     const expiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
     if (user) {
       await db.user.update(
         { id: user.id },
         {
-          passwordResetToken: resetToken,
+          passwordResetToken: hashedResetToken,
           passwordResetExpiry: expiry,
         },
       );

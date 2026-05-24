@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@/lib/db';
 import { hashPassword, validatePasswordStrength } from '@/lib/auth/password';
-import { generateRandomToken, getClientIp } from '@/lib/auth/crypto';
+import { generateRandomToken, hashToken, getClientIp } from '@/lib/auth/crypto';
 import { sendVerificationEmail } from '@/lib/email';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';
@@ -68,13 +68,14 @@ export async function POST(request: Request) {
 
     const passwordHash = await hashPassword(password);
     const emailVerificationToken = generateRandomToken(32);
+    const hashedEmailToken = hashToken(emailVerificationToken);
     const emailVerificationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
 
     const user = await db.user.create({
       ...userData,
       email: userData.email.toLowerCase(),
       passwordHash,
-      emailVerificationToken,
+      emailVerificationToken: hashedEmailToken,
       emailVerificationExpiry,
       bio: userData.bio || '',
       interests: userData.interests || '',
