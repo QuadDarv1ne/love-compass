@@ -11,22 +11,6 @@ const likeSchema = z.object({
 
 const SUPER_LIKE_DAILY_LIMIT = 3;
 
-async function getSuperLikeCountToday(userId: string): Promise<number> {
-  const now = new Date();
-  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const endOfDay = new Date(startOfDay);
-  endOfDay.setDate(endOfDay.getDate() + 1);
-
-  return db.like.count({
-    fromUserId: userId,
-    isSuperLike: true,
-    createdAt: {
-      gte: startOfDay,
-      lt: endOfDay,
-    },
-  });
-}
-
 export async function POST(request: Request) {
   try {
     const auth = await requireAuthWithCSRF(request);
@@ -41,19 +25,24 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Cannot like yourself' }, { status: 400 });
     }
 
-    // Check super like daily limit
-    if (isSuperLike) {
-      const count = await getSuperLikeCountToday(fromUserId);
-      if (count >= SUPER_LIKE_DAILY_LIMIT) {
-        return NextResponse.json(
-          { error: 'Daily super like limit reached', limit: SUPER_LIKE_DAILY_LIMIT, current: count },
-          { status: 429 }
-        );
-      }
-    }
-
     // Execute all operations in a transaction to prevent race conditions
     const result = await db.transaction(async (tx) => {
+      // Check super like daily limit inside the transaction to prevent races
+      if (isSuperLike) {
+        const now = new Date();
+        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const endOfDay = new Date(startOfDay);
+        endOfDay.setDate(endOfDay.getDate() + 1);
+        const count = await tx.like.count({
+          fromUserId,
+          isSuperLike: true,
+          createdAt: { gte: startOfDay, lt: endOfDay },
+        });
+        if (count >= SUPER_LIKE_DAILY_LIMIT) {
+          throw Object.assign(new Error('Daily super like limit reached'), { limitExceeded: true, current: count });
+        }
+      }
+
       // Check if like already exists
       const existingLike = await tx.like.findUnique({
         fromUserId, toUserId,
@@ -100,6 +89,12 @@ export async function POST(request: Request) {
   } catch (error) {
     if (isZodError(error)) {
       return NextResponse.json({ error: 'Validation failed', details: error.issues }, { status: 400 });
+    }
+    if (error instanceof Error && 'limitExceeded' in error) {
+      return NextResponse.json(
+        { error: 'Daily super like limit reached', limit: SUPER_LIKE_DAILY_LIMIT, current: (error as any).current },
+        { status: 429 }
+      );
     }
     logger.error('/api/like', 'Failed to create like', error);
     return NextResponse.json({ error: 'Failed to create like' }, { status: 500 });

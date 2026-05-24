@@ -306,7 +306,9 @@ async function main() {
 
   const totalUsers = await db.user.count();
   console.warn(`✅ ${totalUsers} пользователей в базе`);
-  console.warn(`🔑 Пароль для входа: ${DEFAULT_PASSWORD}`);
+  if (process.env.NODE_ENV !== 'production') {
+    console.warn(`🔑 Пароль для входа: ${DEFAULT_PASSWORD}`);
+  }
 
   // Ensure at least one admin exists
   const adminCount = await db.user.count({ role: 'admin' });

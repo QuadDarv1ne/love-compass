@@ -181,7 +181,7 @@ export function AchievementsView() {
       map.set(a.id, a.getValue());
     }
     return map;
-  }, []);
+  }, [likedUserIds, matches, superLikedUserIds, dislikedUserIds]);
 
   // ── Auto-unlock on mount and on state changes ──
   const checkAndUnlock = useCallback(() => {

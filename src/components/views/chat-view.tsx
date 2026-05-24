@@ -166,11 +166,7 @@ export function ChatView() {
       innerTimerRef.current = setTimeout(async () => {
         setPartnerTyping(false);
         try {
-          const res = await fetch('/api/messages/auto-reply', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ matchId }),
-          });
+          const res = await fetchWithCSRF('/api/messages/auto-reply', { matchId });
           if (res.ok) {
             const msg = await res.json();
             if (msg) addMessage(msg);
