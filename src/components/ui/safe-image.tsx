@@ -4,7 +4,6 @@ import Image, { ImageProps } from 'next/image';
 import { useState } from 'react';
 
 type SafeImageProps = Omit<ImageProps, 'onError'> & {
-  fallbackSrc?: string;
   fallbackClassName?: string;
 };
 
@@ -13,7 +12,6 @@ type SafeImageProps = Omit<ImageProps, 'onError'> & {
  * Falls back to Avatar fallback when image fails to load.
  */
 export function SafeImage({
-  fallbackSrc = 'https://api.dicebear.com/9.x/notionists/svg?seed=Default',
   fallbackClassName = 'bg-muted flex items-center justify-center',
   alt,
   className,

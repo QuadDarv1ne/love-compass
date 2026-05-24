@@ -1,4 +1,4 @@
-import { MongoClient, ObjectId, WithId, Document } from 'mongodb';
+import { MongoClient, ObjectId } from 'mongodb';
 import type {
   DatabaseAdapter,
   DbUser,

@@ -1,5 +1,5 @@
 import { detectDbType, getOptimalPort, getDatabaseInfo } from './db/detect';
-import { PrismaAdapter, prisma, profileSelect } from './db/prisma-adapter';
+import { PrismaAdapter, profileSelect } from './db/prisma-adapter';
 import { MongoDBAdapter } from './db/mongo-adapter';
 import type { DatabaseAdapter, DbType } from './db/types';
 

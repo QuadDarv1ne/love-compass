@@ -113,6 +113,35 @@ function TwoFASetupDialog({
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    if (open) {
+      setStep('setup');
+      setSecret('');
+      setUri('');
+      setBackupCodes([]);
+      setCode('');
+      setLoading(true);
+      (async () => {
+        try {
+          const res = await fetchWithCSRF('/api/auth/2fa/setup', {});
+          const data = await res.json();
+          if (!res.ok) {
+            toast.error(data.error);
+            return;
+          }
+          setSecret(data.secret);
+          setUri(data.uri);
+          setBackupCodes(data.backupCodes);
+          setStep('verify');
+        } catch {
+          toast.error('Ошибка сервера');
+        } finally {
+          setLoading(false);
+        }
+      })();
+    }
+  }, [open]);
+
   const handleSetup = async () => {
     setLoading(true);
     try {
@@ -170,18 +199,26 @@ function TwoFASetupDialog({
 
         {step === 'setup' ? (
           <div className="space-y-4">
-            <div className="flex justify-center p-4 bg-white rounded-xl">
-              {uri && <QRCodeCanvas value={uri} size={200} />}
-            </div>
-            <div className="text-xs text-muted-foreground text-center">
-              Или введите секрет вручную:
-            </div>
-            <code className="block text-center text-sm bg-gray-100 dark:bg-gray-800 p-2 rounded">
-              {secret}
-            </code>
-            <Button onClick={() => setStep('verify')} className="w-full" disabled={!uri}>
-              Далее
-            </Button>
+            {loading ? (
+              <div className="flex justify-center items-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-rose-500" />
+              </div>
+            ) : (
+              <>
+                <div className="flex justify-center p-4 bg-white rounded-xl">
+                  {uri && <QRCodeCanvas value={uri} size={200} />}
+                </div>
+                <div className="text-xs text-muted-foreground text-center">
+                  Или введите секрет вручную:
+                </div>
+                <code className="block text-center text-sm bg-gray-100 dark:bg-gray-800 p-2 rounded">
+                  {secret}
+                </code>
+                <Button onClick={() => setStep('verify')} className="w-full" disabled={!uri}>
+                  Далее
+                </Button>
+              </>
+            )}
           </div>
         ) : (
           <div className="space-y-4">

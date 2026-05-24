@@ -4,11 +4,6 @@ import { z } from 'zod';
 import { requireAuth, isZodError } from '@/lib/auth/guard';
 import { sanitizeUser } from '@/lib/auth/projections';
 
-const paginationSchema = z.object({
-  cursor: z.string().optional(),
-  limit: z.coerce.number().min(1).max(100).default(20),
-});
-
 export async function GET(request: Request) {
   try {
     const auth = await requireAuth(request);
