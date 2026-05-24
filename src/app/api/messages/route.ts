@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { z } from 'zod';
 import { requireAuth, requireAuthWithCSRF, isZodError } from '@/lib/auth/guard';
+import { sanitizeUser } from '@/lib/auth/projections';
 import { logger } from '@/lib/logger';
 
 const sendMessageSchema = z.object({
@@ -36,7 +37,7 @@ export async function GET(request: Request) {
     // Fetch sender data separately
     const senderIds = [...new Set(messages.map((m) => m.senderId))];
     const senders = await db.user.findMany({ id: { in: senderIds } });
-    const senderMap = new Map(senders.map((s) => [s.id, s]));
+    const senderMap = new Map(senders.map((s) => [s.id, sanitizeUser(s)]));
 
     const data = messages.map((m) => ({
       ...m,

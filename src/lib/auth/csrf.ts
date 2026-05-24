@@ -23,11 +23,28 @@ export async function setCSRFTokenCookie(): Promise<string> {
   return token;
 }
 
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) {
+    // Use constant-time approach: compare with padded strings
+    const maxLen = Math.max(a.length, b.length);
+    let result = a.length ^ b.length;
+    for (let i = 0; i < maxLen; i++) {
+      result |= (a.charCodeAt(i) || 0) ^ (b.charCodeAt(i) || 0);
+    }
+    return result === 0;
+  }
+  let result = 0;
+  for (let i = 0; i < a.length; i++) {
+    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return result === 0;
+}
+
 export async function validateCSRFToken(request: Request): Promise<boolean> {
   const cookieStore = await cookies();
   const cookieToken = cookieStore.get(CSRF_COOKIE_NAME)?.value;
   const headerToken = request.headers.get('x-csrf-token');
 
   if (!cookieToken || !headerToken) return false;
-  return cookieToken === headerToken;
+  return timingSafeEqual(cookieToken, headerToken);
 }

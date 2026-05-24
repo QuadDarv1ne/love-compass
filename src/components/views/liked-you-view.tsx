@@ -19,15 +19,26 @@ export function LikedYouView() {
   const matchAnimationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    // Data is already loaded via hydrateAppData() on login
-    // Just mark loading as done
-    setLoading(false);
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/likes/received');
+        if (res.ok) {
+          const data = await res.json();
+          if (!cancelled) setLikedYouProfiles(data ?? []);
+        }
+      } catch {
+        // Fall back to store data loaded during hydrate
+      }
+      if (!cancelled) setLoading(false);
+    })();
     return () => {
+      cancelled = true;
       if (matchAnimationTimerRef.current) {
         clearTimeout(matchAnimationTimerRef.current);
       }
     };
-  }, []);
+  }, [setLikedYouProfiles]);
 
   const handleLikeBack = async (profile: User) => {
     if (!currentUser) return;
