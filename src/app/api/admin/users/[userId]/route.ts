@@ -38,7 +38,12 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
     db.like.count({ toUserId: userId }),
     db.match.count({ OR: [{ user1Id: userId }, { user2Id: userId }] }),
     db.message.count({ senderId: userId }),
-    db.message.count({ match: { OR: [{ user1Id: userId }, { user2Id: userId }] }, senderId: { not: userId } }),
+    // Two-step: relation filter doesn't work through custom adapter
+    (async () => {
+      const matches = await db.match.findMany({ OR: [{ user1Id: userId }, { user2Id: userId }] });
+      const matchIds = matches.map(m => m.id);
+      return db.message.count({ matchId: { in: matchIds }, senderId: { not: userId } });
+    })(),
     db.moment.count({ userId }),
     db.momentComment.count({ userId }),
     db.momentReaction.count({ userId }),

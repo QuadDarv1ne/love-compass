@@ -18,13 +18,17 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { messageIds } = markReadSchema.parse(body);
 
-    // Verify all messages belong to matches the user participates in
+    // Step 1: Find match IDs the user participates in
+    const userMatches = await db.match.findMany(
+      { OR: [{ user1Id: user.id }, { user2Id: user.id }] }
+    );
+    const userMatchIds = userMatches.map((m) => m.id);
+
+    // Step 2: Verify all requested messages belong to those matches
     const messages = await db.message.findMany(
       {
         id: { in: messageIds },
-        match: {
-          OR: [{ user1Id: user.id }, { user2Id: user.id }],
-        },
+        matchId: { in: userMatchIds },
       }
     );
 
