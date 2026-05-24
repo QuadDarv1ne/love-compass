@@ -1,6 +1,9 @@
 import { create } from 'zustand';
 import { toast } from 'sonner';
 
+// Monotonic counter to prevent stale checkAuth results from overwriting newer ones
+let checkAuthGeneration = 0;
+
 export interface User {
   id: string;
   email: string;
@@ -432,28 +435,31 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   checkAuth: async () => {
+    const generation = ++checkAuthGeneration;
     set({ authStatus: 'loading' });
     try {
       const res = await fetch('/api/auth/session');
       if (res.ok) {
         const data = await res.json();
         if (data?.user) {
-          set({
-            currentUser: data.user,
-            authStatus: 'authenticated',
-            currentView: 'browse',
-          });
-          // Hydrate app data using the user from response directly
-          // to avoid race condition with Zustand state update
-          const { hydrateAppData } = await import('@/lib/api');
-          await hydrateAppData(data.user);
+          if (checkAuthGeneration === generation) {
+            set({
+              currentUser: data.user,
+              authStatus: 'authenticated',
+              currentView: 'browse',
+            });
+            const { hydrateAppData } = await import('@/lib/api');
+            await hydrateAppData(data.user);
+          }
           return;
         }
       }
     } catch (error) {
       console.error('checkAuth failed:', error);
     }
-    set({ authStatus: 'unauthenticated', currentView: 'landing' });
+    if (checkAuthGeneration === generation) {
+      set({ authStatus: 'unauthenticated', currentView: 'landing' });
+    }
   },
 
   refreshUser: async () => {
