@@ -47,12 +47,11 @@ export async function POST(request: Request) {
           passwordResetExpiry: expiry,
         },
       );
-
-      await sendPasswordResetEmail(emailLower, resetToken);
-    } else {
-      // Constant-time DB call to prevent user enumeration via timing
-      await db.user.findUnique({ id: '__TIMING_PADDING__' });
     }
+
+    // Always send reset email to prevent timing-based user enumeration.
+    // If the user does not exist, the reset link will be invalid when clicked.
+    await sendPasswordResetEmail(emailLower, resetToken);
 
     return NextResponse.json({ success: true });
   } catch (error) {
