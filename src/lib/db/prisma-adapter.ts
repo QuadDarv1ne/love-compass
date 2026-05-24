@@ -359,15 +359,16 @@ export class PrismaAdapter implements DatabaseAdapter {
       const txAdapter: DatabaseAdapter = {
         ...this,
         user: {
-          ...this.user,
           create: (data) => (tx as any).user.create({ data: data as any }) as Promise<DbUser>,
           findUnique: (where) => (tx as any).user.findUnique({ where } as any) as Promise<DbUser | null>,
           findMany: (where, options) => (tx as any).user.findMany({ where, ...options } as any) as Promise<any[]>,
           update: (where, data) => (tx as any).user.update({ where, data: data as any }) as Promise<DbUser>,
           upsert: (where, create, update) => (tx as any).user.upsert({ where, create: create as any, update: update as any }) as Promise<DbUser>,
+          delete: (where) => (tx as any).user.delete({ where }) as Promise<DbUser>,
+          count: (where) => (tx as any).user.count({ where }) as Promise<number>,
+          groupBy: (params) => (tx as any).user.groupBy({ by: params.by, where: params.where, _count: params._count, _sum: params._sum, orderBy: params.orderBy }) as Promise<any[]>,
         },
         session: {
-          ...this.session,
           create: (data) => (tx as any).session.create({ data: data as any }) as Promise<DbSession>,
           findUnique: (where, includeUser) => {
             if (includeUser) {
@@ -376,10 +377,10 @@ export class PrismaAdapter implements DatabaseAdapter {
             return (tx as any).session.findUnique({ where }) as Promise<DbSession | null>;
           },
           update: (where, data) => (tx as any).session.update({ where, data: data as any }) as Promise<DbSession>,
+          delete: (where) => (tx as any).session.deleteMany({ where }).then(() => {}),
           deleteMany: (where) => (tx as any).session.deleteMany({ where }).then((r: { count: number }) => r.count),
         },
         like: {
-          ...this.like,
           create: (data) => (tx as any).like.create({ data: data as any }) as Promise<DbLike>,
           findUnique: (where) => {
             if (where.fromUserId && where.toUserId) {
@@ -387,50 +388,109 @@ export class PrismaAdapter implements DatabaseAdapter {
             }
             return (tx as any).like.findUnique({ where: where.id ? { id: where.id } : undefined } as any) as Promise<DbLike | null>;
           },
+          findMany: (where, options) => (tx as any).like.findMany({ where, ...options }) as Promise<DbLike[]>,
+          delete: (where) => (tx as any).like.delete({ where }).then(() => {}),
           deleteMany: (where) => (tx as any).like.deleteMany({ where }).then((r: { count: number }) => r.count),
+          count: (where) => (tx as any).like.count({ where }) as Promise<number>,
+          groupBy: (params) => (tx as any).like.groupBy({ by: params.by, where: params.where, _count: params._count }) as Promise<any[]>,
         },
         match: {
-          ...this.match,
           create: (data) => (tx as any).match.create({ data: data as any }) as Promise<DbMatch>,
+          findUnique: (where) => {
+            if (where.user1Id && where.user2Id) {
+              return (tx as any).match.findFirst({ where }) as Promise<DbMatch | null>;
+            }
+            return (tx as any).match.findUnique({ where: where.id ? { id: where.id } : undefined } as any) as Promise<DbMatch | null>;
+          },
           findFirst: (where) => (tx as any).match.findFirst({ where }) as Promise<DbMatch | null>,
+          findMany: (where, options) => (tx as any).match.findMany({ where, skip: options?.skip, take: options?.take, orderBy: options?.orderBy }) as Promise<any[]>,
+          delete: (where) => (tx as any).match.delete({ where }).then(() => {}),
           deleteMany: (where) => (tx as any).match.deleteMany({ where }).then((r: { count: number }) => r.count),
+          count: (where) => (tx as any).match.count({ where }) as Promise<number>,
+          groupBy: (params) => (tx as any).match.groupBy({ by: params.by, where: params.where, _count: params._count }) as Promise<any[]>,
+        },
+        message: {
+          create: (data) => (tx as any).message.create({ data: data as any }) as Promise<DbMessage>,
+          findMany: (where, options) => (tx as any).message.findMany({ where, ...options }) as Promise<DbMessage[]>,
+          findFirst: (where, options) => (tx as any).message.findFirst({ where, ...options }) as Promise<DbMessage | null>,
+          updateMany: (where, data) => (tx as any).message.updateMany({ where, data: data as any }).then((r: { count: number }) => r.count),
+          deleteMany: (where) => (tx as any).message.deleteMany({ where }).then((r: { count: number }) => r.count),
+          count: (where) => (tx as any).message.count({ where }) as Promise<number>,
+          groupBy: (params) => (tx as any).message.groupBy({ by: params.by, where: params.where, _count: params._count }) as Promise<any[]>,
+        },
+        block: {
+          create: (data) => (tx as any).block.create({ data: data as any }) as Promise<DbBlock>,
+          findUnique: (where) => {
+            if (where.blockerId && where.blockedId) {
+              return (tx as any).block.findFirst({ where }) as Promise<DbBlock | null>;
+            }
+            return Promise.resolve(null);
+          },
+          findMany: (where) => (tx as any).block.findMany({ where }) as Promise<DbBlock[]>,
+          deleteMany: (where) => (tx as any).block.deleteMany({ where }).then((r: { count: number }) => r.count),
+          count: (where) => (tx as any).block.count({ where }) as Promise<number>,
+        },
+        report: {
+          create: (data) => (tx as any).report.create({ data: data as any }) as Promise<DbReport>,
+          deleteMany: (where) => (tx as any).report.deleteMany({ where }).then((r: { count: number }) => r.count),
+          count: (where) => (tx as any).report.count({ where }) as Promise<number>,
         },
         rateLimit: {
-          ...this.rateLimit,
           findUnique: (where) => (tx as any).rateLimit.findUnique({ where }) as Promise<DbRateLimit | null>,
           create: (data) => (tx as any).rateLimit.create({ data: data as any }) as Promise<DbRateLimit>,
           update: (where, data) => (tx as any).rateLimit.update({ where: { key: where.key }, data: data as any }) as Promise<DbRateLimit>,
+          deleteMany: (where) => (tx as any).rateLimit.deleteMany({ where }).then((r: { count: number }) => r.count),
         },
         moment: {
-          ...this.moment,
+          create: (data) => (tx as any).moment.create({ data: data as any }) as Promise<DbMoment>,
+          findMany: (where, options) => (tx as any).moment.findMany({ where, ...options }) as Promise<DbMoment[]>,
+          findUnique: (where) => (tx as any).moment.findUnique({ where }) as Promise<DbMoment | null>,
           update: (where, data) => (tx as any).moment.update({ where, data: data as any }) as Promise<DbMoment>,
+          deleteMany: (where) => (tx as any).moment.deleteMany({ where }).then((r: { count: number }) => r.count),
+          count: (where) => (tx as any).moment.count({ where }) as Promise<number>,
+          groupBy: (params) => (tx as any).moment.groupBy({ by: params.by, where: params.where, _count: params._count }) as Promise<any[]>,
+        },
+        momentComment: {
+          create: (data) => (tx as any).momentComment.create({ data: data as any }) as Promise<DbMomentComment>,
+          findMany: (where, options) => (tx as any).momentComment.findMany({ where, ...options }) as Promise<DbMomentComment[]>,
+          deleteMany: (where) => (tx as any).momentComment.deleteMany({ where }).then((r: { count: number }) => r.count),
+          count: (where) => (tx as any).momentComment.count({ where }) as Promise<number>,
         },
         momentReaction: {
-          ...this.momentReaction,
+          create: (data) => (tx as any).momentReaction.create({ data: data as any }) as Promise<DbMomentReaction>,
+          findMany: (where, options) => (tx as any).momentReaction.findMany({ where, ...options }) as Promise<DbMomentReaction[]>,
           findUnique: (where) => {
             if (where.momentId && where.userId && where.emoji) {
               return (tx as any).momentReaction.findFirst({ where }) as Promise<DbMomentReaction | null>;
             }
             return Promise.resolve(null);
           },
+          delete: (where) => (tx as any).momentReaction.delete({ where }).then(() => {}),
+          deleteMany: (where) => (tx as any).momentReaction.deleteMany({ where }).then((r: { count: number }) => r.count),
+          count: (where) => (tx as any).momentReaction.count({ where }) as Promise<number>,
         },
         momentLike: {
-          ...this.momentLike,
+          create: (data) => (tx as any).momentLike.create({ data: data as any }) as Promise<DbMomentLike>,
           findUnique: (where) => {
             if (where.momentId && where.userId) {
               return (tx as any).momentLike.findFirst({ where }) as Promise<DbMomentLike | null>;
             }
             return Promise.resolve(null);
           },
+          delete: (where) => (tx as any).momentLike.delete({ where }).then(() => {}),
+          deleteMany: (where) => (tx as any).momentLike.deleteMany({ where }).then((r: { count: number }) => r.count),
         },
         userAchievement: {
-          ...this.userAchievement,
+          create: (data) => (tx as any).userAchievement.create({ data: data as any }) as Promise<DbUserAchievement>,
+          findMany: (where) => (tx as any).userAchievement.findMany({ where }) as Promise<DbUserAchievement[]>,
           findUnique: (where) => {
             if (where.userId && where.achievementId) {
               return (tx as any).userAchievement.findFirst({ where }) as Promise<DbUserAchievement | null>;
             }
             return Promise.resolve(null);
           },
+          deleteMany: (where) => (tx as any).userAchievement.deleteMany({ where }).then((r: { count: number }) => r.count),
+          count: (where) => (tx as any).userAchievement.count({ where }) as Promise<number>,
         },
       };
       return fn(txAdapter);
