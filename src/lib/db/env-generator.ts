@@ -1,4 +1,5 @@
 import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { randomBytes } from 'crypto';
 import { detectAvailableDatabases, recommendDatabase, type AvailableDBs } from './auto-detect';
 
 export function parseEnvFile(content: string): Map<string, string> {
@@ -35,7 +36,7 @@ export async function generateDefaultEnv(
   const env = new Map<string, string>();
   env.set('DATABASE_URL', rec.url);
   env.set('DB_PROVIDER', rec.provider);
-  env.set('JWT_SECRET', crypto.randomBytes(32).toString('base64'));
+  env.set('JWT_SECRET', randomBytes(32).toString('base64'));
   env.set('NEXT_PUBLIC_APP_URL', `http://localhost:${appPort}`);
   env.set('NEXT_PUBLIC_DEMO_MODE', 'true');
   env.set('RESEND_API_KEY', 're_xxxxxxxxxxxxx');

@@ -29,14 +29,14 @@ export async function GET(request: Request) {
     const likeCounts = await db.like.groupBy({
       by: ['toUserId'],
       _count: { toUserId: true },
-    });
+    }) as { toUserId: string; _count: { toUserId: number } }[];
     const likeMap = new Map(likeCounts.map((l) => [l.toUserId, l._count.toUserId]));
 
     // Count matches per user (both user1 and user2 roles)
     const matchCounts = await db.match.groupBy({
       by: ['user1Id'],
       _count: { user1Id: true },
-    });
+    }) as { user1Id: string; _count: { user1Id: number } }[];
     const matchMap = new Map<string, number>();
     for (const m of matchCounts) {
       matchMap.set(m.user1Id, (matchMap.get(m.user1Id) || 0) + m._count.user1Id);
@@ -44,7 +44,7 @@ export async function GET(request: Request) {
     const matchCounts2 = await db.match.groupBy({
       by: ['user2Id'],
       _count: { user2Id: true },
-    });
+    }) as { user2Id: string; _count: { user2Id: number } }[];
     for (const m of matchCounts2) {
       matchMap.set(m.user2Id, (matchMap.get(m.user2Id) || 0) + m._count.user2Id);
     }

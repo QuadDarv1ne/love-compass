@@ -355,43 +355,7 @@ const clearState = {
 };
 
 export const useAppStore = create<AppState>((set, get) => ({
-  currentView: 'landing',
-  currentUser: null,
-  authStatus: 'idle',
-  selectedMatch: null,
-  selectedProfile: null,
-  profiles: [],
-  matches: [],
-  messages: [],
-  showMatchAnimation: false,
-  matchAnimationPartner: null,
-  likedUserIds: [],
-  dislikedUserIds: [],
-  superLikedUserIds: [],
-  isLoading: false,
-  chatListMatchId: null,
-  likedYouCount: 0,
-
-  searchQuery: '',
-  sortBy: 'new',
-  filterGender: 'all',
-  filterAgeMin: 0,
-  filterAgeMax: 99,
-  filterCity: '',
-  showFilters: false,
-
-  blockedUserIds: [],
-
-  onlineUserIds: [],
-  unreadMatchIds: [],
-
-  viewDirection: 'forward',
-  previousView: null,
-
-  likedYouProfiles: [],
-
-  moments: [],
-  currentMomentIndex: 0,
+  ...clearState,
 
   setView: (view) => set({ currentView: view }),
 
@@ -541,15 +505,6 @@ export const useAppStore = create<AppState>((set, get) => ({
   setCurrentMomentIndex: (index) => set({ currentMomentIndex: index }),
   addMoment: (moment) => set((state) => ({ moments: [moment, ...state.moments] })),
 
-  // Settings
-  notificationsEnabled: true,
-  profileVisible: true,
-  showOnlineStatus: true,
-  language: 'ru',
-  showDistance: false,
-  soundEnabled: true,
-  matchNotifications: true,
-  likeNotifications: true,
   setNotificationEnabled: (enabled) => {
     const prev = get().notificationsEnabled;
     set({ notificationsEnabled: enabled });
@@ -642,8 +597,6 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
-  // Achievements
-  unlockedAchievements: [],
   unlockAchievement: async (id) => {
     const state = get();
     if (state.unlockedAchievements.includes(id)) return;
@@ -656,18 +609,6 @@ export const useAppStore = create<AppState>((set, get) => ({
       console.error('Failed to unlock achievement:', error);
     }
   },
-
-  // Admin state
-  adminUsers: [],
-  adminSelectedUser: null,
-  adminStats: null,
-  adminLoading: false,
-  adminUserDetailLoading: false,
-  adminFilterGender: 'all',
-  adminSearchQuery: '',
-  adminTotal: 0,
-  adminPage: 1,
-  adminLimit: 20,
 
   // Admin actions
   setAdminUsers: (users) => set({ adminUsers: users }),

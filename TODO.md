@@ -72,8 +72,8 @@
 - [x] **Implement cache clearing** — Settings button clears Zustand store state and resets app to fresh login state
 - [x] **Реализовать очистку кеша** — Кнопка в настройках очищает Zustand store и сбрасывает приложение к состоянию входа
 
-- [ ] **Fix app naming** — UI says "Love Compas" (missing 's'), README says "Love Compass". Standardize
-- [ ] **Починить имя приложения** — В UI написано "Love Compas" (без 's'), в README — "Love Compass". Привести к единому виду
+- [x] **Fix app naming** — Already consistent "Love Compass" everywhere. No typo found.
+- [x] **Починить имя приложения** — Уже везде "Love Compass". Опечатка не обнаружена.
 
 ## Medium Priority
 

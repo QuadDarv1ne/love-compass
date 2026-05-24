@@ -92,16 +92,16 @@ export async function GET(request: Request) {
         return acc;
       }, {});
 
-    const likesSentMap = toMap(likesSent, 'fromUserId', 'fromUserId');
-    const likesReceivedMap = toMap(likesReceived, 'toUserId', 'toUserId');
-    const matchCountsMap = toMap(matchCounts[0], 'user1Id', 'user1Id');
-    for (const m of matchCounts[1]) {
+    const likesSentMap = toMap(likesSent as GroupCountResult[], 'fromUserId', 'fromUserId');
+    const likesReceivedMap = toMap(likesReceived as GroupCountResult[], 'toUserId', 'toUserId');
+    const matchCountsMap = toMap(matchCounts[0] as GroupCountResult[], 'user1Id', 'user1Id');
+    for (const m of matchCounts[1] as GroupCountResult[]) {
       const id = String(m.user2Id);
       const counts = m._count as Record<string, number> | undefined;
       matchCountsMap[id] = (matchCountsMap[id] || 0) + (counts?.user2Id ?? 0);
     }
-    const messageCountsMap = toMap(messageCounts, 'senderId', 'senderId');
-    const momentCountsMap = toMap(momentCounts, 'userId', 'userId');
+    const messageCountsMap = toMap(messageCounts as GroupCountResult[], 'senderId', 'senderId');
+    const momentCountsMap = toMap(momentCounts as GroupCountResult[], 'userId', 'userId');
 
     const lastActivity: Record<string, string> = {};
     for (const msg of lastActivityMap) {

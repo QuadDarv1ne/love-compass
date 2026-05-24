@@ -106,7 +106,6 @@ export async function POST(request: Request) {
     // Gracefully handle race condition where both users liked each other simultaneously
     // and both transactions tried to create a match (unique constraint violation)
     if (error instanceof Error && (error as any).code === 'P2002') {
-      logger.warn('/api/like', 'Match race condition caught, returning existing match');
       return NextResponse.json({ error: 'Match already exists', raceHandled: true }, { status: 200 });
     }
     logger.error('/api/like', 'Failed to create like', error);

@@ -142,26 +142,6 @@ function TwoFASetupDialog({
     }
   }, [open]);
 
-  const handleSetup = async () => {
-    setLoading(true);
-    try {
-      const res = await fetchWithCSRF('/api/auth/2fa/setup', {});
-      const data = await res.json();
-      if (!res.ok) {
-        toast.error(data.error);
-        return;
-      }
-      setSecret(data.secret);
-      setUri(data.uri);
-      setBackupCodes(data.backupCodes);
-      setStep('verify');
-    } catch {
-      toast.error('Ошибка сервера');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleVerify = async () => {
     setLoading(true);
     try {

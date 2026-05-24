@@ -30,7 +30,7 @@ export async function GET(request: Request) {
       activeSenders,
     ] = await Promise.all([
       db.user.count(),
-      db.user.groupBy({ by: ['gender'], _count: { gender: true } }),
+      db.user.groupBy({ by: ['gender'], _count: { gender: true } }) as Promise<{ gender: string; _count: { gender: number } }[]>,
       db.match.count(),
       db.message.count(),
       db.like.count(),
@@ -42,11 +42,11 @@ export async function GET(request: Request) {
       db.like.groupBy({
         by: ['fromUserId'],
         where: { createdAt: { gte: sevenDaysAgo } },
-      }),
+      }) as Promise<{ fromUserId: string }[]>,
       db.message.groupBy({
         by: ['senderId'],
         where: { createdAt: { gte: sevenDaysAgo } },
-      }),
+      }) as Promise<{ senderId: string }[]>,
     ]);
 
     const maleCount = genderBreakdown.find((g) => g.gender === 'male')?._count.gender ?? 0;

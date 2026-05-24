@@ -13,14 +13,11 @@ import { spawnSync } from 'child_process';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { detectAvailableDatabases, recommendDatabase } from '@/lib/db/auto-detect';
-import { ensureEnvFile, readEnvFile, parseEnvFile } from '@/lib/db/env-generator';
-import { findFreePort } from '@/lib/db/port-detector';
+import { ensureEnvFile, readEnvFile } from '@/lib/db/env-generator';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const rootDir = join(__dirname, '..');
-
-const noInteractive = process.argv.includes('--no-interactive') || process.env.CI === 'true';
 
 function loadEnvFile(): Map<string, string> {
   const envPath = join(rootDir, '.env');
