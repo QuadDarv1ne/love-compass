@@ -38,10 +38,14 @@ export async function GET(request: Request) {
       db.block.count(),
       db.user.count({ createdAt: { gte: startOfDay } }),
       db.user.count({ createdAt: { gte: startOfWeek } }),
-      Promise.all([
-        db.like.findMany({ createdAt: { gte: sevenDaysAgo } }),
-        db.message.findMany({ createdAt: { gte: sevenDaysAgo } }),
-      ]),
+      db.like.groupBy({
+        by: ['fromUserId'],
+        where: { createdAt: { gte: sevenDaysAgo } },
+      }),
+      db.message.groupBy({
+        by: ['senderId'],
+        where: { createdAt: { gte: sevenDaysAgo } },
+      }),
     ]);
 
     const maleCount = genderBreakdown.find((g) => g.gender === 'male')?._count.gender ?? 0;
@@ -49,8 +53,8 @@ export async function GET(request: Request) {
     const otherCount = totalUsers - maleCount - femaleCount;
 
     const activeUserIdSet = new Set([
-      ...activeUserIds[0].map((l) => l.fromUserId),
-      ...activeUserIds[1].map((m) => m.senderId),
+      ...activeUserIds[0].map((l: { fromUserId: string }) => l.fromUserId),
+      ...activeUserIds[1].map((m: { senderId: string }) => m.senderId),
     ]);
 
     return NextResponse.json({

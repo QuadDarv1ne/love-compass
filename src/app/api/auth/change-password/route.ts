@@ -62,7 +62,7 @@ export async function POST(request: Request) {
 
     await db.user.update(
       { id: user.id },
-      { passwordHash },
+      { passwordHash, loginAttempts: 0, lockedUntil: null },
     );
 
     // Invalidate all sessions after password change

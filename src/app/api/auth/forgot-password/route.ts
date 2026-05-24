@@ -48,8 +48,10 @@ export async function POST(request: Request) {
         },
       );
 
-      // Only send reset email for existing users to avoid delivering real tokens
       await sendPasswordResetEmail(emailLower, resetToken);
+    } else {
+      // Constant-time DB call to prevent user enumeration via timing
+      await db.user.findUnique({ id: '__TIMING_PADDING__' });
     }
 
     return NextResponse.json({ success: true });
