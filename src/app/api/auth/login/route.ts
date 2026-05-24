@@ -92,14 +92,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Reset login attempts on successful password verification
-    if (user.loginAttempts > 0) {
-      await db.user.update(
-        { id: user.id },
-        { loginAttempts: 0, lockedUntil: null },
-      );
-    }
-
     // Check email verification
     if (!user.emailVerified) {
       return NextResponse.json(
@@ -115,6 +107,14 @@ export async function POST(request: Request) {
         needs2FA: true,
         tempToken,
       });
+    }
+
+    // Reset login attempts ONLY after ALL checks pass, right before session creation
+    if (user.loginAttempts > 0) {
+      await db.user.update(
+        { id: user.id },
+        { loginAttempts: 0, lockedUntil: null },
+      );
     }
 
     // Create session
