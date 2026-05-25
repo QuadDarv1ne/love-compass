@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { useAppStore, type User } from '@/lib/store';
 import { OnlineIndicator } from './shared';
 import { fetchWithCSRF } from '@/lib/api';
+import { appLogger } from '@/lib/logger';
 
 export function LikedYouView() {
   const { currentUser, likedYouProfiles, setLikedYouProfiles, setShowMatchAnimation, setMatchAnimationPartner, navigateTo } = useAppStore();
@@ -43,7 +44,7 @@ export function LikedYouView() {
       setLikedYouProfiles(updated);
     } catch (error) {
       toast.error('Не удалось ответить на лайк', { description: 'Попробуйте ещё раз' });
-      console.error('Like back failed:', error);
+      appLogger.error('liked-you-view.likeBack', 'Like back failed', error);
     }
   };
 

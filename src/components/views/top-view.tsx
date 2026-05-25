@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import { useAppStore, type User } from '@/lib/store';
 import { OnlineIndicator } from './shared';
+import { appLogger } from '@/lib/logger';
 
 interface RankedUser extends User {
   popularityScore: number;
@@ -264,7 +265,7 @@ export function TopView() {
         }
       })
       .catch((err) => {
-        console.error('Failed to fetch leaderboard:', err);
+        appLogger.error('top-view.leaderboard', 'Failed to fetch leaderboard', err);
         if (!cancelled) {
           setLeaderboardData([]);
           setLoading(false);

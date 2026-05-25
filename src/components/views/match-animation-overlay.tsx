@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { Heart, MessageCircle, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAppStore } from '@/lib/store';
+import { appLogger } from '@/lib/logger';
 
 export function MatchAnimationOverlay() {
   const { showMatchAnimation, matchAnimationPartner, setShowMatchAnimation, navigateTo, setSelectedMatch, currentUser } = useAppStore();
@@ -29,7 +30,7 @@ export function MatchAnimationOverlay() {
       try {
         await refreshMatches();
       } catch (error) {
-        console.error('Failed to refresh matches:', error);
+        appLogger.error('match-animation.refresh', 'Failed to refresh matches', error);
       }
     }
     navigateTo('matches');
@@ -46,7 +47,7 @@ export function MatchAnimationOverlay() {
           navigateTo('chat');
         }
       } catch (error) {
-        console.error('Failed to refresh matches:', error);
+        appLogger.error('match-animation.refresh', 'Failed to refresh matches', error);
       }
     }
   };

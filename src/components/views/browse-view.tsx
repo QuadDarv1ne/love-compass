@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { fetchWithCSRF, deleteWithCSRF } from '@/lib/api';
+import { appLogger } from '@/lib/logger';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { useAppStore, type User } from '@/lib/store';
@@ -280,7 +281,7 @@ export function BrowseView() {
         likedUserIds: state.likedUserIds.filter((id) => id !== profile.id),
       }));
       toast.error('Не удалось отправить лайк', { description: 'Попробуйте ещё раз' });
-      console.error('Like failed:', error);
+      appLogger.error('browse-view.like', 'Like failed', error);
     }
   }, [currentUser, addLikedUserId, setMatchAnimationPartner, setShowMatchAnimation, removeProfile]);
 
@@ -336,7 +337,7 @@ export function BrowseView() {
         superLikedUserIds: state.superLikedUserIds.filter((id) => id !== profile.id),
       }));
       toast.error('Не удалось отправить супер-лайк', { description: 'Попробуйте ещё раз' });
-      console.error('Super Like failed:', error);
+      appLogger.error('browse-view.superLike', 'Super Like failed', error);
     }
   }, [currentUser, addSuperLikedUserId, addLikedUserId, setMatchAnimationPartner, setShowMatchAnimation, removeProfile]);
 
@@ -356,7 +357,7 @@ export function BrowseView() {
         await deleteWithCSRF(`/api/like?toUserId=${lastSwipedProfile.id}`, {});
       } catch (error) {
         toast.error('Не удалось отменить лайк', { description: 'Профиль восстановлен, но лайк остался' });
-        console.error('Undo like failed:', error);
+        appLogger.error('browse-view.undo', 'Undo like failed', error);
       }
     }
 
@@ -612,7 +613,7 @@ export function BrowseView() {
                   reason: 'Blocked from profile detail',
                 });
               } catch (error) {
-                console.error('Failed to block user via API:', error);
+                appLogger.error('browse-view.block', 'Failed to block user via API', error);
               }
               useAppStore.setState((state) => {
                 if (!state.currentUser) return {};
@@ -628,7 +629,7 @@ export function BrowseView() {
                   reason: 'Inappropriate behavior',
                 });
               } catch (error) {
-                console.error('Failed to submit report via API:', error);
+                appLogger.error('browse-view.report', 'Failed to submit report via API', error);
               }
               toast.info(`Жалоба на ${detailProfile.name} отправлена`, { description: 'Мы рассмотрим вашу жалобу' });
             }}

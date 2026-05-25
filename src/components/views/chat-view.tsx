@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAppStore, type Message, type MatchWithUsers } from '@/lib/store';
 import { OnlineIndicator, TypingIndicator } from './shared';
 import { fetchWithCSRF } from '@/lib/api';
+import { appLogger } from '@/lib/logger';
 
 // ─── Popular Emojis ──────────────────────────────────────────────────────────
 const POPULAR_EMOJIS = [
@@ -114,14 +115,14 @@ export function ChatView() {
               if (!markRes.ok) throw new Error('Failed to mark as read');
               markMessagesAsRead(unreadIds);
             } catch (error) {
-              console.error('Failed to mark messages as read:', error);
+              appLogger.error('chat-view.markRead', 'Failed to mark messages as read', error);
               toast.error('Не удалось отметить сообщения как прочитанные');
             }
           }
         }
       } catch (error) {
         if ((error as Error).name === 'AbortError') return;
-        if (!cancelled) console.error('Failed to load messages:', error);
+        if (!cancelled) appLogger.error('chat-view.loadMessages', 'Failed to load messages', error);
       }
     };
     loadMessages();
@@ -172,7 +173,7 @@ export function ChatView() {
             if (msg) addMessage(msg);
           }
         } catch (error) {
-          console.error('Failed to send auto-reply:', error);
+          appLogger.error('chat-view.autoReply', 'Failed to send auto-reply', error);
         }
       }, replyDelay - typingDelay);
     }, typingDelay);
@@ -201,7 +202,7 @@ export function ChatView() {
       const msg = await res.json();
       if (msg.id) addMessage(msg);
     } catch (error) {
-      console.error('Failed to send message:', error);
+      appLogger.error('chat-view.sendMessage', 'Failed to send message', error);
       toast.error('Не удалось отправить сообщение', { description: 'Попробуйте ещё раз' });
       setNewMessage(content);
     }

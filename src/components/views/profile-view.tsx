@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useAppStore } from '@/lib/store';
+import { appLogger } from '@/lib/logger';
 
 export function ProfileView() {
   const { currentUser, setCurrentUser, logout, likedUserIds, dislikedUserIds, superLikedUserIds, matches } = useAppStore();
@@ -83,7 +84,7 @@ export function ProfileView() {
         toast.error(data.error || 'Не удалось сохранить профиль');
       }
     } catch (error) {
-      console.error('Failed to update profile:', error);
+      appLogger.error('profile-view.update', 'Failed to update profile', error);
       toast.error('Ошибка при сохранении профиля');
     }
     setSaving(false);

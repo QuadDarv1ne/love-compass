@@ -9,6 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAppStore, type User } from '@/lib/store';
+import { appLogger } from '@/lib/logger';
 import { FloatingHearts } from './shared';
 import Link from 'next/link';
 
@@ -86,7 +87,7 @@ export function LandingView() {
         }
       }
     } catch (error) {
-      console.error('Demo login failed:', error);
+      appLogger.error('landing-view.demo', 'Demo login failed', error);
     }
     setLoading(false);
   };

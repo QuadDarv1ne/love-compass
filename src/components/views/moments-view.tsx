@@ -21,6 +21,7 @@ import {
 import { fetchWithCSRF, patchWithCSRF } from '@/lib/api';
 import { useAppStore, type Moment, type MomentComment } from '@/lib/store';
 import { OnlineIndicator } from './shared';
+import { appLogger } from '@/lib/logger';
 
 // ─── Gradient Presets ────────────────────────────────────────────────────────
 const GRADIENT_PRESETS = [
@@ -195,7 +196,7 @@ function StoryViewer({
     toast.success(`Реакция ${emoji} добавлена!`);
     // Sync with server
     patchWithCSRF('/api/moments', { id: currentMoment.id, action: 'react', emoji }).catch((error) => {
-      console.error('Failed to sync reaction:', error);
+      appLogger.error('moments-view.syncReaction', 'Failed to sync reaction', error);
       toast.error('Не удалось добавить реакцию');
     });
   };
@@ -220,7 +221,7 @@ function StoryViewer({
     toast.success('Комментарий добавлен!');
     // Sync with server
     patchWithCSRF('/api/moments', { id: currentMoment.id, action: 'comment', content }).catch((error) => {
-      console.error('Failed to sync comment:', error);
+      appLogger.error('moments-view.syncComment', 'Failed to sync comment', error);
       toast.error('Не удалось добавить комментарий');
     });
   };
