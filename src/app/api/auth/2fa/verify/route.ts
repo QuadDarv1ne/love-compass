@@ -97,6 +97,9 @@ export async function POST(request: Request) {
     // Prevent temp token reuse: block this token for the next 5 minutes
     await checkRateLimit(`2fa-used:${tempToken.slice(0, 10)}`, RATE_LIMITS.TOTP_REPLAY.MAX, RATE_LIMITS.TOTP_REPLAY.WINDOW);
 
+    // Reset login attempts after successful 2FA verification
+    await db.rateLimit.deleteMany({ key: { startsWith: `login:${user.email.toLowerCase()}` } });
+
     // Create session
     const sessionToken = generateSessionToken();
     const userAgent = request.headers.get('user-agent');

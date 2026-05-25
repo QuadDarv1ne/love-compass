@@ -60,11 +60,11 @@ export async function DELETE(request: Request) {
         await tx.rateLimit.deleteMany({ key: { startsWith: `verify:${userEmail}` } });
       }
 
+      // Invalidate sessions before deleting user (FK constraint requires sessions deleted first)
+      await tx.session.deleteMany({ userId: id });
+
       // Finally delete the user
       await tx.user.delete({ id });
-
-      // Invalidate sessions inside the transaction for atomicity
-      await tx.session.deleteMany({ userId: id });
     });
 
     // Clear cookie after successful transaction

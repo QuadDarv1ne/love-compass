@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getUserFromRequest } from './session';
 import { validateCSRFToken } from './csrf';
+import { db } from '@/lib/db';
 import type { DbUser } from '@/lib/db';
 
 /**
@@ -18,6 +19,13 @@ export async function requireAuth(
 
   if (!user) {
     return NextResponse.json({ error: 'Необходима авторизация' }, { status: 401 });
+  }
+
+  // Update lastSeenAt for online presence (throttled to avoid excessive DB writes)
+  const now = new Date();
+  const lastSeen = (user as { lastSeenAt?: Date }).lastSeenAt;
+  if (!lastSeen || now.getTime() - lastSeen.getTime() > 60_000) {
+    await db.user.update({ id: user.id }, { lastSeenAt: now }).catch(() => {});
   }
 
   return { user };

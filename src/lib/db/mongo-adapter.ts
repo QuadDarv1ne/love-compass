@@ -96,8 +96,11 @@ export class MongoDBAdapter implements DatabaseAdapter {
   async connect(): Promise<void> {
     try {
       await this.client.connect();
-    } catch {
-      // Already connected or error — safe to ignore, will be caught by actual queries
+    } catch (error) {
+      // Already connected — safe to ignore
+      if (error instanceof Error && !error.message.includes('already connected')) {
+        console.error('[MongoDB] Connection error:', error.message);
+      }
     }
   }
 

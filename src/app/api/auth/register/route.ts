@@ -57,13 +57,14 @@ export async function POST(request: Request) {
     // Check email uniqueness
     const existing = await db.user.findUnique({ email: userData.email.toLowerCase() });
     if (existing) {
-      // Return generic response to prevent email enumeration
+      // Return generic response to prevent email enumeration, but with success status
+      // so client shows the verification message instead of an error
       return NextResponse.json(
         {
           success: true,
           message: 'Проверьте вашу почту для подтверждения email',
         },
-        { status: 409 }
+        { status: 200 }
       );
     }
 

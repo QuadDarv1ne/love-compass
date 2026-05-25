@@ -4,6 +4,8 @@ import { z } from 'zod';
 import { requireAuth, requireAuthWithCSRF, isZodError } from '@/lib/auth/guard';
 import { sanitizeUser } from '@/lib/auth/projections';
 import { logger } from '@/lib/logger';
+import { checkRateLimit } from '@/lib/auth/rate-limit';
+import { RATE_LIMITS } from '@/lib/constants';
 
 import { VALIDATION } from '@/lib/constants';
 
@@ -67,6 +69,12 @@ export async function POST(request: Request) {
     const { user } = auth;
     const body = await request.json();
     const { matchId, content } = sendMessageSchema.parse(body);
+
+    // Rate limit message sending
+    const rateLimit = await checkRateLimit(`msg:${user.id}`, RATE_LIMITS.MESSAGE.MAX, RATE_LIMITS.MESSAGE.WINDOW);
+    if (!rateLimit.allowed) {
+      return NextResponse.json({ error: 'Слишком много сообщений' }, { status: 429 });
+    }
 
     // Verify user is a participant in this match
     const match = await db.match.findUnique({ id: matchId });

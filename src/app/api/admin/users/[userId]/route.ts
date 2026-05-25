@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { requireAdmin, requireAdminWithCSRF } from '@/lib/auth/guard';
+import { requireAdmin, requireAdminWithCSRF, isZodError } from '@/lib/auth/guard';
 import { sanitizeUser } from '@/lib/auth/projections';
 import { z } from 'zod';
 
@@ -117,7 +117,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ us
       profileVisible: updated.profileVisible,
     } });
   } catch (error) {
-    if (error instanceof z.ZodError) {
+    if (isZodError(error)) {
       return NextResponse.json({ error: 'Invalid request body', details: error.issues }, { status: 400 });
     }
     return NextResponse.json({ error: 'Не удалось обновить пользователя' }, { status: 500 });

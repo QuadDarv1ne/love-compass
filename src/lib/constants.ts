@@ -117,6 +117,7 @@ export const RATE_LIMITS = {
   CHANGE_PASSWORD: { MAX: 5, WINDOW: 900 },
   TOTP_VERIFY: { MAX: 5, WINDOW: 300 },
   TOTP_REPLAY: { MAX: 1, WINDOW: 300 },
+  MESSAGE: { MAX: 10, WINDOW: 60 },
 } as const;
 
 export const TOTP = {
