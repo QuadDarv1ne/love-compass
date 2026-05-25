@@ -249,7 +249,7 @@ export function TopView() {
   const { currentUser } = useAppStore();
   const [activeTab, setActiveTab] = useState<SortKey>('popular');
   const [leaderboardData, setLeaderboardData] = useState<RankedUser[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   // Fetch leaderboard data from API
   useEffect(() => {
