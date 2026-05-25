@@ -9,7 +9,7 @@ import { sendVerificationEmail } from '@/lib/email';
 import { generateRandomToken, hashToken, getClientIp } from '@/lib/auth/crypto';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';
-import { RATE_LIMITS, TOKEN } from '@/lib/constants';
+import { RATE_LIMITS, TIME, TOKEN } from '@/lib/constants';
 
 export async function GET(request: Request) {
   try {
@@ -97,6 +97,18 @@ export async function POST(request: Request) {
     if (!user || user.emailVerified) {
       // Don't reveal if email exists or is verified
       return NextResponse.json({ success: true });
+    }
+
+    // Server-side cooldown: prevent resend if last request was within cooldown window
+    if (user.emailVerificationExpiry) {
+      const cooldownMs = TIME.RESEND_COOLDOWN_SECONDS * TIME.RESEND_COOLDOWN_INTERVAL_MS;
+      const cooldownExpiry = new Date(user.emailVerificationExpiry.getTime() + cooldownMs);
+      if (new Date() < cooldownExpiry) {
+        return NextResponse.json(
+          { error: `Повторная отправка доступна через ${Math.ceil((cooldownExpiry.getTime() - Date.now()) / 1000)} сек` },
+          { status: 429 }
+        );
+      }
     }
 
     const newToken = generateRandomToken(TOKEN.BYTE_LENGTH);

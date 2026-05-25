@@ -10,7 +10,7 @@ import { REGISTRATION_LIMITS, VALIDATION, TOKEN } from '@/lib/constants';
 
 const registerSchema = z.object({
   email: z.string().email('Неверный формат email'),
-  password: z.string().min(1),
+  password: z.string().min(8, 'Минимум 8 символов'),
   name: z.string().min(1).max(VALIDATION.NAME_MAX_LENGTH),
   age: z.coerce.number().min(VALIDATION.AGE_MIN).max(VALIDATION.AGE_MAX),
   gender: z.enum(['male', 'female', 'other']),
@@ -63,7 +63,7 @@ export async function POST(request: Request) {
           success: true,
           message: 'Проверьте вашу почту для подтверждения email',
         },
-        { status: 201 }
+        { status: 409 }
       );
     }
 
