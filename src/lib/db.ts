@@ -56,3 +56,13 @@ export async function disconnectDb() {
 process.on('beforeExit', async () => {
   await disconnectDb();
 });
+
+process.on('SIGTERM', async () => {
+  await disconnectDb();
+  process.exit(0);
+});
+
+process.on('SIGINT', async () => {
+  await disconnectDb();
+  process.exit(0);
+});

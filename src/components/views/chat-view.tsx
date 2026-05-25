@@ -127,6 +127,7 @@ export function ChatView() {
       cancelled = true;
       abortController.abort();
       if (autoReplyTimerRef.current) clearTimeout(autoReplyTimerRef.current);
+      if (innerTimerRef.current) clearTimeout(innerTimerRef.current);
     };
     // selectedMatch is used as a guard — only the stable .id is needed for re-trigger
     // eslint-disable-next-line react-hooks/exhaustive-deps

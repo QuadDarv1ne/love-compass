@@ -324,7 +324,8 @@ export function SettingsView() {
       const res = await fetchWithCSRF('/api/auth/change-password', { currentPassword, newPassword });
       const data = await res.json();
       if (!res.ok) {
-        toast.error(data.error, { description: data.details?.join(', ') });
+        const description = Array.isArray(data.details) ? data.details.join(', ') : undefined;
+        toast.error(data.error, { description });
         return;
       }
       toast.success('Пароль изменён');

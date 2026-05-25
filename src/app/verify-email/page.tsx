@@ -17,17 +17,31 @@ function VerifyEmailContent() {
   useEffect(() => {
     if (!token) return;
 
-    fetch(`/api/auth/verify-email?token=${token}`)
+    const abortController = new AbortController();
+    let cancelled = false;
+
+    fetch(`/api/auth/verify-email?token=${token}`, { signal: abortController.signal })
       .then(async (res) => {
         const data = await res.json();
-        if (res.ok) {
-          setStatus('success');
-          setEmail(data.email || '');
-        } else {
-          setStatus('error');
+        if (!cancelled) {
+          if (res.ok) {
+            setStatus('success');
+            setEmail(data.email || '');
+          } else {
+            setStatus('error');
+          }
         }
       })
-      .catch(() => setStatus('error'));
+      .catch((error) => {
+        if ((error as Error).name !== 'AbortError' && !cancelled) {
+          setStatus('error');
+        }
+      });
+
+    return () => {
+      cancelled = true;
+      abortController.abort();
+    };
   }, [token]);
 
   return (
