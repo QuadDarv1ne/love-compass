@@ -14,23 +14,25 @@ const PUBLIC_PATHS = [
 ];
 
 const SESSION_COOKIE_NAME = '__session';
+const LAST_SEEN_THROTTLE_MS = 60_000; // 1 minute
+const lastSeenCache = new Map<string, number>();
 
-async function validateSession(token: string): Promise<boolean> {
+async function validateSession(token: string): Promise<{ id: string; expiresAt: Date; userId: string } | null> {
   try {
     const result = await db.session.findUnique({ token }, true);
 
     if (!result || !('user' in result) || !result.user) {
-      return false;
+      return null;
     }
 
-    const session = result as { id: string; expiresAt: Date };
+    const session = result as { id: string; expiresAt: Date; userId: string };
     if (session.expiresAt < new Date()) {
-      return false;
+      return null;
     }
 
-    return true;
+    return session;
   } catch {
-    return false;
+    return null;
   }
 }
 
@@ -71,9 +73,9 @@ export async function middleware(request: NextRequest) {
   }
 
   // Validate session against database to catch expired/revoked tokens
-  const isValid = await validateSession(sessionToken);
+  const session = await validateSession(sessionToken);
 
-  if (!isValid) {
+  if (!session) {
     // Session is expired or revoked — clear cookie and redirect
     const response = pathname.startsWith('/api/')
       ? NextResponse.json(
@@ -94,13 +96,16 @@ export async function middleware(request: NextRequest) {
   }
 
   // Update lastSeenAt for the authenticated user (throttled to once per minute)
-  try {
-    const session = await db.session.findUnique({ token: sessionToken }, true);
-    if (session && 'userId' in session && session.userId) {
+  // Reuses the session object from validateSession to avoid a second DB query
+  const now = Date.now();
+  const lastUpdate = lastSeenCache.get(session.userId) || 0;
+  if (now - lastUpdate >= LAST_SEEN_THROTTLE_MS) {
+    lastSeenCache.set(session.userId, now);
+    try {
       await db.user.update({ id: session.userId }, { lastSeenAt: new Date() });
+    } catch {
+      // Non-critical, don't break the request
     }
-  } catch {
-    // Non-critical, don't break the request
   }
 
   return NextResponse.next();

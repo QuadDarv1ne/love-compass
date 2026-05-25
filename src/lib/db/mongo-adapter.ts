@@ -1,4 +1,5 @@
 import { MongoClient, ObjectId, ClientSession, type Document, type OptionalId } from 'mongodb';
+import { appLogger } from '@/lib/logger';
 import type {
   DatabaseAdapter,
   DbUser,
@@ -99,7 +100,7 @@ export class MongoDBAdapter implements DatabaseAdapter {
     } catch (error) {
       // Already connected — safe to ignore
       if (error instanceof Error && !error.message.includes('already connected')) {
-        console.error('[MongoDB] Connection error:', error.message);
+        appLogger.error('MongoDB', 'Connection error', error.message);
       }
     }
   }

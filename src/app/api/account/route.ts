@@ -48,7 +48,8 @@ export async function DELETE(request: Request) {
       await tx.userAchievement.deleteMany({ userId: id });
 
       // Fetch email before deletion to clean up email-based rate limits
-      const userEmail = (await tx.user.findUnique({ id })).email;
+      const user = await tx.user.findUnique({ id });
+      const userEmail = user?.email;
 
       // Delete rate limit entries for all known prefixes
       await tx.rateLimit.deleteMany({ key: { startsWith: `auto-reply:${id}` } });

@@ -39,7 +39,7 @@ export async function GET(request: Request) {
 
     const messages = await db.message.findMany(
       { matchId },
-      { skip: cursor ? 1 : 0, take: limit, orderBy: { createdAt: 'asc' }, cursor: cursor ? { id: cursor } : undefined }
+      { skip: cursor ? 1 : 0, take: limit, orderBy: { createdAt: 'asc' } }
     );
 
     // Fetch sender data separately
