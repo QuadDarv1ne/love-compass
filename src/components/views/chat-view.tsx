@@ -90,6 +90,18 @@ export function ChatView() {
   const currentUserRef = useRef<typeof currentUser>(null);
   currentUserRef.current = currentUser;
 
+  const selectedMatchId = selectedMatch?.id ?? null;
+  const selectedMatchIdRef = useRef<string | null>(null);
+  selectedMatchIdRef.current = selectedMatchId;
+
+  // Track new message count for badge indicator
+  const [newMessageCount, setNewMessageCount] = useState(0);
+  const hasFocusRef = useRef(true);
+
+  // Polling for real-time message updates
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const lastMessageCountRef = useRef<number>(0);
+
   useEffect(() => {
     if (!selectedMatch) return;
     const abortController = new AbortController();
@@ -100,10 +112,12 @@ export function ChatView() {
         if (!res.ok) throw new Error('Failed to load messages');
         const data = await res.json();
         if (!cancelled) {
-          setMessages(data);
+          const messageList = data.messages ?? data;
+          setMessages(messageList);
+          lastMessageCountRef.current = messageList.length;
           // Mark unread messages as read
           const currentUserId = currentUserRef.current?.id;
-          const unreadIds = data
+          const unreadIds = messageList
             .filter((m: Message) => m.senderId !== currentUserId && !m.read)
             .map((m: Message) => m.id);
           if (unreadIds.length > 0) {
@@ -123,19 +137,54 @@ export function ChatView() {
       }
     };
     loadMessages();
+
+    // Set up polling for real-time updates
+    pollingIntervalRef.current = setInterval(() => {
+      if (selectedMatchIdRef.current && hasFocusRef.current) {
+        loadMessages();
+      }
+    }, 5000);
+
     return () => {
       cancelled = true;
       abortController.abort();
       if (autoReplyTimerRef.current) clearTimeout(autoReplyTimerRef.current);
       if (innerTimerRef.current) clearTimeout(innerTimerRef.current);
+      if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
     };
     // selectedMatch is used as a guard — only the stable .id is needed for re-trigger
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedMatch?.id, setMessages]);
 
+  // Track window focus to control polling
+  useEffect(() => {
+    const onFocus = () => { hasFocusRef.current = true; };
+    const onBlur = () => { hasFocusRef.current = false; };
+    window.addEventListener('focus', onFocus);
+    window.addEventListener('blur', onBlur);
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      window.removeEventListener('blur', onBlur);
+    };
+  }, []);
+
+  // Detect new messages and update badge
+  const messagesLength = messages.length;
+  useEffect(() => {
+    if (!hasFocusRef.current && messagesLength > lastMessageCountRef.current) {
+      setNewMessageCount((prev) => prev + (messagesLength - lastMessageCountRef.current));
+    }
+    lastMessageCountRef.current = messagesLength;
+  }, [messagesLength]);
+
+  // Scroll to bottom on new messages, but only if already near bottom
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+      const isNearBottom = scrollHeight - scrollTop - clientHeight < 200;
+      if (isNearBottom || partnerTyping) {
+        scrollRef.current.scrollTop = scrollHeight;
+      }
     }
   }, [messages, partnerTyping]);
 
@@ -190,6 +239,8 @@ export function ChatView() {
     const content = newMessage.trim();
     setNewMessage('');
     setSending(true);
+    // Clear new message badge when user sends a message
+    setNewMessageCount(0);
 
     try {
       const res = await fetchWithCSRF('/api/messages', { matchId: selectedMatch.id, content });
@@ -202,6 +253,11 @@ export function ChatView() {
     } catch (error) {
       appLogger.error('chat-view.sendMessage', 'Failed to send message', error);
       toast.error('Не удалось отправить сообщение', { description: 'Попробуйте ещё раз' });
+      // Restore message content on failure using atomic setState
+      useAppStore.setState((state) => ({
+        ...state,
+        messages: [...state.messages], // trigger re-render
+      }));
       setNewMessage(content);
     }
     setSending(false);
@@ -248,6 +304,13 @@ export function ChatView() {
     return groups;
   }, [messages]);
 
+  // Reset new message badge when chat becomes visible
+  useEffect(() => {
+    if (selectedMatch) {
+      setNewMessageCount(0);
+    }
+  }, [selectedMatch]);
+
   if (!selectedMatch || !partner) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center px-4">
@@ -275,7 +338,18 @@ export function ChatView() {
           <OnlineIndicator userId={partner.id} size="sm" />
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-rose-800 dark:text-rose-200 truncate">{partner.name}, {partner.age}</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="font-semibold text-rose-800 dark:text-rose-200 truncate">{partner.name}, {partner.age}</h3>
+            {newMessageCount > 0 && (
+              <motion.span
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="bg-rose-500 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center"
+              >
+                {newMessageCount > 9 ? '9+' : newMessageCount}
+              </motion.span>
+            )}
+          </div>
           <p className="text-xs text-muted-foreground">{partnerTyping ? (
             <span className="text-rose-500 font-medium">печатает...</span>
           ) : isPartnerOnline ? (

@@ -155,7 +155,7 @@ export function BrowseView() {
     profiles, currentUser,
     removeProfile, addLikedUserId, addDislikedUserId, addSuperLikedUserId,
     setShowMatchAnimation, setMatchAnimationPartner, showFilters, setShowFilters,
-    filterGender, filterAgeMin, filterAgeMax, filterCity, setProfiles,
+    filterGender, filterAgeMin, filterAgeMax, filterCity,
     searchQuery, sortBy, blockedUserIds,
   } = useAppStore();
   const [swipeDir, setSwipeDir] = useState<'left' | 'right' | null>(null);
@@ -350,20 +350,28 @@ export function BrowseView() {
       }
     }
 
-    // Re-add the profile if not already present (pending removals were cancelled)
-    if (!profiles.some((p) => p.id === lastSwipedProfile.id)) {
-      setProfiles([lastSwipedProfile, ...profiles]);
-    }
-    // Remove from the appropriate list atomically
+    // Re-add the profile atomically to prevent stale state races
     useAppStore.setState((state) => {
+      const alreadyPresent = state.profiles.some((p) => p.id === lastSwipedProfile.id);
+      const updatedProfiles = alreadyPresent
+        ? state.profiles
+        : [lastSwipedProfile, ...state.profiles];
+
       if (lastSwipeAction === 'dislike') {
-        return { dislikedUserIds: state.dislikedUserIds.filter((id) => id !== lastSwipedProfile.id) };
+        return {
+          profiles: updatedProfiles,
+          dislikedUserIds: state.dislikedUserIds.filter((id) => id !== lastSwipedProfile.id),
+        };
       }
       if (lastSwipeAction === 'like') {
-        return { likedUserIds: state.likedUserIds.filter((id) => id !== lastSwipedProfile.id) };
+        return {
+          profiles: updatedProfiles,
+          likedUserIds: state.likedUserIds.filter((id) => id !== lastSwipedProfile.id),
+        };
       }
       if (lastSwipeAction === 'superLike') {
         return {
+          profiles: updatedProfiles,
           likedUserIds: state.likedUserIds.filter((id) => id !== lastSwipedProfile.id),
           superLikedUserIds: state.superLikedUserIds.filter((id) => id !== lastSwipedProfile.id),
         };
@@ -372,7 +380,7 @@ export function BrowseView() {
     });
     setLastSwipedProfile(null);
     setLastSwipeAction(null);
-  }, [lastSwipedProfile, lastSwipeAction, profiles, setProfiles]);
+  }, [lastSwipedProfile, lastSwipeAction]);
 
   // Drag handlers for touch swipe
   const handleDragStart = () => {
