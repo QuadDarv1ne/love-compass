@@ -16,6 +16,9 @@
 - [x] **Eliminate all ESLint warnings and fix type safety** — Reduced warnings from 81 to 0. Replaced `any` with `unknown` in `cleanWhere()`, added string type guards before `toObjectId()` (8 locations), replaced non-null assertions with proper null checks for orphaned sessions, excluded `scripts/` from no-console rule, replaced `console.log` with `console.warn` in email.ts
 - [x] **Устранить все предупреждения ESLint и исправить типизацию** — Сокращены предупреждения с 81 до 0. Заменены `any` на `unknown` в `cleanWhere()`, добавлены строковые проверки типов перед `toObjectId()` (8 мест), заменены ненулевые утверждения на правильные проверки null для осиротевших сессий, исключён `scripts/` из правила no-console, заменён `console.log` на `console.warn` в email.ts
 
+- [x] **Fix Zustand race conditions** — Replaced `getState()`+`setState()` with atomic `setState(functionUpdater)` in browse-view (rollback in handleLike/handleSuperLike, atomic handleUndo, onBlock), match-animation-overlay (refreshMatches), and landing-view (demo login). Eliminated stale state reads during concurrent operations.
+- [x] **Починить race conditions в Zustand** — Заменены `getState()`+`setState()` на атомарные `setState(functionUpdater)` в browse-view (rollback в handleLike/handleSuperLike, атомарный handleUndo, onBlock), match-animation-overlay (refreshMatches) и landing-view (demo login). Устранено чтение устаревшего состояния при конкурентных операциях.
+
 ## Critical
 
 - [x] **Implement real authentication** — Custom auth built with email/password, sessions (httpOnly cookies), CSRF, 2FA/TOTP, password reset, email verification, rate limiting
@@ -112,8 +115,8 @@
 - [x] **Delete dead code** — `use-toast.ts` already removed; sonner used everywhere
 - [x] **Удалить мёртвый код** — `use-toast.ts` уже удалён; sonner используется везде
 
-- [ ] **Fix race conditions** — Multiple `useEffect` hooks call `useAppStore.getState()` leading to stale state. Refactor to proper Zustand patterns. (Note: setTimeout memory leaks in browse-view already fixed)
-- [ ] **Починить race conditions** — Несколько `useEffect` хуков вызывают `useAppStore.getState()`, что приводит к устаревшему состоянию. Рефакторинг на правильные паттерны Zustand. (Примечание: утечки setTimeout в browse-view уже исправлены)
+- [x] **Fix race conditions** — Multiple `useEffect` hooks called `useAppStore.getState()` leading to stale state. Refactored to atomic `setState(functionUpdater)` pattern. All `getState()`+`setState()` pairs replaced with atomic updates in browse-view, match-animation-overlay, and landing-view.
+- [x] **Починить race conditions** — Несколько `useEffect` хуков вызывали `useAppStore.getState()`, что приводило к устаревшему состоянию. Рефакторинг на атомарный паттерн `setState(functionUpdater)`. Все пары `getState()`+`setState()` заменены на атомарные обновления в browse-view, match-animation-overlay и landing-view.
 
 - [ ] **Fix duplicate API calls** — `LikedYouView` calls `/api/likes/received` twice. `MatchesView` and `ChatListView` both fetch matches independently. Deduplicate (Note: match-animation-overlay duplicate already fixed)
 - [ ] **Починить дублирующиеся API-вызовы** — `LikedYouView` вызывает `/api/likes/received` дважды. `MatchesView` и `ChatListView` оба независимо загружают матчи. Устранить дублирование (Примечание: дублирование в match-animation-overlay уже исправлено)
