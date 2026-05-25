@@ -617,9 +617,12 @@ export function MomentsView() {
   const [dialogKey, setDialogKey] = useState(0);
   const [likedMomentIds, setLikedMomentIds] = useState<Set<string>>(new Set());
 
-  // Fetch moments from API
+  // Fetch moments from API — fall back to store data if already hydrated
   useEffect(() => {
-    if (storeMoments.length > 0) return;
+    if (storeMoments.length > 0) {
+      setMoments(storeMoments);
+      return;
+    }
     let cancelled = false;
     (async () => {
       try {
