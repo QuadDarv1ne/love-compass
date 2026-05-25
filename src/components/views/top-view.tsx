@@ -263,7 +263,8 @@ export function TopView() {
           setLoading(false);
         }
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error('Failed to fetch leaderboard:', err);
         if (!cancelled) {
           setLeaderboardData([]);
           setLoading(false);

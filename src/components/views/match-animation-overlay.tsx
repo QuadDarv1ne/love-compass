@@ -12,14 +12,19 @@ export function MatchAnimationOverlay() {
 
   if (!showMatchAnimation || !matchAnimationPartner || !currentUser) return null;
 
+  const refreshMatches = async () => {
+    const res = await fetch('/api/matches');
+    if (!res.ok) throw new Error('Failed to fetch matches');
+    const matches = await res.json();
+    useAppStore.getState().setMatches(matches);
+    return matches;
+  };
+
   const handleContinue = async () => {
     setShowMatchAnimation(false);
     if (currentUser) {
       try {
-        const res = await fetch('/api/matches');
-        if (!res.ok) throw new Error('Failed to fetch matches');
-        const matches = await res.json();
-        useAppStore.getState().setMatches(matches);
+        await refreshMatches();
       } catch (error) {
         console.error('Failed to refresh matches:', error);
       }
@@ -31,10 +36,7 @@ export function MatchAnimationOverlay() {
     setShowMatchAnimation(false);
     if (currentUser) {
       try {
-        const res = await fetch('/api/matches');
-        if (!res.ok) throw new Error('Failed to fetch matches');
-        const matches = await res.json();
-        useAppStore.getState().setMatches(matches);
+        const matches = await refreshMatches();
         const latestMatch = matches[0];
         if (latestMatch) {
           setSelectedMatch(latestMatch);

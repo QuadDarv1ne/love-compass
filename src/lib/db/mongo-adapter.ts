@@ -73,6 +73,10 @@ function mongoOrder(orderBy?: Record<string, any>): Record<string, any> | undefi
   return result;
 }
 
+function toInsertDoc<T>(data: Partial<T>): Record<string, unknown> {
+  return data as unknown as Record<string, unknown>;
+}
+
 export class MongoDBAdapter implements DatabaseAdapter {
   readonly dbType = 'mongodb' as const;
 
@@ -103,7 +107,7 @@ export class MongoDBAdapter implements DatabaseAdapter {
 
   user = {
     create: async (data: Partial<DbUser>): Promise<DbUser> => {
-      const result = await this.db.collection<DbUser>(COLLECTIONS.users).insertOne(data as any);
+      const result = await this.db.collection<DbUser>(COLLECTIONS.users).insertOne(toInsertDoc(data));
       return { ...data, id: result.insertedId.toString() } as DbUser;
     },
 
@@ -146,7 +150,7 @@ export class MongoDBAdapter implements DatabaseAdapter {
     update: async (where: { id: string }, data: Partial<DbUser>): Promise<DbUser> => {
       const result = await this.db.collection<DbUser>(COLLECTIONS.users).findOneAndUpdate(
         { _id: toObjectId(where.id) },
-        { $set: data as any },
+        { $set: toInsertDoc(data) },
         { returnDocument: 'after' }
       );
       if (!result) throw new Error('User not found');
@@ -206,7 +210,7 @@ export class MongoDBAdapter implements DatabaseAdapter {
 
   session = {
     create: async (data: Partial<DbSession>): Promise<DbSession> => {
-      const result = await this.db.collection<DbSession>(COLLECTIONS.sessions).insertOne(data as any);
+      const result = await this.db.collection<DbSession>(COLLECTIONS.sessions).insertOne(toInsertDoc(data));
       return { ...data, id: result.insertedId.toString() } as DbSession;
     },
 
@@ -250,7 +254,7 @@ export class MongoDBAdapter implements DatabaseAdapter {
 
   like = {
     create: async (data: Partial<DbLike>): Promise<DbLike> => {
-      const result = await this.db.collection<DbLike>(COLLECTIONS.likes).insertOne(data as any);
+      const result = await this.db.collection<DbLike>(COLLECTIONS.likes).insertOne(toInsertDoc(data));
       return { ...data, id: result.insertedId.toString() } as DbLike;
     },
 
@@ -314,7 +318,7 @@ export class MongoDBAdapter implements DatabaseAdapter {
 
   match = {
     create: async (data: Partial<DbMatch>): Promise<DbMatch> => {
-      const result = await this.db.collection<DbMatch>(COLLECTIONS.matches).insertOne(data as any);
+      const result = await this.db.collection<DbMatch>(COLLECTIONS.matches).insertOne(toInsertDoc(data));
       return { ...data, id: result.insertedId.toString() } as DbMatch;
     },
 
@@ -395,7 +399,7 @@ export class MongoDBAdapter implements DatabaseAdapter {
 
   message = {
     create: async (data: Partial<DbMessage>): Promise<DbMessage> => {
-      const result = await this.db.collection<DbMessage>(COLLECTIONS.messages).insertOne(data as any);
+      const result = await this.db.collection<DbMessage>(COLLECTIONS.messages).insertOne(toInsertDoc(data));
       return { ...data, id: result.insertedId.toString() } as DbMessage;
     },
 
@@ -454,7 +458,7 @@ export class MongoDBAdapter implements DatabaseAdapter {
 
   block = {
     create: async (data: Partial<DbBlock>): Promise<DbBlock> => {
-      const result = await this.db.collection<DbBlock>(COLLECTIONS.blocks).insertOne(data as any);
+      const result = await this.db.collection<DbBlock>(COLLECTIONS.blocks).insertOne(toInsertDoc(data));
       return { ...data, id: result.insertedId.toString() } as DbBlock;
     },
 
@@ -482,7 +486,7 @@ export class MongoDBAdapter implements DatabaseAdapter {
 
   report = {
     create: async (data: Partial<DbReport>): Promise<DbReport> => {
-      const result = await this.db.collection<DbReport>(COLLECTIONS.reports).insertOne(data as any);
+      const result = await this.db.collection<DbReport>(COLLECTIONS.reports).insertOne(toInsertDoc(data));
       return { ...data, id: result.insertedId.toString() } as DbReport;
     },
 
@@ -503,7 +507,7 @@ export class MongoDBAdapter implements DatabaseAdapter {
     },
 
     create: async (data: Partial<DbRateLimit>): Promise<DbRateLimit> => {
-      const result = await this.db.collection<DbRateLimit>(COLLECTIONS.rateLimits).insertOne(data as any);
+      const result = await this.db.collection<DbRateLimit>(COLLECTIONS.rateLimits).insertOne(toInsertDoc(data));
       return { ...data, id: result.insertedId.toString() } as DbRateLimit;
     },
 
@@ -525,7 +529,7 @@ export class MongoDBAdapter implements DatabaseAdapter {
 
   moment = {
     create: async (data: Partial<DbMoment>): Promise<DbMoment> => {
-      const result = await this.db.collection<DbMoment>(COLLECTIONS.moments).insertOne(data as any);
+      const result = await this.db.collection<DbMoment>(COLLECTIONS.moments).insertOne(toInsertDoc(data));
       return { ...data, id: result.insertedId.toString() } as DbMoment;
     },
 
@@ -582,7 +586,7 @@ export class MongoDBAdapter implements DatabaseAdapter {
 
   momentComment = {
     create: async (data: Partial<DbMomentComment>): Promise<DbMomentComment> => {
-      const result = await this.db.collection<DbMomentComment>(COLLECTIONS.momentComments).insertOne(data as any);
+      const result = await this.db.collection<DbMomentComment>(COLLECTIONS.momentComments).insertOne(toInsertDoc(data));
       return { ...data, id: result.insertedId.toString() } as DbMomentComment;
     },
 
@@ -612,7 +616,7 @@ export class MongoDBAdapter implements DatabaseAdapter {
 
   momentReaction = {
     create: async (data: Partial<DbMomentReaction>): Promise<DbMomentReaction> => {
-      const result = await this.db.collection<DbMomentReaction>(COLLECTIONS.momentReactions).insertOne(data as any);
+      const result = await this.db.collection<DbMomentReaction>(COLLECTIONS.momentReactions).insertOne(toInsertDoc(data));
       return { ...data, id: result.insertedId.toString() } as DbMomentReaction;
     },
 
@@ -652,7 +656,7 @@ export class MongoDBAdapter implements DatabaseAdapter {
 
   momentLike = {
     create: async (data: Partial<DbMomentLike>): Promise<DbMomentLike> => {
-      const result = await this.db.collection<DbMomentLike>(COLLECTIONS.momentLikes).insertOne(data as any);
+      const result = await this.db.collection<DbMomentLike>(COLLECTIONS.momentLikes).insertOne(toInsertDoc(data));
       return { ...data, id: result.insertedId.toString() } as DbMomentLike;
     },
 
@@ -675,7 +679,7 @@ export class MongoDBAdapter implements DatabaseAdapter {
 
   userAchievement = {
     create: async (data: Partial<DbUserAchievement>): Promise<DbUserAchievement> => {
-      const result = await this.db.collection<DbUserAchievement>(COLLECTIONS.userAchievements).insertOne(data as any);
+      const result = await this.db.collection<DbUserAchievement>(COLLECTIONS.userAchievements).insertOne(toInsertDoc(data));
       return { ...data, id: result.insertedId.toString() } as DbUserAchievement;
     },
 
@@ -734,9 +738,9 @@ class MongoDBAdapterForTransaction extends MongoDBAdapter {
   }
 
   user = {
-    ...(MongoDBAdapter.prototype.user as any),
+    ...Object.assign({}, MongoDBAdapter.prototype.user),
     create: async (data: Partial<DbUser>): Promise<DbUser> => {
-      const result = await this.getDb().collection<DbUser>(COLLECTIONS.users).insertOne(data as any, { session: this.txSession });
+      const result = await this.getDb().collection<DbUser>(COLLECTIONS.users).insertOne(toInsertDoc(data), { session: this.txSession });
       return { ...data, id: result.insertedId.toString() } as DbUser;
     },
     findUnique: async (where: { id?: string; email?: string; emailVerificationToken?: string; passwordResetToken?: string }): Promise<DbUser | null> => {
@@ -747,7 +751,7 @@ class MongoDBAdapterForTransaction extends MongoDBAdapter {
     },
     update: async (where: { id: string }, data: Partial<DbUser>): Promise<DbUser> => {
       const result = await this.getDb().collection<DbUser>(COLLECTIONS.users).findOneAndUpdate(
-        { _id: toObjectId(where.id) }, { $set: data as any }, { returnDocument: 'after', session: this.txSession }
+        { _id: toObjectId(where.id) }, { $set: toInsertDoc(data) }, { returnDocument: 'after', session: this.txSession }
       );
       if (!result) throw new Error('User not found');
       return stripId(result) as DbUser;
@@ -755,9 +759,9 @@ class MongoDBAdapterForTransaction extends MongoDBAdapter {
   };
 
   session = {
-    ...(MongoDBAdapter.prototype.session as any),
+    ...Object.assign({}, MongoDBAdapter.prototype.session),
     create: async (data: Partial<DbSession>): Promise<DbSession> => {
-      const result = await this.getDb().collection<DbSession>(COLLECTIONS.sessions).insertOne(data as any, { session: this.txSession });
+      const result = await this.getDb().collection<DbSession>(COLLECTIONS.sessions).insertOne(toInsertDoc(data), { session: this.txSession });
       return { ...data, id: result.insertedId.toString() } as DbSession;
     },
     findUnique: async (where: { token?: string; id?: string }, includeUser?: boolean): Promise<DbSession | SessionWithUser | null> => {
@@ -782,9 +786,9 @@ class MongoDBAdapterForTransaction extends MongoDBAdapter {
   };
 
   like = {
-    ...(MongoDBAdapter.prototype.like as any),
+    ...Object.assign({}, MongoDBAdapter.prototype.like),
     create: async (data: Partial<DbLike>): Promise<DbLike> => {
-      const result = await this.getDb().collection<DbLike>(COLLECTIONS.likes).insertOne(data as any, { session: this.txSession });
+      const result = await this.getDb().collection<DbLike>(COLLECTIONS.likes).insertOne(toInsertDoc(data), { session: this.txSession });
       return { ...data, id: result.insertedId.toString() } as DbLike;
     },
     findUnique: async (where: { fromUserId?: string; toUserId?: string; id?: string }): Promise<DbLike | null> => {
@@ -800,9 +804,9 @@ class MongoDBAdapterForTransaction extends MongoDBAdapter {
   };
 
   match = {
-    ...(MongoDBAdapter.prototype.match as any),
+    ...Object.assign({}, MongoDBAdapter.prototype.match),
     create: async (data: Partial<DbMatch>): Promise<DbMatch> => {
-      const result = await this.getDb().collection<DbMatch>(COLLECTIONS.matches).insertOne(data as any, { session: this.txSession });
+      const result = await this.getDb().collection<DbMatch>(COLLECTIONS.matches).insertOne(toInsertDoc(data), { session: this.txSession });
       return { ...data, id: result.insertedId.toString() } as DbMatch;
     },
     findFirst: async (where?: Record<string, any>): Promise<DbMatch | null> => {
@@ -812,13 +816,13 @@ class MongoDBAdapterForTransaction extends MongoDBAdapter {
   };
 
   rateLimit = {
-    ...(MongoDBAdapter.prototype.rateLimit as any),
+    ...Object.assign({}, MongoDBAdapter.prototype.rateLimit),
     findUnique: async (where: { key: string }): Promise<DbRateLimit | null> => {
       const doc = await this.getDb().collection<DbRateLimit>(COLLECTIONS.rateLimits).findOne({ key: where.key }, { session: this.txSession });
       return stripId(doc) as DbRateLimit | null;
     },
     create: async (data: Partial<DbRateLimit>): Promise<DbRateLimit> => {
-      const result = await this.getDb().collection<DbRateLimit>(COLLECTIONS.rateLimits).insertOne(data as any, { session: this.txSession });
+      const result = await this.getDb().collection<DbRateLimit>(COLLECTIONS.rateLimits).insertOne(toInsertDoc(data), { session: this.txSession });
       return { ...data, id: result.insertedId.toString() } as DbRateLimit;
     },
     update: async (where: { key: string }, data: Partial<DbRateLimit>): Promise<DbRateLimit> => {
@@ -831,7 +835,7 @@ class MongoDBAdapterForTransaction extends MongoDBAdapter {
   };
 
   moment = {
-    ...(MongoDBAdapter.prototype.moment as any),
+    ...Object.assign({}, MongoDBAdapter.prototype.moment),
     update: async (where: { id: string }, data: Partial<DbMoment>): Promise<DbMoment> => {
       const result = await this.getDb().collection<DbMoment>(COLLECTIONS.moments).findOneAndUpdate(
         { _id: toObjectId(where.id) }, { $set: data }, { returnDocument: 'after', session: this.txSession }
@@ -842,7 +846,7 @@ class MongoDBAdapterForTransaction extends MongoDBAdapter {
   };
 
   momentReaction = {
-    ...(MongoDBAdapter.prototype.momentReaction as any),
+    ...Object.assign({}, MongoDBAdapter.prototype.momentReaction),
     findUnique: async (where: { momentId?: string; userId?: string; emoji?: string }): Promise<DbMomentReaction | null> => {
       const query = cleanWhere(where);
       if (Object.keys(query).length === 0) return null;
@@ -852,7 +856,7 @@ class MongoDBAdapterForTransaction extends MongoDBAdapter {
   };
 
   momentLike = {
-    ...(MongoDBAdapter.prototype.momentLike as any),
+    ...Object.assign({}, MongoDBAdapter.prototype.momentLike),
     findUnique: async (where: { momentId?: string; userId?: string }): Promise<DbMomentLike | null> => {
       const query = cleanWhere(where);
       if (Object.keys(query).length === 0) return null;
@@ -862,7 +866,7 @@ class MongoDBAdapterForTransaction extends MongoDBAdapter {
   };
 
   userAchievement = {
-    ...(MongoDBAdapter.prototype.userAchievement as any),
+    ...Object.assign({}, MongoDBAdapter.prototype.userAchievement),
     findUnique: async (where: { userId?: string; achievementId?: string }): Promise<DbUserAchievement | null> => {
       const query = cleanWhere(where);
       if (Object.keys(query).length === 0) return null;

@@ -24,7 +24,7 @@ export interface User {
   profileVisible?: boolean;
   language?: string;
   notificationsEnabled?: boolean;
-  role?: string;
+  role?: 'admin' | 'user';
 }
 
 export interface AdminUser {
@@ -37,7 +37,7 @@ export interface AdminUser {
   avatar: string;
   photos: string;
   city: string;
-  role: string;
+  role: 'admin' | 'user';
   emailVerified: boolean;
   profileVisible: boolean;
   createdAt: string;

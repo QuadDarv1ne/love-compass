@@ -83,8 +83,8 @@ export function LandingView() {
           await checkAuth();
         }
       }
-    } catch {
-      console.error('Login failed');
+    } catch (error) {
+      console.error('Demo login failed:', error);
     }
     setLoading(false);
   };
