@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import { SafeImage } from '@/components/ui/safe-image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -15,30 +15,10 @@ import { fetchWithCSRF } from '@/lib/api';
 
 export function LikedYouView() {
   const { currentUser, likedYouProfiles, setLikedYouProfiles, setShowMatchAnimation, setMatchAnimationPartner, navigateTo } = useAppStore();
-  const [loading, setLoading] = useState(true);
   const matchAnimationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch('/api/likes/received');
-        if (res.ok) {
-          const data = await res.json();
-          if (!cancelled) setLikedYouProfiles(data ?? []);
-        }
-      } catch {
-        // Fall back to store data loaded during hydrate
-      }
-      if (!cancelled) setLoading(false);
-    })();
-    return () => {
-      cancelled = true;
-      if (matchAnimationTimerRef.current) {
-        clearTimeout(matchAnimationTimerRef.current);
-      }
-    };
-  }, [setLikedYouProfiles]);
+  // likedYouProfiles is preloaded via hydrateAppData() on login/auth check
+  // No duplicate API call needed — see api.ts → hydrateAppData()
 
   const handleLikeBack = async (profile: User) => {
     if (!currentUser) return;
@@ -66,16 +46,6 @@ export function LikedYouView() {
       console.error('Like back failed:', error);
     }
   };
-
-  if (loading) {
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
-          <Heart className="w-10 h-10 text-rose-400" />
-        </motion.div>
-      </div>
-    );
-  }
 
   if (likedYouProfiles.length === 0) {
     return (
