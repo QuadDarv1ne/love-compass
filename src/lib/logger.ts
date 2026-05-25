@@ -48,6 +48,8 @@ export const logger = {
       message,
       data,
     };
+    // console.info is allowed in the logger itself
+    // eslint-disable-next-line no-console
     console.info(formatEntry(entry));
   },
 };

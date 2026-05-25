@@ -3,7 +3,7 @@ import { db } from '@/lib/db';
 import { z } from 'zod';
 import { requireAuth, requireAuthWithCSRF, isZodError } from '@/lib/auth/guard';
 import { logger } from '@/lib/logger';
-import { VALIDATION, MOMENTS } from '@/lib/constants';
+import { VALIDATION } from '@/lib/constants';
 
 const createMomentSchema = z.object({
   content: z.string().min(1).max(VALIDATION.MOMENT_MAX_LENGTH),
