@@ -131,11 +131,15 @@ export async function DELETE(request: Request) {
 
     await db.transaction(async (tx) => {
       // Delete the like
-      await tx.like.deleteMany({
+      const deleted = await tx.like.deleteMany({
         AND: [{ fromUserId: user.id }, { toUserId }],
       });
 
-      // If a match exists, delete it too
+      // If no like was deleted, nothing more to do
+      if (deleted === 0) return;
+
+      // If a match exists, delete it — a match requires mutual interest,
+      // so when either party withdraws their like, the match should end
       const match = await tx.match.findFirst({
         OR: [
           { user1Id: user.id, user2Id: toUserId },
@@ -144,13 +148,7 @@ export async function DELETE(request: Request) {
       });
 
       if (match) {
-        // Only delete match if the reverse like also doesn't exist
-        const reverseLike = await tx.like.findUnique({
-          fromUserId: toUserId, toUserId: user.id,
-        });
-        if (!reverseLike) {
-          await tx.match.delete({ id: match.id });
-        }
+        await tx.match.delete({ id: match.id });
       }
     });
 
