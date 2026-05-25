@@ -19,6 +19,9 @@
 - [x] **Fix Zustand race conditions** — Replaced `getState()`+`setState()` with atomic `setState(functionUpdater)` in browse-view (rollback in handleLike/handleSuperLike, atomic handleUndo, onBlock), match-animation-overlay (refreshMatches), and landing-view (demo login). Eliminated stale state reads during concurrent operations.
 - [x] **Починить race conditions в Zustand** — Заменены `getState()`+`setState()` на атомарные `setState(functionUpdater)` в browse-view (rollback в handleLike/handleSuperLike, атомарный handleUndo, onBlock), match-animation-overlay (refreshMatches) и landing-view (demo login). Устранено чтение устаревшего состояния при конкурентных операциях.
 
+- [x] **Standardize error handling** — Extended `logger.ts` with client-side `appLogger` (error/warn/info levels). Replaced 17 scattered `console.error` calls across 8 view components with structured JSON logging (context, timestamp, error data). Enables future Sentry integration.
+- [x] **Стандартизировать обработку ошибок** — Расширен `logger.ts` клиентским `appLogger` (уровни error/warn/info). Заменены 17 разрозненных `console.error` в 8 компонентах на структурированное JSON-логирование (контекст, timestamp, данные ошибки). Подготовлена интеграция с Sentry.
+
 ## Critical
 
 - [x] **Implement real authentication** — Custom auth built with email/password, sessions (httpOnly cookies), CSRF, 2FA/TOTP, password reset, email verification, rate limiting
@@ -127,8 +130,8 @@
 - [x] **Add idempotency to seed** — `seed.ts` uses `upsert` by email, won't destroy existing data
 - [x] **Добавить идемпотентность в seed** — `seed.ts` использует `upsert` по email, не уничтожает существующие данные
 
-- [ ] **Standardize error handling** — Mix of `console.error`, silent failures, and no catch. Use consistent error reporting (Note: empty catch blocks in top-view and landing-view already fixed; mongo-adapter now throws explicit error for orphaned sessions)
-- [ ] **Стандартизировать обработку ошибок** — Смесь `console.error`, тихих падений и отсутствия catch. Использовать единый стиль обработки ошибок (Примечание: пустые catch-блоки в top-view и landing-view уже исправлены; mongo-adapter теперь выдаёт явную ошибку для осиротевших сессий)
+- [x] **Standardize error handling** — Extended `logger.ts` with client-side `appLogger` (error/warn/info levels). Replaced 17 scattered `console.error` calls across 8 view components with structured JSON logging (context, timestamp, error data).
+- [x] **Стандартизировать обработку ошибок** — Расширен `logger.ts` клиентским `appLogger` (уровни error/warn/info). Заменены 17 разрозненных `console.error` в 8 компонентах на структурированное JSON-логирование.
 
 - [ ] **Extract magic numbers** — Swipe thresholds, reply delays, animation durations hardcoded. Use named constants
 - [ ] **Вынести магические числа** — Пороги свайпа, задержки ответов, длительности анимаций захардкожены. Использовать именованные константы
