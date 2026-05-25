@@ -45,6 +45,7 @@ export const profileSelect = {
   profileVisible: true,
   showOnlineStatus: true,
   language: true,
+  lastSeenAt: true,
   createdAt: true,
   updatedAt: true,
 };

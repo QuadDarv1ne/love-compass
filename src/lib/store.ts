@@ -26,6 +26,7 @@ export interface User {
   language?: string;
   notificationsEnabled?: boolean;
   role?: 'admin' | 'user';
+  lastSeenAt?: string;
 }
 
 export interface AdminUser {

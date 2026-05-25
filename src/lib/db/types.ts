@@ -32,6 +32,7 @@ export interface DbUser {
   soundEnabled: boolean;
   matchNotifications: boolean;
   likeNotifications: boolean;
+  lastSeenAt: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -150,6 +151,7 @@ export interface ProfileSelect {
   profileVisible: boolean;
   showOnlineStatus: boolean;
   language: string;
+  lastSeenAt: Date;
   createdAt: Date;
   updatedAt: Date;
 }

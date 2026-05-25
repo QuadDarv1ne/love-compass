@@ -220,3 +220,7 @@ export const TIME = {
   RESEND_COOLDOWN_SECONDS: 60,
   RESEND_COOLDOWN_INTERVAL_MS: 1000,
 } as const;
+
+export const ONLINE_PRESENCE = {
+  ACTIVE_THRESHOLD_MS: 5 * 60 * 1000, // 5 minutes
+} as const;

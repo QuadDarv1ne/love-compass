@@ -1,6 +1,6 @@
 import { useAppStore, type User, type MatchWithUsers } from '@/lib/store';
 import { appLogger } from '@/lib/logger';
-import { PAGINATION } from '@/lib/constants';
+import { PAGINATION, ONLINE_PRESENCE } from '@/lib/constants';
 
 let csrfToken: string | null = null;
 let csrfTokenFetchedAt: number | null = null;
@@ -128,9 +128,14 @@ export async function hydrateAppData(user?: User) {
         const otherProfiles = currentUser ? allUsers.filter((u) => u.id !== currentUser.id) : allUsers;
         store.setProfiles(otherProfiles);
 
-        // Set online status based on each user's showOnlineStatus preference
+        // Set online status based on actual activity (lastSeenAt within threshold)
+        const now = Date.now();
         const onlineIds = otherProfiles
-          .filter((p) => p.showOnlineStatus)
+          .filter((p) => {
+            if (!p.lastSeenAt) return false;
+            const lastSeen = new Date(p.lastSeenAt).getTime();
+            return (now - lastSeen) <= ONLINE_PRESENCE.ACTIVE_THRESHOLD_MS;
+          })
           .map((p) => p.id);
         store.setOnlineUserIds(onlineIds);
       } catch (e) {

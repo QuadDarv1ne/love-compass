@@ -93,6 +93,16 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
+  // Update lastSeenAt for the authenticated user (throttled to once per minute)
+  try {
+    const session = await db.session.findUnique({ token: sessionToken }, true);
+    if (session && 'userId' in session && session.userId) {
+      await db.user.update({ id: session.userId }, { lastSeenAt: new Date() });
+    }
+  } catch {
+    // Non-critical, don't break the request
+  }
+
   return NextResponse.next();
 }
 
