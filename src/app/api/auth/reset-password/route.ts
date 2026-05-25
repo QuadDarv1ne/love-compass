@@ -4,7 +4,9 @@ import { db } from '@/lib/db';
 import { hashPassword, validatePasswordStrength } from '@/lib/auth/password';
 import { invalidateAllUserSessions } from '@/lib/auth/session';
 import { hashToken } from '@/lib/auth/crypto';
+import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';
+import { RATE_LIMITS } from '@/lib/constants';
 
 const resetSchema = z.object({
   token: z.string().min(1),
@@ -24,6 +26,19 @@ export async function POST(request: Request) {
     }
 
     const { token, newPassword } = result.data;
+
+    // Rate limit: prevent brute-force attacks on reset tokens
+    const rateLimit = await checkRateLimit(
+      `reset-use:${token.slice(0, 10)}`,
+      RATE_LIMITS.FORGOT_PASSWORD.MAX,
+      RATE_LIMITS.FORGOT_PASSWORD.WINDOW,
+    );
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Слишком много попыток. Попробуйте позже' },
+        { status: 429 }
+      );
+    }
 
     // Password strength
     const strength = validatePasswordStrength(newPassword);

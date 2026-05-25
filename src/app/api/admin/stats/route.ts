@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { requireAdmin } from '@/lib/auth/guard';
+import { requireAdminWithCSRF } from '@/lib/auth/guard';
 import { logger } from '@/lib/logger';
 
 export async function GET(request: Request) {
   try {
-    const auth = await requireAdmin(request);
+    const auth = await requireAdminWithCSRF(request);
     if (auth instanceof NextResponse) return auth;
 
     const now = new Date();

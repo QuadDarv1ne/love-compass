@@ -15,7 +15,7 @@ export async function setCSRFTokenCookie(): Promise<string> {
   cookieStore.set(CSRF_COOKIE_NAME, token, {
     httpOnly: false, // readable by JS for double-submit
     secure: isProduction,
-    sameSite: 'lax',
+    sameSite: 'strict',
     path: '/',
     maxAge: 60 * 60 * 24, // 1 day
   });

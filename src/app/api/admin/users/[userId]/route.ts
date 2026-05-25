@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { requireAdmin, requireAdminWithCSRF, isZodError } from '@/lib/auth/guard';
+import { requireAdminWithCSRF, isZodError } from '@/lib/auth/guard';
 import { sanitizeUser } from '@/lib/auth/projections';
 import { z } from 'zod';
 
 export async function GET(request: Request, { params }: { params: Promise<{ userId: string }> }) {
-  const auth = await requireAdmin(request);
+  const auth = await requireAdminWithCSRF(request);
   if (auth instanceof NextResponse) return auth;
 
   try {
