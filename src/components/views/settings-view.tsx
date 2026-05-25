@@ -244,6 +244,7 @@ export function SettingsView() {
   const { setTheme, theme } = useTheme();
   const {
     currentUser,
+    refreshUser,
     logout,
     clearAllData,
     notificationsEnabled,
@@ -300,7 +301,7 @@ export function SettingsView() {
       toast.success('2FA отключён');
       setDisable2FACode('');
       // Refresh user state to update 2FA status without losing client data
-      useAppStore.getState().checkAuth();
+      refreshUser();
     } catch {
       toast.error('Ошибка сервера');
     } finally {
@@ -846,8 +847,7 @@ export function SettingsView() {
         open={twoFADialogOpen}
         onOpenChange={setTwoFADialogOpen}
         onEnabled={() => {
-          // Refresh user state to update 2FA status without losing client data
-          useAppStore.getState().checkAuth();
+          refreshUser();
         }}
       />
     </div>
