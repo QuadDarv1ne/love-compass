@@ -4,12 +4,13 @@ import { requireAdmin, isZodError } from '@/lib/auth/guard';
 import { sanitizeUser } from '@/lib/auth/projections';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
+import { PAGINATION } from '@/lib/constants';
 
 const querySchema = z.object({
   gender: z.enum(['all', 'male', 'female', 'other']).default('all'),
   search: z.string().optional(),
   page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(20),
+  limit: z.coerce.number().int().min(1).max(PAGINATION.ADMIN_MAX_LIMIT).default(PAGINATION.ADMIN_DEFAULT_LIMIT),
   sort: z.enum(['newest', 'oldest', 'name', 'popular']).default('newest'),
 });
 

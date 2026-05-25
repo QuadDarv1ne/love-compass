@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { requireAuthWithCSRF, isZodError } from '@/lib/auth/guard';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';
+import { AUTO_REPLY } from '@/lib/constants';
 
 const autoReplySchema = z.object({
   matchId: z.string().min(1),
@@ -49,8 +50,8 @@ export async function POST(request: Request) {
     // Rate limit: max 5 auto-replies per minute per user
     const rateLimit = await checkRateLimit(
       `auto-reply:${user.id}`,
-      5,
-      60,
+      AUTO_REPLY.RATE_LIMIT_MAX,
+      AUTO_REPLY.RATE_LIMIT_WINDOW,
     );
     if (!rateLimit.allowed) {
       return NextResponse.json(

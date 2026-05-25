@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { z } from 'zod';
 import { requireAuth, isZodError } from '@/lib/auth/guard';
 import { sanitizeUser } from '@/lib/auth/projections';
+import { PAGINATION } from '@/lib/constants';
 
 export async function GET(request: Request) {
   try {
@@ -14,10 +15,10 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const pagination = z.object({
       cursor: z.string().optional(),
-      limit: z.coerce.number().min(1).max(100).default(20),
+      limit: z.coerce.number().min(1).max(PAGINATION.PROFILES_MAX_LIMIT).default(PAGINATION.PROFILES_DEFAULT_LIMIT),
     }).parse({
       cursor: searchParams.get('cursor') || undefined,
-      limit: parseInt(searchParams.get('limit') || '20'),
+      limit: parseInt(searchParams.get('limit') || String(PAGINATION.PROFILES_DEFAULT_LIMIT)),
     });
 
     const skip = pagination.cursor ? 1 : 0;

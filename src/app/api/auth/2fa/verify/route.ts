@@ -12,6 +12,7 @@ import {
 import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';
 import { sanitizeUser } from '@/lib/auth/projections';
+import { RATE_LIMITS } from '@/lib/constants';
 
 const verifySchema = z.object({
   tempToken: z.string().min(1),
@@ -33,7 +34,7 @@ export async function POST(request: Request) {
     const { tempToken, code } = result.data;
 
     // Rate limit per temp token
-    const rateLimit = await checkRateLimit(`2fa:${tempToken.slice(0, 10)}`, 5, 300);
+    const rateLimit = await checkRateLimit(`2fa:${tempToken.slice(0, 10)}`, RATE_LIMITS.TOTP_VERIFY.MAX, RATE_LIMITS.TOTP_VERIFY.WINDOW);
     if (!rateLimit.allowed) {
       return NextResponse.json(
         { error: 'Слишком много попыток' },
@@ -94,7 +95,7 @@ export async function POST(request: Request) {
     }
 
     // Prevent temp token reuse: block this token for the next 5 minutes
-    await checkRateLimit(`2fa-used:${tempToken.slice(0, 10)}`, 1, 300);
+    await checkRateLimit(`2fa-used:${tempToken.slice(0, 10)}`, RATE_LIMITS.TOTP_REPLAY.MAX, RATE_LIMITS.TOTP_REPLAY.WINDOW);
 
     // Create session
     const sessionToken = generateSessionToken();

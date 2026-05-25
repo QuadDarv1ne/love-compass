@@ -9,6 +9,7 @@ import { sendVerificationEmail } from '@/lib/email';
 import { generateRandomToken, hashToken, getClientIp } from '@/lib/auth/crypto';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';
+import { RATE_LIMITS, TOKEN } from '@/lib/constants';
 
 export async function GET(request: Request) {
   try {
@@ -83,7 +84,7 @@ export async function POST(request: Request) {
     const emailLower = email.toLowerCase();
 
     // Rate limit: 3 per hour
-    const rateLimit = await checkRateLimit(`verify:${emailLower}`, 3, 3600);
+    const rateLimit = await checkRateLimit(`verify:${emailLower}`, RATE_LIMITS.VERIFY_EMAIL.MAX, RATE_LIMITS.VERIFY_EMAIL.WINDOW);
     if (!rateLimit.allowed) {
       return NextResponse.json(
         { error: 'Слишком много попыток. Попробуйте позже' },
@@ -98,9 +99,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true });
     }
 
-    const newToken = generateRandomToken(32);
+    const newToken = generateRandomToken(TOKEN.BYTE_LENGTH);
     const hashedNewToken = hashToken(newToken);
-    const expiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    const expiry = new Date(Date.now() + TOKEN.VERIFICATION_EXPIRY_MS);
 
     await db.user.update(
       { id: user.id },

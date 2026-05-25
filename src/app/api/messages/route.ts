@@ -5,9 +5,11 @@ import { requireAuth, requireAuthWithCSRF, isZodError } from '@/lib/auth/guard';
 import { sanitizeUser } from '@/lib/auth/projections';
 import { logger } from '@/lib/logger';
 
+import { VALIDATION } from '@/lib/constants';
+
 const sendMessageSchema = z.object({
   matchId: z.string().min(1),
-  content: z.string().min(1).max(2000),
+  content: z.string().min(1).max(VALIDATION.MESSAGE_MAX_LENGTH),
 });
 
 export async function GET(request: Request) {

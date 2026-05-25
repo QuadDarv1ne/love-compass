@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { requireAuth, isZodError } from '@/lib/auth/guard';
 import { sanitizeUser } from '@/lib/auth/projections';
 import { logger } from '@/lib/logger';
+import { SCORING } from '@/lib/constants';
 
 const querySchema = z.object({
   sort: z.enum(['popular', 'active', 'new']).default('popular'),
@@ -53,8 +54,8 @@ export async function GET(request: Request) {
     const ranked = users.map((u) => {
       const likesReceived = likeMap.get(u.id) || 0;
       const matchCount = matchMap.get(u.id) || 0;
-      const popularityScore = likesReceived * 10 + matchCount * 5;
-      const activityScore = popularityScore + matchCount * 50;
+      const popularityScore = likesReceived * SCORING.LIKE_WEIGHT + matchCount * SCORING.MATCH_WEIGHT;
+      const activityScore = popularityScore + matchCount * SCORING.ACTIVITY_MATCH_BONUS;
 
       const safe = sanitizeUser(u);
       return {

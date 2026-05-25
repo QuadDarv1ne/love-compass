@@ -5,6 +5,7 @@ import { generateRandomToken, hashToken } from '@/lib/auth/crypto';
 import { sendPasswordResetEmail } from '@/lib/email';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';
+import { RATE_LIMITS, TOKEN } from '@/lib/constants';
 
 const forgotSchema = z.object({
   email: z.string().email(),
@@ -26,7 +27,7 @@ export async function POST(request: Request) {
     const emailLower = email.toLowerCase();
 
     // Rate limit: 3 per hour
-    const rateLimit = await checkRateLimit(`reset:${emailLower}`, 3, 3600);
+    const rateLimit = await checkRateLimit(`reset:${emailLower}`, RATE_LIMITS.FORGOT_PASSWORD.MAX, RATE_LIMITS.FORGOT_PASSWORD.WINDOW);
     if (!rateLimit.allowed) {
       return NextResponse.json(
         { error: 'Слишком много попыток. Попробуйте позже' },
@@ -36,9 +37,9 @@ export async function POST(request: Request) {
 
     const user = await db.user.findUnique({ email: emailLower });
 
-    const resetToken = generateRandomToken(32);
+    const resetToken = generateRandomToken(TOKEN.BYTE_LENGTH);
     const hashedResetToken = hashToken(resetToken);
-    const expiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    const expiry = new Date(Date.now() + TOKEN.RESET_EXPIRY_MS);
 
     if (user) {
       await db.user.update(

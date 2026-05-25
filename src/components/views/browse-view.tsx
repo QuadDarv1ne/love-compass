@@ -13,19 +13,8 @@ import { appLogger } from '@/lib/logger';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { useAppStore, type User } from '@/lib/store';
+import { SUPER_LIKE_DAILY_LIMIT, SWIPE, MATCH_ANIMATION_DELAY } from '@/lib/constants';
 import { FilterPanel } from './shared';
-
-// ─── Super Like State ────────────────────────────────────────────────────────
-const SUPER_LIKE_DAILY_LIMIT = 3;
-
-// ─── Swipe & Animation Constants ─────────────────────────────────────────────
-const SWIPE_THRESHOLD = 120;
-const SWIPE_LABEL_THRESHOLD = 60;
-const TAP_DISTANCE = 10;
-const ANIMATION_DURATION = 500;
-const SUPER_LIKE_DURATION = 800;
-const CARD_REMOVAL_DELAY = 400;
-const MATCH_ANIMATION_DELAY = 600;
 
 // ─── Profile Detail Modal ────────────────────────────────────────────────────
 function ProfileDetailModal({
@@ -257,7 +246,7 @@ export function BrowseView() {
     setLastSwipedProfile(profile);
     setLastSwipeAction('like');
 
-    const t1 = setTimeout(() => { setSwipeDir(null); setShowHeartBurst(false); }, ANIMATION_DURATION);
+    const t1 = setTimeout(() => { setSwipeDir(null); setShowHeartBurst(false); }, SWIPE.ANIMATION_DURATION);
     timerIdsRef.current.push(t1);
 
     try {
@@ -273,7 +262,7 @@ export function BrowseView() {
         const t2 = setTimeout(() => { setShowMatchAnimation(true); }, MATCH_ANIMATION_DELAY);
         timerIdsRef.current.push(t2);
       }
-      const t3 = setTimeout(() => removeProfile(profile.id), CARD_REMOVAL_DELAY);
+      const t3 = setTimeout(() => removeProfile(profile.id), SWIPE.CARD_REMOVAL_DELAY);
       timerIdsRef.current.push(t3);
     } catch (error) {
       // Rollback optimistic update atomically to prevent stale state races
@@ -291,8 +280,8 @@ export function BrowseView() {
     addDislikedUserId(profile.id);
     setLastSwipedProfile(profile);
     setLastSwipeAction('dislike');
-    const t1 = setTimeout(() => { setSwipeDir(null); setShowX(false); }, ANIMATION_DURATION);
-    const t2 = setTimeout(() => removeProfile(profile.id), CARD_REMOVAL_DELAY);
+    const t1 = setTimeout(() => { setSwipeDir(null); setShowX(false); }, SWIPE.ANIMATION_DURATION);
+    const t2 = setTimeout(() => removeProfile(profile.id), SWIPE.CARD_REMOVAL_DELAY);
     timerIdsRef.current.push(t1, t2);
   }, [addDislikedUserId, removeProfile]);
 
@@ -303,7 +292,7 @@ export function BrowseView() {
     addLikedUserId(profile.id);
     setLastSwipedProfile(profile);
     setLastSwipeAction('superLike');
-    const t1 = setTimeout(() => { setShowSuperLike(false); }, SUPER_LIKE_DURATION);
+    const t1 = setTimeout(() => { setShowSuperLike(false); }, SWIPE.SUPER_LIKE_DURATION);
     timerIdsRef.current.push(t1);
     try {
       const res = await fetchWithCSRF('/api/like', { toUserId: profile.id, isSuperLike: true });
@@ -328,7 +317,7 @@ export function BrowseView() {
         const t2 = setTimeout(() => { setShowMatchAnimation(true); }, MATCH_ANIMATION_DELAY);
         timerIdsRef.current.push(t2);
       }
-      const t3 = setTimeout(() => removeProfile(profile.id), CARD_REMOVAL_DELAY);
+      const t3 = setTimeout(() => removeProfile(profile.id), SWIPE.CARD_REMOVAL_DELAY);
       timerIdsRef.current.push(t3);
     } catch (error) {
       // Rollback optimistic updates atomically to prevent stale state races
@@ -401,16 +390,16 @@ export function BrowseView() {
     const dragDistance = Math.abs(info.offset.x);
 
     // If drag distance is very small, treat as tap → open detail modal
-    if (dragDistance < TAP_DISTANCE) {
+    if (dragDistance < SWIPE.TAP_DISTANCE) {
       setDragX(0);
       dragStartPos.current = null;
       setDetailProfile(profile);
       return;
     }
 
-    if (info.offset.x > SWIPE_THRESHOLD) {
+    if (info.offset.x > SWIPE.THRESHOLD) {
       handleLike(profile);
-    } else if (info.offset.x < -SWIPE_THRESHOLD) {
+    } else if (info.offset.x < -SWIPE.THRESHOLD) {
       handleDislike(profile);
     }
     setDragX(0);
@@ -525,11 +514,11 @@ export function BrowseView() {
               <SafeImage src={currentProfile.avatar || 'https://api.dicebear.com/9.x/notionists/svg?seed=Default'} alt={currentProfile.name} fill className="object-cover" priority />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
               {/* Swipe labels during drag */}
-              {dragX > SWIPE_LABEL_THRESHOLD && (
-                <div className="absolute top-8 left-6 bg-green-500/90 text-white px-4 py-2 rounded-lg text-xl font-bold transform -rotate-12 border-[3px] border-green-400 shadow-lg pointer-events-none transition-opacity" style={{ opacity: Math.min((dragX - SWIPE_LABEL_THRESHOLD) / (SWIPE_THRESHOLD - SWIPE_LABEL_THRESHOLD), 1) }}>НРАВИТСЯ</div>
+              {dragX > SWIPE.LABEL_THRESHOLD && (
+                <div className="absolute top-8 left-6 bg-green-500/90 text-white px-4 py-2 rounded-lg text-xl font-bold transform -rotate-12 border-[3px] border-green-400 shadow-lg pointer-events-none transition-opacity" style={{ opacity: Math.min((dragX - SWIPE.LABEL_THRESHOLD) / (SWIPE.THRESHOLD - SWIPE.LABEL_THRESHOLD), 1) }}>НРАВИТСЯ</div>
               )}
-              {dragX < -SWIPE_LABEL_THRESHOLD && (
-                <div className="absolute top-8 right-6 bg-red-500/90 text-white px-4 py-2 rounded-lg text-xl font-bold transform rotate-12 border-[3px] border-red-400 shadow-lg pointer-events-none transition-opacity" style={{ opacity: Math.min((Math.abs(dragX) - SWIPE_LABEL_THRESHOLD) / (SWIPE_THRESHOLD - SWIPE_LABEL_THRESHOLD), 1) }}>НЕТ</div>
+              {dragX < -SWIPE.LABEL_THRESHOLD && (
+                <div className="absolute top-8 right-6 bg-red-500/90 text-white px-4 py-2 rounded-lg text-xl font-bold transform rotate-12 border-[3px] border-red-400 shadow-lg pointer-events-none transition-opacity" style={{ opacity: Math.min((Math.abs(dragX) - SWIPE.LABEL_THRESHOLD) / (SWIPE.THRESHOLD - SWIPE.LABEL_THRESHOLD), 1) }}>НЕТ</div>
               )}
               {swipeDir === 'right' && (
                 <div className="absolute top-8 left-6 bg-green-500 text-white px-4 py-2 rounded-lg text-xl font-bold transform -rotate-12 border-[3px] border-green-400 shadow-lg pointer-events-none">НРАВИТСЯ</div>

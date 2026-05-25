@@ -17,7 +17,7 @@ function formatEntry(entry: LogEntry): string {
   return JSON.stringify(entry);
 }
 
-export const appLogger = {
+export const logger = {
   error(context: string, message: string, data?: unknown) {
     const entry: LogEntry = {
       level: 'error',
@@ -48,8 +48,8 @@ export const appLogger = {
       message,
       data,
     };
-    // console.info is allowed in the logger itself
-    // eslint-disable-next-line no-console
     console.info(formatEntry(entry));
   },
 };
+
+export const appLogger = logger;

@@ -3,10 +3,11 @@ import { z } from 'zod';
 import { db } from '@/lib/db';
 import { requireAuth, requireAuthWithCSRF, isZodError } from '@/lib/auth/guard';
 import { logger } from '@/lib/logger';
+import { VALIDATION } from '@/lib/constants';
 
 const blockSchema = z.object({
   blockedId: z.string().min(1),
-  reason: z.string().max(500).optional(),
+  reason: z.string().max(VALIDATION.BLOCK_REASON_MAX_LENGTH).optional(),
 });
 
 export async function POST(request: Request) {

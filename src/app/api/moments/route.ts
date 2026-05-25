@@ -3,14 +3,15 @@ import { db } from '@/lib/db';
 import { z } from 'zod';
 import { requireAuth, requireAuthWithCSRF, isZodError } from '@/lib/auth/guard';
 import { logger } from '@/lib/logger';
+import { VALIDATION, MOMENTS } from '@/lib/constants';
 
 const createMomentSchema = z.object({
-  content: z.string().min(1).max(200),
+  content: z.string().min(1).max(VALIDATION.MOMENT_MAX_LENGTH),
   gradient: z.string().default('from-rose-400 to-pink-500'),
 });
 
 const commentSchema = z.object({
-  content: z.string().min(1).max(500),
+  content: z.string().min(1).max(VALIDATION.COMMENT_MAX_LENGTH),
 });
 
 const reactionSchema = z.object({

@@ -13,6 +13,7 @@ import { useAppStore, type User } from '@/lib/store';
 import { OnlineIndicator } from './shared';
 import { fetchWithCSRF } from '@/lib/api';
 import { appLogger } from '@/lib/logger';
+import { MATCH_ANIMATION_DELAY } from '@/lib/constants';
 
 export function LikedYouView() {
   const { currentUser, likedYouProfiles, setLikedYouProfiles, setShowMatchAnimation, setMatchAnimationPartner, navigateTo } = useAppStore();
@@ -33,7 +34,7 @@ export function LikedYouView() {
           className: 'toast-match',
         });
         setMatchAnimationPartner(profile);
-        matchAnimationTimerRef.current = setTimeout(() => { setShowMatchAnimation(true); }, 300);
+        matchAnimationTimerRef.current = setTimeout(() => { setShowMatchAnimation(true); }, MATCH_ANIMATION_DELAY);
       } else {
         toast.info(`${profile.name} оценил(а) вашу анкету!`, {
           description: 'Вы лайкнули в ответ',

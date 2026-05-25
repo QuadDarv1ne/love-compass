@@ -5,8 +5,9 @@ import { logger } from '@/lib/logger';
 import { randomUUID } from 'crypto';
 import { existsSync, mkdirSync, writeFileSync, unlinkSync } from 'fs';
 import path from 'path';
+import { UPLOAD } from '@/lib/constants';
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_FILE_SIZE = UPLOAD.MAX_FILE_SIZE;
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads', 'avatars');
 

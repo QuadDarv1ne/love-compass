@@ -4,11 +4,12 @@ import { db } from '@/lib/db';
 import { requireAuthWithCSRF, isZodError } from '@/lib/auth/guard';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';
+import { REPORT_LIMITS, VALIDATION } from '@/lib/constants';
 
 const reportSchema = z.object({
   reportedId: z.string().min(1),
-  reason: z.string().min(1).max(500),
-  details: z.string().max(2000).optional(),
+  reason: z.string().min(1).max(VALIDATION.REPORT_REASON_MAX_LENGTH),
+  details: z.string().max(VALIDATION.REPORT_DETAILS_MAX_LENGTH).optional(),
 });
 
 export async function POST(request: Request) {
@@ -26,7 +27,7 @@ export async function POST(request: Request) {
     }
 
     // Rate limit: 10 reports per hour per user
-    const rateLimit = await checkRateLimit(`report:${reporterId}`, 10, 3600);
+    const rateLimit = await checkRateLimit(`report:${reporterId}`, REPORT_LIMITS.MAX_PER_HOUR, REPORT_LIMITS.WINDOW_SECONDS);
     if (!rateLimit.allowed) {
       return NextResponse.json(
         { error: 'Слишком много жалоб. Попробуйте позже' },

@@ -4,9 +4,10 @@ import { logger } from '@/lib/logger';
 import { randomUUID } from 'crypto';
 import { existsSync, mkdirSync, writeFileSync, unlinkSync } from 'fs';
 import path from 'path';
+import { UPLOAD } from '@/lib/constants';
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-const MAX_PHOTOS = 6;
+const MAX_FILE_SIZE = UPLOAD.MAX_FILE_SIZE;
+const MAX_PHOTOS = UPLOAD.MAX_PHOTOS;
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads', 'photos');
 

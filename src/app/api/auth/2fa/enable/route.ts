@@ -4,9 +4,10 @@ import { requireAuthWithCSRF } from '@/lib/auth/guard';
 import { verifyTOTP } from '@/lib/auth/totp';
 import { db } from '@/lib/db';
 import { logger } from '@/lib/logger';
+import { TOTP } from '@/lib/constants';
 
 const enableSchema = z.object({
-  token: z.string().length(6),
+  token: z.string().length(TOTP.TOKEN_LENGTH),
 });
 
 export async function POST(request: Request) {

@@ -6,6 +6,7 @@ import { requireAuthWithCSRF } from '@/lib/auth/guard';
 import { invalidateAllUserSessions } from '@/lib/auth/session';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';
+import { RATE_LIMITS } from '@/lib/constants';
 
 const changePasswordSchema = z.object({
   currentPassword: z.string().min(1),
@@ -32,7 +33,7 @@ export async function POST(request: Request) {
     const { currentPassword, newPassword } = result.data;
 
     // Rate limit: max 5 attempts per 15 minutes per user
-    const rateLimit = await checkRateLimit(`change-password:${user.id}`, 5, 900);
+    const rateLimit = await checkRateLimit(`change-password:${user.id}`, RATE_LIMITS.CHANGE_PASSWORD.MAX, RATE_LIMITS.CHANGE_PASSWORD.WINDOW);
     if (!rateLimit.allowed) {
       return NextResponse.json(
         { error: 'Слишком много попыток. Попробуйте позже' },

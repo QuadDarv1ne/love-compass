@@ -4,14 +4,15 @@ import { z } from 'zod';
 import { requireAuth, requireAuthWithCSRF, isZodError } from '@/lib/auth/guard';
 import { sanitizeUser } from '@/lib/auth/projections';
 import { logger } from '@/lib/logger';
+import { VALIDATION, UPLOAD } from '@/lib/constants';
 
 const updateProfileSchema = z.object({
-  name: z.string().min(1).max(100).optional(),
-  bio: z.string().max(500).optional(),
-  city: z.string().max(100).optional(),
-  interests: z.string().max(500).optional(),
+  name: z.string().min(1).max(VALIDATION.NAME_MAX_LENGTH).optional(),
+  bio: z.string().max(VALIDATION.BIO_MAX_LENGTH).optional(),
+  city: z.string().max(VALIDATION.CITY_MAX_LENGTH).optional(),
+  interests: z.string().max(VALIDATION.INTERESTS_MAX_LENGTH).optional(),
   lookingFor: z.enum(['all', 'male', 'female']).optional(),
-  photos: z.array(z.string()).max(6).optional(),
+  photos: z.array(z.string()).max(UPLOAD.MAX_PHOTOS).optional(),
 });
 
 export async function GET(request: Request) {

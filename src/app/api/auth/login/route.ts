@@ -13,10 +13,7 @@ import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';
 export { loginUserSelect } from '@/lib/auth/projections';
 import { sanitizeUser } from '@/lib/auth/projections';
-
-const MAX_LOGIN_ATTEMPTS = 20;
-const LOCKOUT_WINDOW = 15 * 60; // 15 minutes
-const LOCKOUT_DURATION = 30 * 60; // 30 minutes
+import { LOGIN_LIMITS, TOTP } from '@/lib/constants';
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -41,8 +38,8 @@ export async function POST(request: Request) {
     // Rate limiting per email
     const rateLimit = await checkRateLimit(
       `login:${emailLower}`,
-      MAX_LOGIN_ATTEMPTS,
-      LOCKOUT_WINDOW
+      LOGIN_LIMITS.MAX_ATTEMPTS,
+      LOGIN_LIMITS.LOCKOUT_WINDOW
     );
     if (!rateLimit.allowed) {
       return NextResponse.json(
@@ -74,8 +71,8 @@ export async function POST(request: Request) {
       // Increment failed attempts
       const newAttempts = user.loginAttempts + 1;
       const lockedUntil =
-        newAttempts >= MAX_LOGIN_ATTEMPTS
-          ? new Date(Date.now() + LOCKOUT_DURATION * 1000)
+        newAttempts >= LOGIN_LIMITS.MAX_ATTEMPTS
+          ? new Date(Date.now() + LOGIN_LIMITS.LOCKOUT_DURATION * 1000)
           : undefined;
 
       await db.user.update(
@@ -102,7 +99,7 @@ export async function POST(request: Request) {
 
     // Check 2FA
     if (user.totpEnabled) {
-      const tempToken = await signTempToken({ userId: user.id }, 5);
+      const tempToken = await signTempToken({ userId: user.id }, TOTP.TEMP_TOKEN_TTL_MINUTES);
       return NextResponse.json({
         needs2FA: true,
         tempToken,
