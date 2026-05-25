@@ -10,8 +10,8 @@ import { useAppStore, type User, type MatchWithUsers } from '@/lib/store';
 import { OnlineIndicator } from './shared';
 
 export function MatchesView() {
-  const { matches, currentUser, navigateTo, setSelectedMatch, unreadMatchIds } = useAppStore();
-  const [localLoading, setLocalLoading] = useState(true);
+  const { matches, currentUser, navigateTo, setSelectedMatch, unreadMatchIds, setUnreadMatchIds } = useAppStore();
+  const [localLoading, setLocalLoading] = useState(() => matches.length === 0);
 
   useEffect(() => {
     // Data is already loaded via hydrateAppData() on login
@@ -29,9 +29,9 @@ export function MatchesView() {
         }
       }
     }
-    useAppStore.getState().setUnreadMatchIds(unreadIds);
+    setUnreadMatchIds(unreadIds);
     setLocalLoading(false);
-  }, [currentUser, matches]);
+  }, [currentUser, matches, setUnreadMatchIds]);
 
   const getPartner = (match: MatchWithUsers): User => {
     return match.user1.id === currentUser?.id ? match.user2 : match.user1;
