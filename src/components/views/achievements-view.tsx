@@ -15,14 +15,21 @@ import { useAppStore } from '@/lib/store';
 
 // ─── Achievement definitions ─────────────────────────────────────────────────
 
+interface AchievementState {
+  likedUserIds: string[];
+  matches: unknown[];
+  superLikedUserIds: string[];
+  dislikedUserIds: string[];
+  currentUser: unknown;
+}
+
 interface AchievementDef {
   id: string;
   name: string;
   description: string;
   icon: React.ElementType;
   threshold: number;
-  /** Returns the current progress value for this achievement */
-  getValue: () => number;
+  getValue: (state: AchievementState) => number;
   category: 'dating' | 'communication' | 'explorer' | 'special';
 }
 
@@ -34,7 +41,7 @@ const ACHIEVEMENTS: AchievementDef[] = [
     description: 'Отправьте первый лайк',
     icon: Heart,
     threshold: 1,
-    getValue: () => useAppStore.getState().likedUserIds.length,
+    getValue: (s) => s.likedUserIds.length,
     category: 'dating',
   },
   {
@@ -43,7 +50,7 @@ const ACHIEVEMENTS: AchievementDef[] = [
     description: 'Лайкните 10 анкет',
     icon: Heart,
     threshold: 10,
-    getValue: () => useAppStore.getState().likedUserIds.length,
+    getValue: (s) => s.likedUserIds.length,
     category: 'dating',
   },
   {
@@ -52,7 +59,7 @@ const ACHIEVEMENTS: AchievementDef[] = [
     description: 'Используйте 5 суперлайков',
     icon: Star,
     threshold: 5,
-    getValue: () => useAppStore.getState().superLikedUserIds.length,
+    getValue: (s) => s.superLikedUserIds.length,
     category: 'dating',
   },
 
@@ -63,7 +70,7 @@ const ACHIEVEMENTS: AchievementDef[] = [
     description: 'Получите первый мэтч',
     icon: MessageCircle,
     threshold: 1,
-    getValue: () => useAppStore.getState().matches.length,
+    getValue: (s) => s.matches.length,
     category: 'communication',
   },
   {
@@ -72,7 +79,7 @@ const ACHIEVEMENTS: AchievementDef[] = [
     description: 'Получите 5 мэтчей',
     icon: Users,
     threshold: 5,
-    getValue: () => useAppStore.getState().matches.length,
+    getValue: (s) => s.matches.length,
     category: 'communication',
   },
   {
@@ -81,7 +88,7 @@ const ACHIEVEMENTS: AchievementDef[] = [
     description: 'Получите 10 мэтчей',
     icon: Crown,
     threshold: 10,
-    getValue: () => useAppStore.getState().matches.length,
+    getValue: (s) => s.matches.length,
     category: 'communication',
   },
 
@@ -92,7 +99,7 @@ const ACHIEVEMENTS: AchievementDef[] = [
     description: 'Войдите в приложение',
     icon: Compass,
     threshold: 1,
-    getValue: () => (useAppStore.getState().currentUser ? 1 : 0),
+    getValue: (s) => (s.currentUser ? 1 : 0),
     category: 'explorer',
   },
   {
@@ -101,10 +108,7 @@ const ACHIEVEMENTS: AchievementDef[] = [
     description: 'Просмотрите 50 анкет',
     icon: Award,
     threshold: 50,
-    getValue: () => {
-      const s = useAppStore.getState();
-      return s.likedUserIds.length + s.dislikedUserIds.length;
-    },
+    getValue: (s) => s.likedUserIds.length + s.dislikedUserIds.length,
     category: 'explorer',
   },
 
@@ -115,7 +119,7 @@ const ACHIEVEMENTS: AchievementDef[] = [
     description: '3 суперлайка за сессию',
     icon: Zap,
     threshold: 3,
-    getValue: () => useAppStore.getState().superLikedUserIds.length,
+    getValue: (s) => s.superLikedUserIds.length,
     category: 'special',
   },
   {
@@ -124,7 +128,7 @@ const ACHIEVEMENTS: AchievementDef[] = [
     description: 'Лайкните 25 анкет',
     icon: Gift,
     threshold: 25,
-    getValue: () => useAppStore.getState().likedUserIds.length,
+    getValue: (s) => s.likedUserIds.length,
     category: 'special',
   },
 ];
@@ -162,6 +166,7 @@ const cardVariants = {
 
 export function AchievementsView() {
   const {
+    currentUser,
     likedUserIds,
     matches,
     superLikedUserIds,
@@ -176,17 +181,19 @@ export function AchievementsView() {
 
   // ── Compute current progress values for every achievement ──
   const progressMap = useMemo(() => {
+    const state: AchievementState = { likedUserIds, matches, superLikedUserIds, dislikedUserIds, currentUser };
     const map = new Map<string, number>();
     for (const a of ACHIEVEMENTS) {
-      map.set(a.id, a.getValue());
+      map.set(a.id, a.getValue(state));
     }
     return map;
-  }, [likedUserIds, matches, superLikedUserIds, dislikedUserIds]);
+  }, [likedUserIds, matches, superLikedUserIds, dislikedUserIds, currentUser]);
 
   // ── Auto-unlock on mount and on state changes ──
   const checkAndUnlock = useCallback(() => {
+    const state: AchievementState = { likedUserIds, matches, superLikedUserIds, dislikedUserIds, currentUser };
     for (const a of ACHIEVEMENTS) {
-      const val = a.getValue();
+      const val = a.getValue(state);
       if (val >= a.threshold && !unlockedAchievements.includes(a.id)) {
         unlockAchievement(a.id);
         // Only show toast for achievements that were NOT already unlocked at mount time
@@ -198,7 +205,7 @@ export function AchievementsView() {
         }
       }
     }
-  }, [unlockedAchievements, unlockAchievement]);
+  }, [likedUserIds, matches, superLikedUserIds, dislikedUserIds, currentUser, unlockedAchievements, unlockAchievement]);
 
   useEffect(() => {
     checkAndUnlock();
