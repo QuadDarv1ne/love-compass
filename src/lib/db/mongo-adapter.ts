@@ -54,8 +54,8 @@ function stripMany<T extends Document>(docs: T[]): (Omit<T, '_id'> & { id: strin
   });
 }
 
-function cleanWhere(where: Record<string, unknown> = {}): Record<string, any> {
-  const cleaned: Record<string, any> = {};
+function cleanWhere(where: Record<string, unknown> = {}): Record<string, unknown> {
+  const cleaned: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(where)) {
     if (value !== undefined && value !== null) {
       cleaned[key] = value;
@@ -113,7 +113,7 @@ export class MongoDBAdapter implements DatabaseAdapter {
 
     findUnique: async (where: { id?: string; email?: string; emailVerificationToken?: string; passwordResetToken?: string }): Promise<DbUser | null> => {
       const query = cleanWhere(where);
-      if (query.id) {
+      if (query.id && typeof query.id === 'string') {
         query._id = toObjectId(query.id);
         delete query.id;
       }
@@ -216,7 +216,7 @@ export class MongoDBAdapter implements DatabaseAdapter {
 
     findUnique: async (where: { token?: string; id?: string }, includeUser?: boolean): Promise<DbSession | SessionWithUser | null> => {
       const query = cleanWhere(where);
-      if (query.id) {
+      if (query.id && typeof query.id === 'string') {
         query._id = toObjectId(query.id);
         delete query.id;
       }
@@ -224,7 +224,8 @@ export class MongoDBAdapter implements DatabaseAdapter {
       if (!doc || !includeUser) return stripId(doc) as DbSession | null;
 
       const user = await this.db.collection<DbUser>(COLLECTIONS.users).findOne({ _id: toObjectId(doc.userId) });
-      return { ...stripId(doc)!, user: stripId(user)! } as SessionWithUser;
+      if (!user) throw new Error('Session references deleted user');
+      return { ...stripId(doc), user: stripId(user) } as SessionWithUser;
     },
 
     update: async (where: { id: string }, data: Partial<DbSession>): Promise<DbSession> => {
@@ -239,7 +240,7 @@ export class MongoDBAdapter implements DatabaseAdapter {
 
     delete: async (where: { id?: string; token?: string }): Promise<void> => {
       const query = cleanWhere(where);
-      if (query.id) {
+      if (query.id && typeof query.id === 'string') {
         query._id = toObjectId(query.id);
         delete query.id;
       }
@@ -260,7 +261,7 @@ export class MongoDBAdapter implements DatabaseAdapter {
 
     findUnique: async (where: { fromUserId?: string; toUserId?: string; id?: string }): Promise<DbLike | null> => {
       const query = cleanWhere(where);
-      if (query.id) {
+      if (query.id && typeof query.id === 'string') {
         query._id = toObjectId(query.id);
         delete query.id;
       }
@@ -324,7 +325,7 @@ export class MongoDBAdapter implements DatabaseAdapter {
 
     findUnique: async (where: { user1Id?: string; user2Id?: string; id?: string }): Promise<DbMatch | null> => {
       const query = cleanWhere(where);
-      if (query.id) {
+      if (query.id && typeof query.id === 'string') {
         query._id = toObjectId(query.id);
         delete query.id;
       }
@@ -367,7 +368,7 @@ export class MongoDBAdapter implements DatabaseAdapter {
       if (options?.skip) cursor.skip(options.skip);
       if (options?.take) cursor.limit(options.take);
 
-      const docs = await cursor.toArray();
+      const docs = await cursor.toArray() as DbMatch[];
       return stripMany(docs);
     },
 
@@ -745,7 +746,7 @@ class MongoDBAdapterForTransaction extends MongoDBAdapter {
     },
     findUnique: async (where: { id?: string; email?: string; emailVerificationToken?: string; passwordResetToken?: string }): Promise<DbUser | null> => {
       const query = cleanWhere(where);
-      if (query.id) { query._id = toObjectId(query.id); delete query.id; }
+      if (query.id && typeof query.id === 'string') { query._id = toObjectId(query.id); delete query.id; }
       const doc = await this.getDb().collection<DbUser>(COLLECTIONS.users).findOne(query, { session: this.txSession });
       return stripId(doc) as DbUser | null;
     },
@@ -766,11 +767,12 @@ class MongoDBAdapterForTransaction extends MongoDBAdapter {
     },
     findUnique: async (where: { token?: string; id?: string }, includeUser?: boolean): Promise<DbSession | SessionWithUser | null> => {
       const query = cleanWhere(where);
-      if (query.id) { query._id = toObjectId(query.id); delete query.id; }
+      if (query.id && typeof query.id === 'string') { query._id = toObjectId(query.id); delete query.id; }
       const doc = await this.getDb().collection<DbSession>(COLLECTIONS.sessions).findOne(query, { session: this.txSession });
       if (!doc || !includeUser) return stripId(doc) as DbSession | null;
       const user = await this.getDb().collection<DbUser>(COLLECTIONS.users).findOne({ _id: toObjectId(doc.userId) }, { session: this.txSession });
-      return { ...stripId(doc)!, user: stripId(user)! } as SessionWithUser;
+      if (!user) throw new Error('Session references deleted user');
+      return { ...stripId(doc), user: stripId(user) } as SessionWithUser;
     },
     update: async (where: { id: string }, data: Partial<DbSession>): Promise<DbSession> => {
       const result = await this.getDb().collection<DbSession>(COLLECTIONS.sessions).findOneAndUpdate(
@@ -793,7 +795,7 @@ class MongoDBAdapterForTransaction extends MongoDBAdapter {
     },
     findUnique: async (where: { fromUserId?: string; toUserId?: string; id?: string }): Promise<DbLike | null> => {
       const query = cleanWhere(where);
-      if (query.id) { query._id = toObjectId(query.id); delete query.id; }
+      if (query.id && typeof query.id === 'string') { query._id = toObjectId(query.id); delete query.id; }
       const doc = await this.getDb().collection<DbLike>(COLLECTIONS.likes).findOne(query, { session: this.txSession });
       return stripId(doc) as DbLike | null;
     },

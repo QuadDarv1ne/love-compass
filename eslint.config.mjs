@@ -35,6 +35,11 @@ const eslintConfig = [...nextCoreWebVitals, ...nextTypescript, {
     "no-case-declarations": "off",
   },
 }, {
+  files: ["scripts/**"],
+  rules: {
+    "no-console": "off",
+  },
+}, {
   ignores: ["node_modules/**", ".next/**", "out/**", "build/**", "next-env.d.ts", "examples/**", "skills"]
 }];
 

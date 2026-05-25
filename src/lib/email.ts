@@ -29,7 +29,7 @@ export async function sendVerificationEmail(
 
   if (!resend) {
     if (isDev) {
-      console.log(`\n[EMAIL] Verification link for ${email}: ${verificationUrl}\n`);
+      console.warn(`\n[EMAIL] Verification link for ${email}: ${verificationUrl}\n`);
     }
     return;
   }
@@ -63,7 +63,7 @@ export async function sendPasswordResetEmail(
 
   if (!resend) {
     if (isDev) {
-      console.log(`\n[EMAIL] Password reset link for ${email}: ${resetUrl}\n`);
+      console.warn(`\n[EMAIL] Password reset link for ${email}: ${resetUrl}\n`);
     }
     return;
   }
@@ -95,7 +95,7 @@ export async function sendWelcomeEmail(
 ): Promise<void> {
   if (!resend) {
     if (isDev) {
-      console.log(`\n[EMAIL] Welcome email for ${name} (${email})\n`);
+      console.warn(`\n[EMAIL] Welcome email for ${name} (${email})\n`);
     }
     return;
   }
