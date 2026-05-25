@@ -22,7 +22,7 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/_next/static') ||
     pathname.startsWith('/_next/image') ||
     pathname.startsWith('/favicon') ||
-    pathname.includes('.')
+    /\.(ico|png|jpg|jpeg|gif|svg|webp|css|js|woff2?|ttf|eot|json)$/.test(pathname)
   ) {
     return NextResponse.next();
   }

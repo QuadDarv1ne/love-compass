@@ -108,7 +108,7 @@ export async function ensureEnvFile(envPath = '.env'): Promise<{
     ? parseInt(process.env.PORT, 10)
     : undefined;
 
-  const defaults = await generateDefaultEnv(availableDBs, isNaN(port!) ? undefined : port);
+  const defaults = await generateDefaultEnv(availableDBs, port !== undefined && isNaN(port) ? undefined : port);
 
   if (!hasExisting) {
     writeEnvFile(envPath, defaults);

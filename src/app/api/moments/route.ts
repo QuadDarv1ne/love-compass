@@ -50,14 +50,22 @@ export async function GET(request: Request) {
 
     const commentsByMoment = new Map<string, typeof comments>();
     for (const c of comments) {
-      if (!commentsByMoment.has(c.momentId)) commentsByMoment.set(c.momentId, []);
-      commentsByMoment.get(c.momentId)!.push(c);
+      const arr = commentsByMoment.get(c.momentId);
+      if (arr) {
+        arr.push(c);
+      } else {
+        commentsByMoment.set(c.momentId, [c]);
+      }
     }
 
     const reactionsByMoment = new Map<string, typeof reactions>();
     for (const r of reactions) {
-      if (!reactionsByMoment.has(r.momentId)) reactionsByMoment.set(r.momentId, []);
-      reactionsByMoment.get(r.momentId)!.push(r);
+      const arr = reactionsByMoment.get(r.momentId);
+      if (arr) {
+        arr.push(r);
+      } else {
+        reactionsByMoment.set(r.momentId, [r]);
+      }
     }
 
     const data = moments.map((moment) => {
@@ -156,22 +164,26 @@ export async function PATCH(request: Request) {
         });
 
         if (existing) {
-          // Unlike: remove the like and decrement count
           await tx.momentLike.delete({ id: existing.id });
           const current = await tx.moment.findUnique({ id });
+          if (!current) {
+            return { likes: 0, liked: false };
+          }
           const updated = await tx.moment.update(
             { id },
-            { likes: (current as any).likes - 1 }
+            { likes: current.likes - 1 }
           );
           return { likes: updated.likes, liked: false };
         }
 
-        // Like: create record and increment count
         await tx.momentLike.create({ momentId: id, userId: auth.user.id });
         const current = await tx.moment.findUnique({ id });
+        if (!current) {
+          return { likes: 1, liked: true };
+        }
         const updated = await tx.moment.update(
           { id },
-          { likes: (current as any).likes + 1 }
+          { likes: current.likes + 1 }
         );
         return { likes: updated.likes, liked: true };
       });
@@ -188,21 +200,20 @@ export async function PATCH(request: Request) {
         return NextResponse.json({ error: 'Invalid input', details: commentResult.error.issues }, { status: 400 });
       }
 
-      const [comment, commenter] = await Promise.all([
-        db.momentComment.create({
-          momentId: id,
-          userId: auth.user.id,
-          content: commentResult.data.content,
-        }),
-        db.user.findUnique({ id: auth.user.id }),
-      ]);
+      const comment = await db.momentComment.create({
+        momentId: id,
+        userId: auth.user.id,
+        content: commentResult.data.content,
+      });
+
+      const commenter = await db.user.findUnique({ id: auth.user.id });
 
       return NextResponse.json({
         data: {
           id: comment.id,
           userId: comment.userId,
-          userName: commenter!.name,
-          userAvatar: commenter!.avatar,
+          userName: commenter?.name ?? null,
+          userAvatar: commenter?.avatar ?? null,
           content: comment.content,
           createdAt: comment.createdAt.toISOString(),
         },

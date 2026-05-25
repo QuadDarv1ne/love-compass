@@ -15,7 +15,6 @@ import type {
   DbMomentLike,
   DbUserAchievement,
   SessionWithUser,
-  ProfileSelect,
 } from './types';
 
 const globalForPrisma = globalThis as unknown as {

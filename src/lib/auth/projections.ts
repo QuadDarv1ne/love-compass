@@ -23,7 +23,7 @@ export const loginUserSelect = {
   updatedAt: true,
 };
 
-const SENSITIVE_FIELDS: ReadonlyArray<keyof any> = [
+const SENSITIVE_FIELDS: readonly string[] = [
   'passwordHash',
   'totpSecret',
   'totpBackupCodes',

@@ -30,32 +30,13 @@ export async function GET(request: Request) {
     const mutualUserIds = new Set(mutualLikes.map((like) => like.toUserId));
     const pendingUserIds = likedUserIds.filter((id) => !mutualUserIds.has(id));
 
-    // Safe profile fields for public-facing profiles
-    const pendingUserSelect = {
-      id: true,
-      name: true,
-      age: true,
-      gender: true,
-      bio: true,
-      interests: true,
-      avatar: true,
-      city: true,
-      lookingFor: true,
-      createdAt: true,
-    };
-
-    // Fetch pending user profiles in a single query
     const pendingUsers = await db.user.findMany(
       { id: { in: pendingUserIds } }
     );
 
-    const pendingLikes = pendingUsers.map(u => {
-      const result: Record<string, any> = {};
-      for (const key of Object.keys(pendingUserSelect)) {
-        result[key] = (u as any)[key];
-      }
-      return result;
-    });
+    const pendingLikes = pendingUsers.map(({ id, name, age, gender, bio, interests, avatar, city, lookingFor, createdAt }) => ({
+      id, name, age, gender, bio, interests, avatar, city, lookingFor, createdAt,
+    }));
     return NextResponse.json(pendingLikes);
   } catch (error) {
     logger.error('/api/likes/received', 'Failed to fetch received likes', error);

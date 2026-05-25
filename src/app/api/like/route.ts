@@ -98,15 +98,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Validation failed', details: error.issues }, { status: 400 });
     }
     if (error instanceof Error && 'limitExceeded' in error) {
+      const limitError = error as Error & { limitExceeded: boolean; current: number };
       return NextResponse.json(
-        { error: 'Daily super like limit reached', limit: SUPER_LIKE_DAILY_LIMIT, current: (error as any).current },
+        { error: 'Daily super like limit reached', limit: SUPER_LIKE_DAILY_LIMIT, current: limitError.current },
         { status: 429 }
       );
     }
     // Gracefully handle race condition where both users liked each other simultaneously
     // and both transactions tried to create a match (unique constraint violation)
-    if (error instanceof Error && (error as any).code === 'P2002') {
-      return NextResponse.json({ error: 'Match already exists', raceHandled: true }, { status: 200 });
+    if (error instanceof Error && 'code' in error) {
+      const prismaError = error as Error & { code: string };
+      if (prismaError.code === 'P2002') {
+        return NextResponse.json({ error: 'Match already exists', raceHandled: true }, { status: 200 });
+      }
     }
     logger.error('/api/like', 'Failed to create like', error);
     return NextResponse.json({ error: 'Failed to create like' }, { status: 500 });
