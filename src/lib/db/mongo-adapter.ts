@@ -1,4 +1,4 @@
-import { MongoClient, ObjectId } from 'mongodb';
+import { MongoClient, ObjectId, ClientSession, type Document, type OptionalId } from 'mongodb';
 import type {
   DatabaseAdapter,
   DbUser,
@@ -41,20 +41,20 @@ function toObjectId(id: string): ObjectId {
   }
 }
 
-function stripId(doc: Record<string, any> | null): Record<string, any> | null {
+function stripId(doc: Document | null): Omit<Document, '_id'> & { id: string } | null {
   if (!doc) return null;
   const { _id, ...rest } = doc;
   return { id: _id.toString(), ...rest };
 }
 
-function stripMany<T extends Record<string, any>>(docs: T[]): (Omit<T, '_id'> & { id: string })[] {
+function stripMany<T extends Document>(docs: T[]): (Omit<T, '_id'> & { id: string })[] {
   return docs.map(d => {
     const { _id, ...rest } = d;
     return { id: (_id as ObjectId).toString(), ...rest } as Omit<T, '_id'> & { id: string };
   });
 }
 
-function cleanWhere(where: Record<string, any> = {}): Record<string, any> {
+function cleanWhere(where: Record<string, unknown> = {}): Record<string, any> {
   const cleaned: Record<string, any> = {};
   for (const [key, value] of Object.entries(where)) {
     if (value !== undefined && value !== null) {
@@ -64,17 +64,17 @@ function cleanWhere(where: Record<string, any> = {}): Record<string, any> {
   return cleaned;
 }
 
-function mongoOrder(orderBy?: Record<string, any>): Record<string, any> | undefined {
+function mongoOrder(orderBy?: Record<string, 'asc' | 'desc'>): Record<string, 1 | -1> | undefined {
   if (!orderBy) return undefined;
-  const result: Record<string, any> = {};
+  const result: Record<string, 1 | -1> = {};
   for (const [key, value] of Object.entries(orderBy)) {
     result[key] = value === 'desc' ? -1 : 1;
   }
   return result;
 }
 
-function toInsertDoc<T>(data: Partial<T>): Record<string, unknown> {
-  return data as unknown as Record<string, unknown>;
+function toInsertDoc<T>(data: Partial<T>): OptionalId<T> {
+  return data as unknown as OptionalId<T>;
 }
 
 export class MongoDBAdapter implements DatabaseAdapter {
@@ -121,7 +121,7 @@ export class MongoDBAdapter implements DatabaseAdapter {
       return stripId(doc) as DbUser | null;
     },
 
-    findMany: async (where?: Record<string, any>, options?: { skip?: number; take?: number; orderBy?: Record<string, any>; select?: Record<string, boolean>; cursor?: Record<string, any> }): Promise<any[]> => {
+    findMany: async (where?: Record<string, unknown>, options?: { skip?: number; take?: number; orderBy?: Record<string, 'asc' | 'desc'>; select?: Record<string, boolean>; cursor?: { id: string } }): Promise<(Omit<DbUser, '_id'> & { id: string })[]> => {
       let cursor = undefined;
       if (options?.cursor?.id) {
         const cursorDoc = await this.db.collection<DbUser>(COLLECTIONS.users).findOne({ _id: toObjectId(options.cursor.id) });
@@ -171,17 +171,17 @@ export class MongoDBAdapter implements DatabaseAdapter {
       return stripId(doc) as DbUser;
     },
 
-    count: async (where?: Record<string, any>): Promise<number> => {
+    count: async (where?: Record<string, unknown>): Promise<number> => {
       return this.db.collection<DbUser>(COLLECTIONS.users).countDocuments(cleanWhere(where || {}));
     },
 
-    groupBy: async (params: { by: string[]; where?: Record<string, any>; _count?: Record<string, boolean>; _sum?: Record<string, boolean>; orderBy?: Record<string, any> }): Promise<any[]> => {
-      const pipeline: any[] = [];
+    groupBy: async (params: { by: string[]; where?: Record<string, unknown>; _count?: Record<string, boolean>; _sum?: Record<string, boolean>; orderBy?: Record<string, 'asc' | 'desc'> }): Promise<Document[]> => {
+      const pipeline: Document[] = [];
       if (params.where) {
         pipeline.push({ $match: cleanWhere(params.where) });
       }
 
-      const _id: Record<string, any> = {};
+      const _id: Record<string, unknown> = {};
       for (const field of params.by) {
         _id[field] = `$${field}`;
       }
@@ -197,7 +197,7 @@ export class MongoDBAdapter implements DatabaseAdapter {
       pipeline.push({ $group: _id });
 
       if (params.orderBy) {
-        const sort: Record<string, any> = {};
+        const sort: Record<string, 1 | -1> = {};
         for (const [key, value] of Object.entries(params.orderBy)) {
           sort[key] = value === 'desc' ? -1 : 1;
         }
@@ -238,7 +238,7 @@ export class MongoDBAdapter implements DatabaseAdapter {
     },
 
     delete: async (where: { id?: string; token?: string }): Promise<void> => {
-      const query = cleanWhere(where as any);
+      const query = cleanWhere(where);
       if (query.id) {
         query._id = toObjectId(query.id);
         delete query.id;
@@ -246,7 +246,7 @@ export class MongoDBAdapter implements DatabaseAdapter {
       await this.db.collection<DbSession>(COLLECTIONS.sessions).deleteOne(query);
     },
 
-    deleteMany: async (where: Record<string, any>): Promise<number> => {
+    deleteMany: async (where: Record<string, unknown>): Promise<number> => {
       const result = await this.db.collection<DbSession>(COLLECTIONS.sessions).deleteMany(cleanWhere(where));
       return result.deletedCount;
     },
@@ -275,7 +275,7 @@ export class MongoDBAdapter implements DatabaseAdapter {
       return null;
     },
 
-    findMany: async (where?: Record<string, any>, options?: { skip?: number; take?: number; orderBy?: Record<string, any> }): Promise<DbLike[]> => {
+    findMany: async (where?: Record<string, unknown>, options?: { skip?: number; take?: number; orderBy?: Record<string, 'asc' | 'desc'> }): Promise<DbLike[]> => {
       const cursor = this.db.collection<DbLike>(COLLECTIONS.likes)
         .find(cleanWhere(where || {}))
         .skip(options?.skip || 0)
@@ -294,25 +294,25 @@ export class MongoDBAdapter implements DatabaseAdapter {
       await this.db.collection<DbLike>(COLLECTIONS.likes).deleteOne({ _id: toObjectId(where.id) });
     },
 
-    deleteMany: async (where: Record<string, any>): Promise<number> => {
+    deleteMany: async (where: Record<string, unknown>): Promise<number> => {
       const result = await this.db.collection<DbLike>(COLLECTIONS.likes).deleteMany(cleanWhere(where));
       return result.deletedCount;
     },
 
-    count: async (where?: Record<string, any>): Promise<number> => {
+    count: async (where?: Record<string, unknown>): Promise<number> => {
       return this.db.collection<DbLike>(COLLECTIONS.likes).countDocuments(cleanWhere(where || {}));
     },
 
-    groupBy: async (params: { by: string[]; where?: Record<string, any>; _count?: Record<string, boolean> }): Promise<any[]> => {
-      const pipeline: any[] = [];
+    groupBy: async (params: { by: string[]; where?: Record<string, unknown>; _count?: Record<string, boolean> }): Promise<Document[]> => {
+      const pipeline: Document[] = [];
       if (params.where) pipeline.push({ $match: cleanWhere(params.where) });
-      const _id: Record<string, any> = {};
+      const _id: Record<string, unknown> = {};
       for (const field of params.by) _id[field] = `$${field}`;
       if (params._count) {
         for (const field of Object.keys(params._count)) _id[`_count_${field}`] = { $sum: 1 };
       }
       pipeline.push({ $group: _id });
-      return this.db.collection<DbLike>(COLLECTIONS.likes).aggregate(pipeline).toArray();
+      return this.db.collection(COLLECTIONS.likes).aggregate(pipeline).toArray();
     },
   };
 
@@ -332,13 +332,13 @@ export class MongoDBAdapter implements DatabaseAdapter {
       return stripId(doc) as DbMatch | null;
     },
 
-    findFirst: async (where?: Record<string, any>): Promise<DbMatch | null> => {
+    findFirst: async (where?: Record<string, unknown>): Promise<DbMatch | null> => {
       const doc = await this.db.collection<DbMatch>(COLLECTIONS.matches).findOne(cleanWhere(where || {}));
       return stripId(doc) as DbMatch | null;
     },
 
-    findMany: async (where?: Record<string, any>, options?: { skip?: number; take?: number; orderBy?: Record<string, any>; includeLastMessage?: boolean }): Promise<any[]> => {
-      let pipeline: any[] = [{ $match: cleanWhere(where || {}) }];
+    findMany: async (where?: Record<string, unknown>, options?: { skip?: number; take?: number; orderBy?: Record<string, 'asc' | 'desc'>; includeLastMessage?: boolean }): Promise<(Omit<DbMatch, '_id'> & { id: string })[]> => {
+      let pipeline: Document[] = [{ $match: cleanWhere(where || {}) }];
 
       if (options?.includeLastMessage) {
         pipeline = [
@@ -375,25 +375,25 @@ export class MongoDBAdapter implements DatabaseAdapter {
       await this.db.collection<DbMatch>(COLLECTIONS.matches).deleteOne({ _id: toObjectId(where.id) });
     },
 
-    deleteMany: async (where: Record<string, any>): Promise<number> => {
+    deleteMany: async (where: Record<string, unknown>): Promise<number> => {
       const result = await this.db.collection<DbMatch>(COLLECTIONS.matches).deleteMany(cleanWhere(where));
       return result.deletedCount;
     },
 
-    count: async (where?: Record<string, any>): Promise<number> => {
+    count: async (where?: Record<string, unknown>): Promise<number> => {
       return this.db.collection<DbMatch>(COLLECTIONS.matches).countDocuments(cleanWhere(where || {}));
     },
 
-    groupBy: async (params: { by: string[]; where?: Record<string, any>; _count?: Record<string, boolean> }): Promise<any[]> => {
-      const pipeline: any[] = [];
+    groupBy: async (params: { by: string[]; where?: Record<string, unknown>; _count?: Record<string, boolean> }): Promise<Document[]> => {
+      const pipeline: Document[] = [];
       if (params.where) pipeline.push({ $match: cleanWhere(params.where) });
-      const _id: Record<string, any> = {};
+      const _id: Record<string, unknown> = {};
       for (const field of params.by) _id[field] = `$${field}`;
       if (params._count) {
         for (const field of Object.keys(params._count)) _id[`_count_${field}`] = { $sum: 1 };
       }
       pipeline.push({ $group: _id });
-      return this.db.collection<DbMatch>(COLLECTIONS.matches).aggregate(pipeline).toArray();
+      return this.db.collection(COLLECTIONS.matches).aggregate(pipeline).toArray();
     },
   };
 
@@ -403,7 +403,7 @@ export class MongoDBAdapter implements DatabaseAdapter {
       return { ...data, id: result.insertedId.toString() } as DbMessage;
     },
 
-    findMany: async (where?: Record<string, any>, options?: { skip?: number; take?: number; orderBy?: Record<string, any> }): Promise<DbMessage[]> => {
+    findMany: async (where?: Record<string, unknown>, options?: { skip?: number; take?: number; orderBy?: Record<string, 'asc' | 'desc'> }): Promise<DbMessage[]> => {
       const cursor = this.db.collection<DbMessage>(COLLECTIONS.messages)
         .find(cleanWhere(where || {}))
         .skip(options?.skip || 0)
@@ -417,42 +417,42 @@ export class MongoDBAdapter implements DatabaseAdapter {
       return stripMany(docs);
     },
 
-    findFirst: async (where?: Record<string, any>, options?: { orderBy?: Record<string, any> }): Promise<DbMessage | null> => {
+    findFirst: async (where?: Record<string, unknown>, options?: { orderBy?: Record<string, 'asc' | 'desc'> }): Promise<DbMessage | null> => {
       const query = cleanWhere(where || {});
       const cursor = this.db.collection<DbMessage>(COLLECTIONS.messages).findOne(query);
 
       if (options?.orderBy) {
-        return this.db.collection<DbMessage>(COLLECTIONS.messages).findOne(query, { sort: mongoOrder(options.orderBy) });
+        return this.db.collection<DbMessage>(COLLECTIONS.messages).findOne(query, { sort: mongoOrder(options.orderBy) }) as Promise<DbMessage | null>;
       }
 
       const doc = await cursor;
       return stripId(doc) as DbMessage | null;
     },
 
-    updateMany: async (where: Record<string, any>, data: Partial<DbMessage>): Promise<number> => {
+    updateMany: async (where: Record<string, unknown>, data: Partial<DbMessage>): Promise<number> => {
       const result = await this.db.collection<DbMessage>(COLLECTIONS.messages).updateMany(cleanWhere(where), { $set: data });
       return result.modifiedCount;
     },
 
-    deleteMany: async (where: Record<string, any>): Promise<number> => {
+    deleteMany: async (where: Record<string, unknown>): Promise<number> => {
       const result = await this.db.collection<DbMessage>(COLLECTIONS.messages).deleteMany(cleanWhere(where));
       return result.deletedCount;
     },
 
-    count: async (where?: Record<string, any>): Promise<number> => {
+    count: async (where?: Record<string, unknown>): Promise<number> => {
       return this.db.collection<DbMessage>(COLLECTIONS.messages).countDocuments(cleanWhere(where || {}));
     },
 
-    groupBy: async (params: { by: string[]; where?: Record<string, any>; _count?: Record<string, boolean> }): Promise<any[]> => {
-      const pipeline: any[] = [];
+    groupBy: async (params: { by: string[]; where?: Record<string, unknown>; _count?: Record<string, boolean> }): Promise<Document[]> => {
+      const pipeline: Document[] = [];
       if (params.where) pipeline.push({ $match: cleanWhere(params.where) });
-      const _id: Record<string, any> = {};
+      const _id: Record<string, unknown> = {};
       for (const field of params.by) _id[field] = `$${field}`;
       if (params._count) {
         for (const field of Object.keys(params._count)) _id[`_count_${field}`] = { $sum: 1 };
       }
       pipeline.push({ $group: _id });
-      return this.db.collection<DbMessage>(COLLECTIONS.messages).aggregate(pipeline).toArray();
+      return this.db.collection(COLLECTIONS.messages).aggregate(pipeline).toArray();
     },
   };
 
@@ -469,17 +469,17 @@ export class MongoDBAdapter implements DatabaseAdapter {
       return stripId(doc) as DbBlock | null;
     },
 
-    findMany: async (where?: Record<string, any>): Promise<DbBlock[]> => {
+    findMany: async (where?: Record<string, unknown>): Promise<DbBlock[]> => {
       const docs = await this.db.collection<DbBlock>(COLLECTIONS.blocks).find(cleanWhere(where || {})).toArray();
       return stripMany(docs);
     },
 
-    deleteMany: async (where: Record<string, any>): Promise<number> => {
+    deleteMany: async (where: Record<string, unknown>): Promise<number> => {
       const result = await this.db.collection<DbBlock>(COLLECTIONS.blocks).deleteMany(cleanWhere(where));
       return result.deletedCount;
     },
 
-    count: async (where?: Record<string, any>): Promise<number> => {
+    count: async (where?: Record<string, unknown>): Promise<number> => {
       return this.db.collection<DbBlock>(COLLECTIONS.blocks).countDocuments(cleanWhere(where || {}));
     },
   };
@@ -490,12 +490,12 @@ export class MongoDBAdapter implements DatabaseAdapter {
       return { ...data, id: result.insertedId.toString() } as DbReport;
     },
 
-    deleteMany: async (where: Record<string, any>): Promise<number> => {
+    deleteMany: async (where: Record<string, unknown>): Promise<number> => {
       const result = await this.db.collection<DbReport>(COLLECTIONS.reports).deleteMany(cleanWhere(where));
       return result.deletedCount;
     },
 
-    count: async (where?: Record<string, any>): Promise<number> => {
+    count: async (where?: Record<string, unknown>): Promise<number> => {
       return this.db.collection<DbReport>(COLLECTIONS.reports).countDocuments(cleanWhere(where || {}));
     },
   };
@@ -521,7 +521,7 @@ export class MongoDBAdapter implements DatabaseAdapter {
       return stripId(result) as DbRateLimit;
     },
 
-    deleteMany: async (where: Record<string, any>): Promise<number> => {
+    deleteMany: async (where: Record<string, unknown>): Promise<number> => {
       const result = await this.db.collection<DbRateLimit>(COLLECTIONS.rateLimits).deleteMany(cleanWhere(where));
       return result.deletedCount;
     },
@@ -533,7 +533,7 @@ export class MongoDBAdapter implements DatabaseAdapter {
       return { ...data, id: result.insertedId.toString() } as DbMoment;
     },
 
-    findMany: async (where?: Record<string, any>, options?: { skip?: number; take?: number; orderBy?: Record<string, any> }): Promise<DbMoment[]> => {
+    findMany: async (where?: Record<string, unknown>, options?: { skip?: number; take?: number; orderBy?: Record<string, 'asc' | 'desc'> }): Promise<DbMoment[]> => {
       const cursor = this.db.collection<DbMoment>(COLLECTIONS.moments)
         .find(cleanWhere(where || {}))
         .skip(options?.skip || 0)
@@ -562,25 +562,25 @@ export class MongoDBAdapter implements DatabaseAdapter {
       return stripId(result) as DbMoment;
     },
 
-    deleteMany: async (where: Record<string, any>): Promise<number> => {
+    deleteMany: async (where: Record<string, unknown>): Promise<number> => {
       const result = await this.db.collection<DbMoment>(COLLECTIONS.moments).deleteMany(cleanWhere(where));
       return result.deletedCount;
     },
 
-    count: async (where?: Record<string, any>): Promise<number> => {
+    count: async (where?: Record<string, unknown>): Promise<number> => {
       return this.db.collection<DbMoment>(COLLECTIONS.moments).countDocuments(cleanWhere(where || {}));
     },
 
-    groupBy: async (params: { by: string[]; where?: Record<string, any>; _count?: Record<string, boolean> }): Promise<any[]> => {
-      const pipeline: any[] = [];
+    groupBy: async (params: { by: string[]; where?: Record<string, unknown>; _count?: Record<string, boolean> }): Promise<Document[]> => {
+      const pipeline: Document[] = [];
       if (params.where) pipeline.push({ $match: cleanWhere(params.where) });
-      const _id: Record<string, any> = {};
+      const _id: Record<string, unknown> = {};
       for (const field of params.by) _id[field] = `$${field}`;
       if (params._count) {
         for (const field of Object.keys(params._count)) _id[`_count_${field}`] = { $sum: 1 };
       }
       pipeline.push({ $group: _id });
-      return this.db.collection<DbMoment>(COLLECTIONS.moments).aggregate(pipeline).toArray();
+      return this.db.collection(COLLECTIONS.moments).aggregate(pipeline).toArray();
     },
   };
 
@@ -590,7 +590,7 @@ export class MongoDBAdapter implements DatabaseAdapter {
       return { ...data, id: result.insertedId.toString() } as DbMomentComment;
     },
 
-    findMany: async (where?: Record<string, any>, options?: { skip?: number; take?: number; orderBy?: Record<string, any> }): Promise<DbMomentComment[]> => {
+    findMany: async (where?: Record<string, unknown>, options?: { skip?: number; take?: number; orderBy?: Record<string, 'asc' | 'desc'> }): Promise<DbMomentComment[]> => {
       const cursor = this.db.collection<DbMomentComment>(COLLECTIONS.momentComments)
         .find(cleanWhere(where || {}))
         .skip(options?.skip || 0)
@@ -604,12 +604,12 @@ export class MongoDBAdapter implements DatabaseAdapter {
       return stripMany(docs);
     },
 
-    deleteMany: async (where: Record<string, any>): Promise<number> => {
+    deleteMany: async (where: Record<string, unknown>): Promise<number> => {
       const result = await this.db.collection<DbMomentComment>(COLLECTIONS.momentComments).deleteMany(cleanWhere(where));
       return result.deletedCount;
     },
 
-    count: async (where?: Record<string, any>): Promise<number> => {
+    count: async (where?: Record<string, unknown>): Promise<number> => {
       return this.db.collection<DbMomentComment>(COLLECTIONS.momentComments).countDocuments(cleanWhere(where || {}));
     },
   };
@@ -620,7 +620,7 @@ export class MongoDBAdapter implements DatabaseAdapter {
       return { ...data, id: result.insertedId.toString() } as DbMomentReaction;
     },
 
-    findMany: async (where?: Record<string, any>, options?: { skip?: number; take?: number; orderBy?: Record<string, any> }): Promise<DbMomentReaction[]> => {
+    findMany: async (where?: Record<string, unknown>, options?: { skip?: number; take?: number; orderBy?: Record<string, 'asc' | 'desc'> }): Promise<DbMomentReaction[]> => {
       const cursor = this.db.collection<DbMomentReaction>(COLLECTIONS.momentReactions)
         .find(cleanWhere(where || {}))
         .skip(options?.skip || 0)
@@ -644,12 +644,12 @@ export class MongoDBAdapter implements DatabaseAdapter {
       await this.db.collection<DbMomentReaction>(COLLECTIONS.momentReactions).deleteOne({ _id: toObjectId(where.id) });
     },
 
-    deleteMany: async (where: Record<string, any>): Promise<number> => {
+    deleteMany: async (where: Record<string, unknown>): Promise<number> => {
       const result = await this.db.collection<DbMomentReaction>(COLLECTIONS.momentReactions).deleteMany(cleanWhere(where));
       return result.deletedCount;
     },
 
-    count: async (where?: Record<string, any>): Promise<number> => {
+    count: async (where?: Record<string, unknown>): Promise<number> => {
       return this.db.collection<DbMomentReaction>(COLLECTIONS.momentReactions).countDocuments(cleanWhere(where || {}));
     },
   };
@@ -671,7 +671,7 @@ export class MongoDBAdapter implements DatabaseAdapter {
       await this.db.collection<DbMomentLike>(COLLECTIONS.momentLikes).deleteOne({ _id: toObjectId(where.id) });
     },
 
-    deleteMany: async (where: Record<string, any>): Promise<number> => {
+    deleteMany: async (where: Record<string, unknown>): Promise<number> => {
       const result = await this.db.collection<DbMomentLike>(COLLECTIONS.momentLikes).deleteMany(cleanWhere(where));
       return result.deletedCount;
     },
@@ -683,7 +683,7 @@ export class MongoDBAdapter implements DatabaseAdapter {
       return { ...data, id: result.insertedId.toString() } as DbUserAchievement;
     },
 
-    findMany: async (where?: Record<string, any>): Promise<DbUserAchievement[]> => {
+    findMany: async (where?: Record<string, unknown>): Promise<DbUserAchievement[]> => {
       const docs = await this.db.collection<DbUserAchievement>(COLLECTIONS.userAchievements).find(cleanWhere(where || {})).toArray();
       return stripMany(docs);
     },
@@ -695,12 +695,12 @@ export class MongoDBAdapter implements DatabaseAdapter {
       return stripId(doc) as DbUserAchievement | null;
     },
 
-    deleteMany: async (where: Record<string, any>): Promise<number> => {
+    deleteMany: async (where: Record<string, unknown>): Promise<number> => {
       const result = await this.db.collection<DbUserAchievement>(COLLECTIONS.userAchievements).deleteMany(cleanWhere(where));
       return result.deletedCount;
     },
 
-    count: async (where?: Record<string, any>): Promise<number> => {
+    count: async (where?: Record<string, unknown>): Promise<number> => {
       return this.db.collection<DbUserAchievement>(COLLECTIONS.userAchievements).countDocuments(cleanWhere(where || {}));
     },
   };
@@ -719,9 +719,9 @@ export class MongoDBAdapter implements DatabaseAdapter {
 }
 
 class MongoDBAdapterForTransaction extends MongoDBAdapter {
-  private txSession: any;
+  private txSession: ClientSession;
 
-  constructor(client: MongoClient, dbName: string, session: any) {
+  constructor(client: MongoClient, dbName: string, session: ClientSession) {
     // Call parent with a dummy connection string; we override client/dbName directly
     super('mongodb://localhost');
     this.client = client;
@@ -779,7 +779,7 @@ class MongoDBAdapterForTransaction extends MongoDBAdapter {
       if (!result) throw new Error('Session not found');
       return stripId(result) as DbSession;
     },
-    deleteMany: async (where: Record<string, any>): Promise<number> => {
+    deleteMany: async (where: Record<string, unknown>): Promise<number> => {
       const result = await this.getDb().collection<DbSession>(COLLECTIONS.sessions).deleteMany(cleanWhere(where), { session: this.txSession });
       return result.deletedCount;
     },
@@ -797,7 +797,7 @@ class MongoDBAdapterForTransaction extends MongoDBAdapter {
       const doc = await this.getDb().collection<DbLike>(COLLECTIONS.likes).findOne(query, { session: this.txSession });
       return stripId(doc) as DbLike | null;
     },
-    deleteMany: async (where: Record<string, any>): Promise<number> => {
+    deleteMany: async (where: Record<string, unknown>): Promise<number> => {
       const result = await this.getDb().collection<DbLike>(COLLECTIONS.likes).deleteMany(cleanWhere(where), { session: this.txSession });
       return result.deletedCount;
     },
@@ -809,7 +809,7 @@ class MongoDBAdapterForTransaction extends MongoDBAdapter {
       const result = await this.getDb().collection<DbMatch>(COLLECTIONS.matches).insertOne(toInsertDoc(data), { session: this.txSession });
       return { ...data, id: result.insertedId.toString() } as DbMatch;
     },
-    findFirst: async (where?: Record<string, any>): Promise<DbMatch | null> => {
+    findFirst: async (where?: Record<string, unknown>): Promise<DbMatch | null> => {
       const doc = await this.getDb().collection<DbMatch>(COLLECTIONS.matches).findOne(cleanWhere(where || {}), { session: this.txSession });
       return stripId(doc) as DbMatch | null;
     },
