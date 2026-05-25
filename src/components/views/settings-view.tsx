@@ -46,6 +46,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useAppStore } from '@/lib/store';
+import { TOTP } from '@/lib/constants';
 import { QRCodeCanvas } from 'qrcode.react';
 import { fetchWithCSRF, deleteWithCSRF } from '@/lib/api';
 import { AvatarUpload } from '@/components/ui/avatar-upload';
@@ -218,18 +219,18 @@ function TwoFASetupDialog({
             <Separator />
 
             <div>
-              <Label htmlFor="totp-code">6-значный код</Label>
+              <Label htmlFor="totp-code">{TOTP.TOKEN_LENGTH}-значный код</Label>
               <Input
                 id="totp-code"
                 value={code}
-                onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                placeholder="000000"
-                maxLength={6}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, TOTP.TOKEN_LENGTH))}
+                placeholder={'0'.repeat(TOTP.TOKEN_LENGTH)}
+                maxLength={TOTP.TOKEN_LENGTH}
                 className="mt-1 text-center text-2xl tracking-widest"
               />
             </div>
 
-            <Button onClick={handleVerify} className="w-full" disabled={code.length !== 6 || loading}>
+            <Button onClick={handleVerify} className="w-full" disabled={code.length !== TOTP.TOKEN_LENGTH || loading}>
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Включить 2FA'}
             </Button>
           </div>
@@ -286,8 +287,8 @@ export function SettingsView() {
 
   /* helpers */
   const handleDisable2FA = async () => {
-    if (disable2FACode.length !== 6) {
-      toast.error('Введите 6-значный код');
+    if (disable2FACode.length !== TOTP.TOKEN_LENGTH) {
+      toast.error(`Введите ${TOTP.TOKEN_LENGTH}-значный код`);
       return;
     }
     setDisabling2FA(true);
@@ -556,9 +557,9 @@ export function SettingsView() {
                   <div className="flex items-center gap-2">
                     <Input
                       value={disable2FACode}
-                      onChange={(e) => setDisable2FACode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      onChange={(e) => setDisable2FACode(e.target.value.replace(/\D/g, '').slice(0, TOTP.TOKEN_LENGTH))}
                       placeholder="Код для отключения"
-                      maxLength={6}
+                      maxLength={TOTP.TOKEN_LENGTH}
                       className="text-center tracking-widest"
                     />
                     <Button

@@ -22,6 +22,7 @@ import { fetchWithCSRF, patchWithCSRF } from '@/lib/api';
 import { useAppStore, type Moment, type MomentComment } from '@/lib/store';
 import { OnlineIndicator } from './shared';
 import { appLogger } from '@/lib/logger';
+import { MOMENTS as MOMENTS_CONST, ANIMATION, TIME } from '@/lib/constants';
 
 // ─── Gradient Presets ────────────────────────────────────────────────────────
 const GRADIENT_PRESETS = [
@@ -53,12 +54,12 @@ function timeAgo(dateStr: string): string {
   const now = Date.now();
   const then = new Date(dateStr).getTime();
   const diffMs = now - then;
-  const diffMin = Math.floor(diffMs / 60000);
+  const diffMin = Math.floor(diffMs / TIME.MS_PER_MINUTE);
   if (diffMin < 1) return 'только что';
-  if (diffMin < 60) return `${diffMin} мин`;
-  const diffH = Math.floor(diffMin / 60);
-  if (diffH < 24) return `${diffH} ч`;
-  const diffD = Math.floor(diffH / 24);
+  if (diffMin < TIME.MINUTES_PER_HOUR) return `${diffMin} мин`;
+  const diffH = Math.floor(diffMin / TIME.MINUTES_PER_HOUR);
+  if (diffH < TIME.HOURS_PER_DAY) return `${diffH} ч`;
+  const diffD = Math.floor(diffH / TIME.HOURS_PER_DAY);
   return `${diffD} д`;
 }
 
@@ -104,8 +105,8 @@ function StoryViewer({
     if (timerRef.current) clearInterval(timerRef.current);
     let currentProgress = 0;
     timerRef.current = setInterval(() => {
-      currentProgress += 2;
-      if (currentProgress >= 100) {
+      currentProgress += MOMENTS_CONST.STORY_PROGRESS_TICK;
+      if (currentProgress >= MOMENTS_CONST.STORY_PROGRESS_MAX) {
         if (currentIndex < localMoments.length - 1) {
           setCurrentIndex((i) => i + 1);
         } else {
@@ -114,7 +115,7 @@ function StoryViewer({
         return;
       }
       setProgress(currentProgress);
-    }, 100);
+    }, MOMENTS_CONST.STORY_INTERVAL_MS);
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
@@ -152,7 +153,7 @@ function StoryViewer({
 
   const handleTouchEnd = (e: React.TouchEvent) => {
     const diff = e.changedTouches[0].clientY - dragStartY.current;
-    if (diff > 100) {
+    if (diff > MOMENTS_CONST.STORY_SWIPE_CLOSE_THRESHOLD) {
       onClose();
     }
   };
@@ -234,7 +235,7 @@ function StoryViewer({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.25 }}
+      transition={{ duration: ANIMATION.STORY_OVERLAY_DURATION }}
       className="fixed inset-0 z-50 flex flex-col"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
@@ -294,7 +295,7 @@ function StoryViewer({
             key={currentMoment.id}
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.35, ease: 'easeOut' }}
+            transition={{ duration: ANIMATION.STORY_TEXT_DURATION, ease: 'easeOut' }}
             className="text-white text-center text-xl md:text-2xl lg:text-3xl font-bold leading-relaxed drop-shadow-lg max-w-md"
           >
             {currentMoment.content}
@@ -307,7 +308,7 @@ function StoryViewer({
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 1, duration: 0.5 }}
+            transition={{ delay: ANIMATION.STORY_HINT_DELAY, duration: ANIMATION.STORY_HINT_DURATION }}
             className="text-center text-white/50 text-xs mb-3"
           >
             Проведите вниз или нажмите X, чтобы закрыть
@@ -408,8 +409,7 @@ function CreateMomentDialog({
 }) {
   const [text, setText] = useState('');
   const [selectedGradient, setSelectedGradient] = useState(GRADIENT_PRESETS[0]);
-  const CHAR_LIMIT = 200;
-  const remaining = CHAR_LIMIT - text.length;
+  const remaining = MOMENTS_CONST.CHARACTER_LIMIT - text.length;
 
   const handleSubmit = () => {
     if (!text.trim()) return;
@@ -449,15 +449,15 @@ function CreateMomentDialog({
             <Textarea
               value={text}
               onChange={(e) => {
-                if (e.target.value.length <= CHAR_LIMIT) {
+                if (e.target.value.length <= MOMENTS_CONST.CHARACTER_LIMIT) {
                   setText(e.target.value);
                 }
               }}
               placeholder="Поделитесь своими мыслями..."
               className="min-h-[100px] resize-none border-rose-200 dark:border-rose-800 focus-visible:ring-rose-300 dark:focus-visible:ring-rose-700 rounded-xl text-sm"
             />
-            <p className={`text-xs text-right ${remaining < 20 ? 'text-red-500' : 'text-muted-foreground'}`}>
-              {remaining} / {CHAR_LIMIT}
+            <p className={`text-xs text-right ${remaining < MOMENTS_CONST.CHARACTER_WARN_THRESHOLD ? 'text-red-500' : 'text-muted-foreground'}`}>
+              {remaining} / {MOMENTS_CONST.CHARACTER_LIMIT}
             </p>
           </div>
 
@@ -590,13 +590,13 @@ function MomentFeedCard({
         {/* Comments preview */}
         {moment.comments.length > 0 && (
           <div className="mt-2 space-y-1.5 border-t border-rose-50 dark:border-rose-900/30 pt-2">
-            {moment.comments.slice(0, 2).map((comment) => (
+            {moment.comments.slice(0, MOMENTS_CONST.PREVIEW_COMMENTS).map((comment) => (
               <p key={comment.id} className="text-xs text-muted-foreground">
                 <span className="font-semibold text-rose-700 dark:text-rose-300">{comment.userName}</span>{' '}
                 {comment.content}
               </p>
             ))}
-            {moment.comments.length > 2 && (
+            {moment.comments.length > MOMENTS_CONST.PREVIEW_COMMENTS && (
               <p className="text-xs text-rose-500 font-medium cursor-pointer hover:underline">
                 Посмотреть все комментарии ({moment.comments.length})
               </p>
@@ -857,7 +857,7 @@ export function MomentsView() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ delay: idx * 0.04, duration: 0.3 }}
+                transition={{ delay: idx * ANIMATION.STAGGER_FAST, duration: ANIMATION.FEED_CARD_DURATION }}
               >
                 <MomentFeedCard
                   moment={moment}

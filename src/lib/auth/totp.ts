@@ -1,8 +1,9 @@
 import { TOTP } from 'otpauth';
 import { hashPassword, verifyPassword } from './password';
+import { TOTP as TOTP_CONST } from '@/lib/constants';
 
 export function generateTOTPSecret(): string {
-  const secret = new Uint8Array(20);
+  const secret = new Uint8Array(TOTP_CONST.SECRET_BYTE_LENGTH);
   crypto.getRandomValues(secret);
   // Base32 encoding
   const base32Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';

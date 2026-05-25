@@ -11,6 +11,7 @@ import { useAppStore, type Message, type MatchWithUsers } from '@/lib/store';
 import { OnlineIndicator, TypingIndicator } from './shared';
 import { fetchWithCSRF } from '@/lib/api';
 import { appLogger } from '@/lib/logger';
+import { AUTO_REPLY, EMOJI, ANIMATION } from '@/lib/constants';
 
 // ─── Popular Emojis ──────────────────────────────────────────────────────────
 const POPULAR_EMOJIS = [
@@ -20,11 +21,6 @@ const POPULAR_EMOJIS = [
   '🎉', '💯', '🙈', '🤭', '😜', '🥂',
 ];
 
-// ─── Auto-Reply Constants ────────────────────────────────────────────────────
-const AUTO_REPLY_MIN_DELAY = 1500;
-const AUTO_REPLY_MAX_DELAY = 2500;
-const TYPING_MIN_DELAY = 500;
-const TYPING_MAX_DELAY = 800;
 const IS_DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
 
 const EMOJI_LIST = POPULAR_EMOJIS;
@@ -50,10 +46,11 @@ function EmojiPicker({ onSelect }: { onSelect: (emoji: string) => void }) {
             initial={{ opacity: 0, scale: 0.8, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 10 }}
-            transition={{ duration: 0.15 }}
-            className="absolute bottom-full right-0 mb-2 bg-card border border-rose-200 dark:border-rose-800 rounded-2xl shadow-xl p-3 z-20 max-h-[50vh] overflow-y-auto"
+            transition={{ duration: ANIMATION.EMOJI_PICKER_DURATION }}
+            className="absolute bottom-full right-0 mb-2 bg-card border border-rose-200 dark:border-rose-800 rounded-2xl shadow-xl p-3 z-20 overflow-y-auto"
+            style={{ maxHeight: `${EMOJI.PICKER_MAX_HEIGHT_VH}vh` }}
           >
-            <div className="emoji-picker-grid grid grid-cols-6 gap-1">
+            <div className="emoji-picker-grid gap-1" style={{ display: 'grid', gridTemplateColumns: `repeat(${EMOJI.GRID_COLUMNS}, minmax(0, 1fr))` }}>
               {EMOJI_LIST.map((emoji) => (
                 <button
                   key={emoji}
@@ -153,8 +150,8 @@ export function ChatView() {
     if (!lastMessage || !selectedMatchRef.current || !currentUserRef.current || !IS_DEMO_MODE) return;
     if (lastMessage.senderId !== currentUserRef.current.id) return;
 
-    const replyDelay = AUTO_REPLY_MIN_DELAY + Math.random() * AUTO_REPLY_MAX_DELAY;
-    const typingDelay = TYPING_MIN_DELAY + Math.random() * TYPING_MAX_DELAY;
+    const replyDelay = AUTO_REPLY.MIN_DELAY + Math.random() * (AUTO_REPLY.MAX_DELAY - AUTO_REPLY.MIN_DELAY);
+    const typingDelay = AUTO_REPLY.TYPING_MIN + Math.random() * (AUTO_REPLY.TYPING_MAX - AUTO_REPLY.TYPING_MIN);
 
     const matchId = selectedMatchRef.current.id;
     const senderId = currentUserRef.current.id;
@@ -360,7 +357,7 @@ export function ChatView() {
         {sending && (
           <div className="flex justify-end">
             <div className="chat-sent text-white px-4 py-2.5 rounded-2xl rounded-br-md">
-              <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 1.2, repeat: Infinity }} className="text-sm">...</motion.div>
+              <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: ANIMATION.SENDING_DOTS_DURATION, repeat: Infinity }} className="text-sm">...</motion.div>
             </div>
           </div>
         )}

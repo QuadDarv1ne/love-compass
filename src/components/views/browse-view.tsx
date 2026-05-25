@@ -13,7 +13,7 @@ import { appLogger } from '@/lib/logger';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { useAppStore, type User } from '@/lib/store';
-import { SUPER_LIKE_DAILY_LIMIT, SWIPE, MATCH_ANIMATION_DELAY } from '@/lib/constants';
+import { SUPER_LIKE_DAILY_LIMIT, SWIPE, MATCH_ANIMATION_DELAY, FILTER, SPRING, SWIPE_EXT } from '@/lib/constants';
 import { FilterPanel } from './shared';
 
 // ─── Profile Detail Modal ────────────────────────────────────────────────────
@@ -47,7 +47,7 @@ function ProfileDetailModal({
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 100, opacity: 0 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        transition={{ type: 'spring', stiffness: SPRING.DETAIL_MODAL_STIFFNESS, damping: SPRING.DETAIL_MODAL_DAMPING }}
         className="relative w-full max-w-lg mx-auto bg-card rounded-t-3xl md:rounded-3xl max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
@@ -212,8 +212,8 @@ export function BrowseView() {
     const result = profiles.filter((p) => {
       if (blockedUserIds.includes(p.id)) return false;
       if (filterGender !== 'all' && p.gender !== filterGender) return false;
-      if (filterAgeMin > 0 && p.age < filterAgeMin) return false;
-      if (filterAgeMax < 99 && p.age > filterAgeMax) return false;
+      if (filterAgeMin > FILTER.AGE_DEFAULT_MIN && p.age < filterAgeMin) return false;
+      if (filterAgeMax < FILTER.AGE_DEFAULT_MAX && p.age > filterAgeMax) return false;
       if (filterCity && !p.city.toLowerCase().includes(filterCity.toLowerCase())) return false;
       if (searchQuery && !p.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
       return true;
@@ -234,7 +234,7 @@ export function BrowseView() {
 
   const currentProfile = filteredProfiles.length > 0 ? filteredProfiles[0] : null;
 
-  const activeFilterCount = (searchQuery ? 1 : 0) + (filterGender !== 'all' ? 1 : 0) + (filterAgeMin > 0 ? 1 : 0) + (filterAgeMax < 99 ? 1 : 0) + (filterCity ? 1 : 0);
+  const activeFilterCount = (searchQuery ? 1 : 0) + (filterGender !== 'all' ? 1 : 0) + (filterAgeMin > FILTER.AGE_DEFAULT_MIN ? 1 : 0) + (filterAgeMax < FILTER.AGE_DEFAULT_MAX ? 1 : 0) + (filterCity ? 1 : 0);
 
   const canUndo = (lastSwipedProfile !== null && lastSwipeAction !== null);
 
@@ -463,7 +463,7 @@ export function BrowseView() {
         {/* Heart Burst */}
         <AnimatePresence>
           {showHeartBurst && (
-            <motion.div initial={{ scale: 0, opacity: 1 }} animate={{ scale: 2, opacity: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.8 }} className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none">
+            <motion.div initial={{ scale: 0, opacity: 1 }} animate={{ scale: 2, opacity: 0 }} exit={{ opacity: 0 }} transition={{ duration: SWIPE_EXT.BURST_DURATION }} className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none">
               <Heart className="w-24 h-24 text-rose-500 fill-rose-500" />
             </motion.div>
           )}
@@ -472,7 +472,7 @@ export function BrowseView() {
         {/* X burst */}
         <AnimatePresence>
           {showX && (
-            <motion.div initial={{ scale: 0, opacity: 1 }} animate={{ scale: 2, opacity: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.8 }} className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none">
+            <motion.div initial={{ scale: 0, opacity: 1 }} animate={{ scale: 2, opacity: 0 }} exit={{ opacity: 0 }} transition={{ duration: SWIPE_EXT.BURST_DURATION }} className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none">
               <X className="w-24 h-24 text-gray-400" />
             </motion.div>
           )}
@@ -481,7 +481,7 @@ export function BrowseView() {
         {/* Super Like burst */}
         <AnimatePresence>
           {showSuperLike && (
-            <motion.div initial={{ scale: 0, opacity: 1 }} animate={{ scale: 2.5, opacity: 0 }} exit={{ opacity: 0 }} transition={{ duration: 1 }} className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none">
+            <motion.div initial={{ scale: 0, opacity: 1 }} animate={{ scale: 2.5, opacity: 0 }} exit={{ opacity: 0 }} transition={{ duration: SWIPE_EXT.SUPER_LIKE_BURST_DURATION }} className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none">
               <div className="bg-blue-500 rounded-full p-4">
                 <Star className="w-16 h-16 text-white fill-white" />
               </div>
@@ -496,10 +496,10 @@ export function BrowseView() {
           initial={{ opacity: 0, x: 100, rotate: 5 }}
           animate={{
             opacity: 1,
-            x: swipeDir === 'right' ? 300 : swipeDir === 'left' ? -300 : dragX,
-            rotate: swipeDir === 'right' ? 20 : swipeDir === 'left' ? -20 : dragX * 0.05,
+            x: swipeDir === 'right' ? SWIPE_EXT.EXIT_X : swipeDir === 'left' ? -SWIPE_EXT.EXIT_X : dragX,
+            rotate: swipeDir === 'right' ? SWIPE_EXT.ROTATION_ANGLE : swipeDir === 'left' ? -SWIPE_EXT.ROTATION_ANGLE : dragX * SWIPE_EXT.DRAG_ROTATION_FACTOR,
           }}
-          transition={{ type: 'spring', stiffness: 200, damping: 25 }}
+          transition={{ type: 'spring', stiffness: SPRING.CARD_DRAG_STIFFNESS, damping: SPRING.CARD_DRAG_DAMPING }}
           drag={swipeDir === null ? 'x' : false}
           dragConstraints={{ left: 0, right: 0 }}
           dragElastic={0.9}
@@ -604,11 +604,7 @@ export function BrowseView() {
               } catch (error) {
                 appLogger.error('browse-view.block', 'Failed to block user via API', error);
               }
-              useAppStore.setState((state) => {
-                if (!state.currentUser) return {};
-                state.blockUser(detailProfile.id);
-                return {};
-              });
+              useAppStore.getState().blockUser(detailProfile.id);
               toast.success(`${detailProfile.name} заблокирован(а)`, { description: 'Вы больше не увидите этого пользователя' });
             }}
             onReport={async () => {

@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAppStore, type User } from '@/lib/store';
 import { appLogger } from '@/lib/logger';
+import { PAGINATION } from '@/lib/constants';
 import { FloatingHearts } from './shared';
 import Link from 'next/link';
 
@@ -69,7 +70,7 @@ export function LandingView() {
   const quickLogin = async (avatarIndex: number) => {
     setLoading(true);
     try {
-      const res = await fetch('/api/profiles?limit=100');
+      const res = await fetch(`/api/profiles?limit=${PAGINATION.DEMO_FETCH_LIMIT}`);
       const body = await res.json();
       const users: User[] = body.data ?? body;
       const selectedUser = users[avatarIndex];

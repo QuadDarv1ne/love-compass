@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { fetchWithCSRF, deleteWithCSRF } from '@/lib/api';
 import { useAppStore } from '@/lib/store';
+import { UPLOAD } from '@/lib/constants';
 
 interface AvatarUploadProps {
   currentAvatar: string;
@@ -31,8 +32,8 @@ export function AvatarUpload({ currentAvatar, userId: _userId, userName }: Avata
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Файл слишком большой (макс. 5MB)');
+    if (file.size > UPLOAD.MAX_FILE_SIZE) {
+      toast.error(`Файл слишком большой (макс. ${UPLOAD.MAX_FILE_SIZE / (1024 * 1024)}MB)`);
       return;
     }
 

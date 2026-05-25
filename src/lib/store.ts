@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { toast } from 'sonner';
+import { appLogger } from '@/lib/logger';
 
 // Monotonic counter to prevent stale checkAuth results from overwriting newer ones
 let checkAuthGeneration = 0;
@@ -392,7 +393,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       const { fetchWithCSRF } = await import('@/lib/api');
       await fetchWithCSRF('/api/auth/logout', {});
     } catch (error) {
-      console.error('Logout API call failed:', error);
+      appLogger.error('store.logout', 'Logout API call failed', error);
       toast.error('Ошибка выхода', { description: 'Не удалось завершить сессию на сервере' });
     }
     set({ ...clearState, authStatus: 'unauthenticated' });
@@ -419,7 +420,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         }
       }
     } catch (error) {
-      console.error('checkAuth failed:', error);
+      appLogger.error('store.checkAuth', 'checkAuth failed', error);
     }
     if (checkAuthGeneration === generation) {
       set({ authStatus: 'unauthenticated', currentView: 'landing' });
@@ -434,7 +435,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         set({ currentUser: user });
       }
     } catch (error) {
-      console.error('refreshUser failed:', error);
+      appLogger.error('store.refreshUser', 'refreshUser failed', error);
     }
   },
 
@@ -586,7 +587,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         });
       }
     } catch (error) {
-      console.error('Failed to load settings:', error);
+      appLogger.error('store.loadSettings', 'Failed to load settings', error);
     }
   },
   saveSettings: async (settings) => {
@@ -606,7 +607,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       // Only update state after server confirms
       set({ unlockedAchievements: [...state.unlockedAchievements, id] });
     } catch (error) {
-      console.error('Failed to unlock achievement:', error);
+      appLogger.error('store.unlockAchievement', 'Failed to unlock achievement', error);
     }
   },
 
@@ -644,7 +645,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         set({ adminStats: data ?? null });
       }
     } catch (error) {
-      console.error('Failed to fetch admin data:', error);
+      appLogger.error('store.fetchAdminData', 'Failed to fetch admin data', error);
     } finally {
       set({ adminLoading: false });
     }
@@ -659,7 +660,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         set({ adminSelectedUser: data });
       }
     } catch (error) {
-      console.error('Failed to fetch user detail:', error);
+      appLogger.error('store.fetchUserDetail', 'Failed to fetch user detail', error);
     } finally {
       set({ adminUserDetailLoading: false });
     }
@@ -677,7 +678,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         }));
       }
     } catch (error) {
-      console.error('Failed to delete user:', error);
+      appLogger.error('store.deleteUser', 'Failed to delete user', error);
     }
   },
 
@@ -697,7 +698,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         }));
       }
     } catch (error) {
-      console.error('Failed to toggle user role:', error);
+      appLogger.error('store.toggleUserRole', 'Failed to toggle user role', error);
     }
   },
 
@@ -717,7 +718,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         }));
       }
     } catch (error) {
-      console.error('Failed to toggle profile visible:', error);
+      appLogger.error('store.toggleProfileVisible', 'Failed to toggle profile visible', error);
     }
   },
 }));

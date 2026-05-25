@@ -1,4 +1,6 @@
 import { useAppStore, type User, type MatchWithUsers } from '@/lib/store';
+import { appLogger } from '@/lib/logger';
+import { PAGINATION } from '@/lib/constants';
 
 let csrfToken: string | null = null;
 let csrfTokenFetchedAt: number | null = null;
@@ -119,7 +121,7 @@ export async function hydrateAppData(user?: User) {
     // Fetch all profiles (other users)
     const profilesPromise = (async () => {
       try {
-        const profilesRes = await fetchWithTimeout('/api/profiles?limit=100');
+        const profilesRes = await fetchWithTimeout(`/api/profiles?limit=${PAGINATION.DEMO_FETCH_LIMIT}`);
         if (!profilesRes.ok) throw new Error('Failed to fetch profiles');
         const profilesBody = await profilesRes.json();
         const allUsers: User[] = Array.isArray(profilesBody.data) ? profilesBody.data : [];
@@ -133,7 +135,7 @@ export async function hydrateAppData(user?: User) {
         store.setOnlineUserIds(onlineIds);
       } catch (e) {
         errors.push('profiles');
-        console.error('Failed to hydrate profiles:', e);
+        appLogger.error('api.hydrate', 'Failed to hydrate profiles', e);
       }
     })();
 
@@ -148,7 +150,7 @@ export async function hydrateAppData(user?: User) {
         }
       } catch (e) {
         errors.push('matches');
-        console.error('Failed to hydrate matches:', e);
+        appLogger.error('api.hydrate', 'Failed to hydrate matches', e);
       }
     })();
 
@@ -163,7 +165,7 @@ export async function hydrateAppData(user?: User) {
         }
       } catch (e) {
         errors.push('likedYou');
-        console.error('Failed to hydrate likedYou:', e);
+        appLogger.error('api.hydrate', 'Failed to hydrate likedYou', e);
       }
     })();
 
@@ -180,7 +182,7 @@ export async function hydrateAppData(user?: User) {
         }
       } catch (e) {
         errors.push('likeSent');
-        console.error('Failed to hydrate likeSent:', e);
+        appLogger.error('api.hydrate', 'Failed to hydrate likeSent', e);
       }
     })();
 
@@ -196,7 +198,7 @@ export async function hydrateAppData(user?: User) {
         }
       } catch (e) {
         errors.push('blocked');
-        console.error('Failed to hydrate blocked:', e);
+        appLogger.error('api.hydrate', 'Failed to hydrate blocked', e);
       }
     })();
 
@@ -211,7 +213,7 @@ export async function hydrateAppData(user?: User) {
         }
       } catch (e) {
         errors.push('moments');
-        console.error('Failed to hydrate moments:', e);
+        appLogger.error('api.hydrate', 'Failed to hydrate moments', e);
       }
     })();
 
@@ -226,7 +228,7 @@ export async function hydrateAppData(user?: User) {
         }
       } catch (e) {
         errors.push('achievements');
-        console.error('Failed to hydrate achievements:', e);
+        appLogger.error('api.hydrate', 'Failed to hydrate achievements', e);
       }
     })();
 
@@ -251,7 +253,7 @@ export async function hydrateAppData(user?: User) {
         }
       } catch (e) {
         errors.push('settings');
-        console.error('Failed to hydrate settings:', e);
+        appLogger.error('api.hydrate', 'Failed to hydrate settings', e);
       }
     })();
 

@@ -65,6 +65,12 @@
 - [ ] **Connect i18n** — `next-intl` installed but app is hardcoded to Russian. Wire language selector to actual translation system
 - [ ] **Подключить i18n** — `next-intl` установлен, но приложение захардкожено на русский. Привязать селектор языка к реальной системе переводов
 
+- [x] **Fix onBlock nested setState anti-pattern** — `browse-view.tsx` `onBlock` handler called `state.blockUser()` inside `useAppStore.setState()`, causing a nested `setState` call since `blockUser` internally calls `set()`. Fixed by calling `useAppStore.getState().blockUser()` directly.
+- [x] **Починить anti-pattern nested setState в onBlock** — Обработчик `onBlock` в `browse-view.tsx` вызывал `state.blockUser()` внутри `useAppStore.setState()`, что создавало вложенный `setState`, так как `blockUser` внутри вызывает `set()`. Исправлено прямым вызовом `useAppStore.getState().blockUser()`.
+
+- [x] **Fix unused import** — Removed unused `ANIMATION` import from `browse-view.tsx` to eliminate ESLint warning
+- [x] **Починить неиспользуемый импорт** — Удалён неиспользуемый импорт `ANIMATION` из `browse-view.tsx` для устранения предупреждения ESLint
+
 - [x] **Fix memory leaks** — `setTimeout` calls in `browse-view.tsx` now tracked via ref and cleaned up on unmount
 - [x] **Починить утечки памяти** — `setTimeout` в `browse-view.tsx` теперь отслеживаются через ref и очищаются при unmount
 
@@ -121,8 +127,8 @@
 - [x] **Fix race conditions** — Multiple `useEffect` hooks called `useAppStore.getState()` leading to stale state. Refactored to atomic `setState(functionUpdater)` pattern. All `getState()`+`setState()` pairs replaced with atomic updates in browse-view, match-animation-overlay, and landing-view.
 - [x] **Починить race conditions** — Несколько `useEffect` хуков вызывали `useAppStore.getState()`, что приводило к устаревшему состоянию. Рефакторинг на атомарный паттерн `setState(functionUpdater)`. Все пары `getState()`+`setState()` заменены на атомарные обновления в browse-view, match-animation-overlay и landing-view.
 
-- [ ] **Fix duplicate API calls** — `LikedYouView` calls `/api/likes/received` twice. `MatchesView` and `ChatListView` both fetch matches independently. Deduplicate (Note: match-animation-overlay duplicate already fixed)
-- [ ] **Починить дублирующиеся API-вызовы** — `LikedYouView` вызывает `/api/likes/received` дважды. `MatchesView` и `ChatListView` оба независимо загружают матчи. Устранить дублирование (Примечание: дублирование в match-animation-overlay уже исправлено)
+- [x] **Fix duplicate API calls** — `LikedYouView`, `MatchesView`, and `ChatListView` now read from Zustand store (hydrated once via `hydrateAppData()`). No duplicate fetches.
+- [x] **Починить дублирующиеся API-вызовы** — `LikedYouView`, `MatchesView` и `ChatListView` теперь читают из стора Zustand (единоразовая загрузка через `hydrateAppData()`). Дублирование устранено.
 
 - [x] **Fix memory leaks** — `setTimeout` in browse-view tracked via ref and cleaned up on unmount; chat-view and moments-view intervals already had proper cleanup
 - [x] **Починить утечки памяти** — `setTimeout` в browse-view отслеживаются через ref и очищаются при unmount; intervals в chat-view и moments-view уже имели очистку
@@ -130,11 +136,11 @@
 - [x] **Add idempotency to seed** — `seed.ts` uses `upsert` by email, won't destroy existing data
 - [x] **Добавить идемпотентность в seed** — `seed.ts` использует `upsert` по email, не уничтожает существующие данные
 
-- [x] **Standardize error handling** — Extended `logger.ts` with client-side `appLogger` (error/warn/info levels). Replaced 17 scattered `console.error` calls across 8 view components with structured JSON logging (context, timestamp, error data).
-- [x] **Стандартизировать обработку ошибок** — Расширен `logger.ts` клиентским `appLogger` (уровни error/warn/info). Заменены 17 разрозненных `console.error` в 8 компонентах на структурированное JSON-логирование.
+- [x] **Standardize error handling** — Extended `logger.ts` with client-side `appLogger` (error/warn/info levels). Replaced 17 scattered `console.error` calls across 8 view components with structured JSON logging (context, timestamp, error data). Replaced remaining 19 `console.error` calls in `api.ts`, `store.ts`, and `error-boundary.tsx` with structured `appLogger.error`.
+- [x] **Стандартизировать обработку ошибок** — Расширен `logger.ts` клиентским `appLogger` (уровни error/warn/info). Заменены 17 разрозненных `console.error` в 8 компонентах на структурированное JSON-логирование. Заменены оставшиеся 19 `console.error` в `api.ts`, `store.ts` и `error-boundary.tsx` на структурированный `appLogger.error`.
 
-- [ ] **Extract magic numbers** — Swipe thresholds, reply delays, animation durations hardcoded. Use named constants
-- [ ] **Вынести магические числа** — Пороги свайпа, задержки ответов, длительности анимаций захардкожены. Использовать именованные константы
+- [x] **Extract magic numbers** — Swipe thresholds, reply delays, animation durations, upload limits, grid configs, time constants, and spring physics all extracted to `constants.ts` as named `as const` objects
+- [x] **Вынести магические числа** — Пороги свайпа, задержки ответов, длительности анимаций, лимиты загрузки, конфигурация сетки, временные константы и spring-физика вынесены в `constants.ts` как именованные `as const` объекты
 
 - [ ] **Add API versioning** — Routes at `/api/*` with no version. Add `/api/v1/` prefix
 - [ ] **Добавить версионирование API** — Маршруты на `/api/*` без версии. Добавить префикс `/api/v1/`
