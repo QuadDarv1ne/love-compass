@@ -10,7 +10,7 @@ import { RATE_LIMITS } from '@/lib/constants';
 
 const changePasswordSchema = z.object({
   currentPassword: z.string().min(1),
-  newPassword: z.string().min(1),
+  newPassword: z.string().min(8, 'Минимум 8 символов'),
 });
 
 export async function POST(request: Request) {

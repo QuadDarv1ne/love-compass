@@ -8,78 +8,82 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
   const auth = await requireAdmin(request);
   if (auth instanceof NextResponse) return auth;
 
-  const { userId } = await params;
+  try {
+    const { userId } = await params;
 
-  const user = await db.user.findUnique({ id: userId });
+    const user = await db.user.findUnique({ id: userId });
 
-  if (!user) {
-    return NextResponse.json({ error: 'User not found' }, { status: 404 });
-  }
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
 
-  const safeUser = sanitizeUser(user);
+    const safeUser = sanitizeUser(user);
 
-  const [
-    likesSent,
-    likesReceived,
-    matchCount,
-    messagesSent,
-    messagesReceived,
-    momentsCount,
-    momentCommentsCount,
-    momentReactionsCount,
-    blocksReceived,
-    blocksSent,
-    reportsReceived,
-    reportsSent,
-    achievementsCount,
-    lastMessage,
-  ] = await Promise.all([
-    db.like.count({ fromUserId: userId }),
-    db.like.count({ toUserId: userId }),
-    db.match.count({ OR: [{ user1Id: userId }, { user2Id: userId }] }),
-    db.message.count({ senderId: userId }),
-    // Two-step: relation filter doesn't work through custom adapter
-    (async () => {
-      const matches = await db.match.findMany({ OR: [{ user1Id: userId }, { user2Id: userId }] });
-      const matchIds = matches.map(m => m.id);
-      return db.message.count({ matchId: { in: matchIds }, senderId: { not: userId } });
-    })(),
-    db.moment.count({ userId }),
-    db.momentComment.count({ userId }),
-    db.momentReaction.count({ userId }),
-    db.block.count({ blockedId: userId }),
-    db.block.count({ blockerId: userId }),
-    db.report.count({ reportedId: userId }),
-    db.report.count({ reporterId: userId }),
-    db.userAchievement.count({ userId }),
-    db.message.findFirst({ senderId: userId }, { orderBy: { createdAt: 'desc' } }),
-  ]);
+    const [
+      likesSent,
+      likesReceived,
+      matchCount,
+      messagesSent,
+      messagesReceived,
+      momentsCount,
+      momentCommentsCount,
+      momentReactionsCount,
+      blocksReceived,
+      blocksSent,
+      reportsReceived,
+      reportsSent,
+      achievementsCount,
+      lastMessage,
+    ] = await Promise.all([
+      db.like.count({ fromUserId: userId }),
+      db.like.count({ toUserId: userId }),
+      db.match.count({ OR: [{ user1Id: userId }, { user2Id: userId }] }),
+      db.message.count({ senderId: userId }),
+      // Two-step: relation filter doesn't work through custom adapter
+      (async () => {
+        const matches = await db.match.findMany({ OR: [{ user1Id: userId }, { user2Id: userId }] });
+        const matchIds = matches.map(m => m.id);
+        return db.message.count({ matchId: { in: matchIds }, senderId: { not: userId } });
+      })(),
+      db.moment.count({ userId }),
+      db.momentComment.count({ userId }),
+      db.momentReaction.count({ userId }),
+      db.block.count({ blockedId: userId }),
+      db.block.count({ blockerId: userId }),
+      db.report.count({ reportedId: userId }),
+      db.report.count({ reporterId: userId }),
+      db.userAchievement.count({ userId }),
+      db.message.findFirst({ senderId: userId }, { orderBy: { createdAt: 'desc' } }),
+    ]);
 
-  const lastActivity = lastMessage ? lastMessage.createdAt.toISOString() : safeUser.updatedAt.toISOString();
+    const lastActivity = lastMessage ? lastMessage.createdAt.toISOString() : safeUser.updatedAt.toISOString();
 
-  return NextResponse.json({
-    data: {
-      ...safeUser,
-      createdAt: safeUser.createdAt.toISOString(),
-      updatedAt: safeUser.updatedAt.toISOString(),
-      stats: {
-        likesSent,
-        likesReceived,
-        matchCount,
-        messagesSent,
-        messagesReceived,
-        momentsCount,
-        momentCommentsCount,
-        momentReactionsCount,
-        blocksReceived,
-        blocksSent,
-        reportsReceived,
-        reportsSent,
-        achievementsCount,
-        lastActivity,
+    return NextResponse.json({
+      data: {
+        ...safeUser,
+        createdAt: safeUser.createdAt.toISOString(),
+        updatedAt: safeUser.updatedAt.toISOString(),
+        stats: {
+          likesSent,
+          likesReceived,
+          matchCount,
+          messagesSent,
+          messagesReceived,
+          momentsCount,
+          momentCommentsCount,
+          momentReactionsCount,
+          blocksReceived,
+          blocksSent,
+          reportsReceived,
+          reportsSent,
+          achievementsCount,
+          lastActivity,
+        },
       },
-    },
-  });
+    });
+  } catch {
+    return NextResponse.json({ error: 'Failed to fetch user details' }, { status: 500 });
+  }
 }
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ userId: string }> }) {

@@ -260,7 +260,7 @@ interface AppState {
   addMoment: (moment: Moment) => void;
 
   // Settings
-  setNotificationEnabled: (enabled: boolean) => void;
+  setNotificationsEnabled: (enabled: boolean) => void;
   setProfileVisible: (visible: boolean) => void;
   setShowOnlineStatus: (show: boolean) => void;
   setLanguage: (lang: string) => void;
@@ -408,11 +408,11 @@ export const useAppStore = create<AppState>((set, get) => ({
         const data = await res.json();
         if (data?.user) {
           if (checkAuthGeneration === generation) {
-            set({
+            set((state) => ({
               currentUser: data.user,
               authStatus: 'authenticated',
-              currentView: 'browse',
-            });
+              currentView: state.currentView === 'landing' || state.currentView === 'loading' ? 'browse' : state.currentView,
+            }));
             const { hydrateAppData } = await import('@/lib/api');
             await hydrateAppData(data.user);
           }
@@ -506,7 +506,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   setCurrentMomentIndex: (index) => set({ currentMomentIndex: index }),
   addMoment: (moment) => set((state) => ({ moments: [moment, ...state.moments] })),
 
-  setNotificationEnabled: (enabled) => {
+  setNotificationsEnabled: (enabled) => {
     const prev = get().notificationsEnabled;
     set({ notificationsEnabled: enabled });
     get().saveSettings({ notificationsEnabled: enabled }).catch(() => {

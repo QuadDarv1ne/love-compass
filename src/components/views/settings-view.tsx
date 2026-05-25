@@ -249,7 +249,7 @@ export function SettingsView() {
     logout,
     clearAllData,
     notificationsEnabled,
-    setNotificationEnabled,
+    setNotificationsEnabled,
     profileVisible,
     setProfileVisible,
     showOnlineStatus,
@@ -311,6 +311,10 @@ export function SettingsView() {
   };
 
   const handleChangePassword = async () => {
+    if (newPassword.length < 8) {
+      toast.error('Пароль должен содержать минимум 8 символов');
+      return;
+    }
     if (newPassword !== confirmNewPassword) {
       toast.error('Пароли не совпадают');
       return;
@@ -447,7 +451,7 @@ export function SettingsView() {
                 label="Push-уведомления"
                 description="Получайте уведомления на устройстве"
                 checked={notificationsEnabled}
-                onCheckedChange={setNotificationEnabled}
+                onCheckedChange={setNotificationsEnabled}
               />
 
               <SettingRow
