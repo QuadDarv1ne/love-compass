@@ -1,4 +1,5 @@
 import { SignJWT, jwtVerify } from 'jose';
+import { randomUUID } from 'crypto';
 
 // Cache the dev secret so sign and verify use the same key within a process
 let _devSecret: Uint8Array | undefined;
@@ -11,7 +12,7 @@ const getSecret = () => {
     }
     // Use a stable dev secret so tokens survive server restarts in development
     if (!_devSecret) {
-      _devSecret = new TextEncoder().encode('love-compass-dev-jwt-secret-do-not-use-in-prod');
+      _devSecret = new TextEncoder().encode(randomUUID());
     }
     return _devSecret;
   }

@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import { logger } from '@/lib/logger';
 
 const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
@@ -36,7 +37,7 @@ export async function sendVerificationEmail(
 
   if (!resend) {
     if (isDev) {
-      console.warn(`\n[EMAIL] Verification link for ${email}: ${verificationUrl}\n`);
+      logger.warn('[EMAIL]', `Verification link for ${email}: ${verificationUrl}`);
     }
     return;
   }
@@ -70,7 +71,7 @@ export async function sendPasswordResetEmail(
 
   if (!resend) {
     if (isDev) {
-      console.warn(`\n[EMAIL] Password reset link for ${email}: ${resetUrl}\n`);
+      logger.warn('[EMAIL]', `Password reset link for ${email}: ${resetUrl}`);
     }
     return;
   }
@@ -102,7 +103,7 @@ export async function sendWelcomeEmail(
 ): Promise<void> {
   if (!resend) {
     if (isDev) {
-      console.warn(`\n[EMAIL] Welcome email for ${name} (${email})\n`);
+      logger.warn('[EMAIL]', `Welcome email for ${name} (${email})`);
     }
     return;
   }

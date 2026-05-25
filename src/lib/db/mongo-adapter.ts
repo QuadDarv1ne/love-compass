@@ -849,26 +849,76 @@ class MongoDBAdapterForTransaction extends MongoDBAdapter {
 
   momentReaction = {
     ...Object.assign({}, MongoDBAdapter.prototype.momentReaction),
+    create: async (data: Partial<DbMomentReaction>): Promise<DbMomentReaction> => {
+      const result = await this.getDb().collection<DbMomentReaction>(COLLECTIONS.momentReactions).insertOne(toInsertDoc(data), { session: this.txSession });
+      return { ...data, id: result.insertedId.toString() } as DbMomentReaction;
+    },
     findUnique: async (where: { momentId?: string; userId?: string; emoji?: string }): Promise<DbMomentReaction | null> => {
       const query = cleanWhere(where);
       if (Object.keys(query).length === 0) return null;
       const doc = await this.getDb().collection<DbMomentReaction>(COLLECTIONS.momentReactions).findOne(query, { session: this.txSession });
       return stripId(doc) as DbMomentReaction | null;
     },
+    delete: async (where: { id: string }): Promise<void> => {
+      await this.getDb().collection<DbMomentReaction>(COLLECTIONS.momentReactions).deleteOne({ _id: toObjectId(where.id) }, { session: this.txSession });
+    },
   };
 
   momentLike = {
     ...Object.assign({}, MongoDBAdapter.prototype.momentLike),
+    create: async (data: Partial<DbMomentLike>): Promise<DbMomentLike> => {
+      const result = await this.getDb().collection<DbMomentLike>(COLLECTIONS.momentLikes).insertOne(toInsertDoc(data), { session: this.txSession });
+      return { ...data, id: result.insertedId.toString() } as DbMomentLike;
+    },
     findUnique: async (where: { momentId?: string; userId?: string }): Promise<DbMomentLike | null> => {
       const query = cleanWhere(where);
       if (Object.keys(query).length === 0) return null;
       const doc = await this.getDb().collection<DbMomentLike>(COLLECTIONS.momentLikes).findOne(query, { session: this.txSession });
       return stripId(doc) as DbMomentLike | null;
     },
+    delete: async (where: { id: string }): Promise<void> => {
+      await this.getDb().collection<DbMomentLike>(COLLECTIONS.momentLikes).deleteOne({ _id: toObjectId(where.id) }, { session: this.txSession });
+    },
+  };
+
+  message = {
+    ...Object.assign({}, MongoDBAdapter.prototype.message),
+    create: async (data: Partial<DbMessage>): Promise<DbMessage> => {
+      const result = await this.getDb().collection<DbMessage>(COLLECTIONS.messages).insertOne(toInsertDoc(data), { session: this.txSession });
+      return { ...data, id: result.insertedId.toString() } as DbMessage;
+    },
+  };
+
+  block = {
+    ...Object.assign({}, MongoDBAdapter.prototype.block),
+    create: async (data: Partial<DbBlock>): Promise<DbBlock> => {
+      const result = await this.getDb().collection<DbBlock>(COLLECTIONS.blocks).insertOne(toInsertDoc(data), { session: this.txSession });
+      return { ...data, id: result.insertedId.toString() } as DbBlock;
+    },
+  };
+
+  report = {
+    ...Object.assign({}, MongoDBAdapter.prototype.report),
+    create: async (data: Partial<DbReport>): Promise<DbReport> => {
+      const result = await this.getDb().collection<DbReport>(COLLECTIONS.reports).insertOne(toInsertDoc(data), { session: this.txSession });
+      return { ...data, id: result.insertedId.toString() } as DbReport;
+    },
+  };
+
+  momentComment = {
+    ...Object.assign({}, MongoDBAdapter.prototype.momentComment),
+    create: async (data: Partial<DbMomentComment>): Promise<DbMomentComment> => {
+      const result = await this.getDb().collection<DbMomentComment>(COLLECTIONS.momentComments).insertOne(toInsertDoc(data), { session: this.txSession });
+      return { ...data, id: result.insertedId.toString() } as DbMomentComment;
+    },
   };
 
   userAchievement = {
     ...Object.assign({}, MongoDBAdapter.prototype.userAchievement),
+    create: async (data: Partial<DbUserAchievement>): Promise<DbUserAchievement> => {
+      const result = await this.getDb().collection<DbUserAchievement>(COLLECTIONS.userAchievements).insertOne(toInsertDoc(data), { session: this.txSession });
+      return { ...data, id: result.insertedId.toString() } as DbUserAchievement;
+    },
     findUnique: async (where: { userId?: string; achievementId?: string }): Promise<DbUserAchievement | null> => {
       const query = cleanWhere(where);
       if (Object.keys(query).length === 0) return null;

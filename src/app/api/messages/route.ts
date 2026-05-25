@@ -31,9 +31,13 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
+    // Pagination: default 50 messages, max 100
+    const limit = Math.min(parseInt(searchParams.get('limit') || '50', 10), 100);
+    const cursor = searchParams.get('cursor');
+
     const messages = await db.message.findMany(
       { matchId },
-      { orderBy: { createdAt: 'asc' } }
+      { skip: cursor ? 1 : 0, take: limit, orderBy: { createdAt: 'asc' }, cursor: cursor ? { id: cursor } : undefined }
     );
 
     // Fetch sender data separately
@@ -46,7 +50,9 @@ export async function GET(request: Request) {
       sender: senderMap.get(m.senderId),
     }));
 
-    return NextResponse.json(data);
+    const nextCursor = messages.length === limit ? messages[messages.length - 1]?.id : null;
+
+    return NextResponse.json({ messages: data, nextCursor });
   } catch (error) {
     logger.error('/api/messages', 'Failed to fetch messages', error);
     return NextResponse.json({ error: 'Failed to fetch messages' }, { status: 500 });
