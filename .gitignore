@@ -36,7 +36,6 @@ yarn-error.log*
 # vercel
 .vercel
 
-
 # typescript
 *.tsbuildinfo
 next-env.d.ts
@@ -44,16 +43,8 @@ local-*
 .claude
 .z-ai-config
 *.log
-dev.log
-dev.out.log
-test
-prompt
 
 server.log
-
-# stray files
-2
-dev.log
 
 # deploy artifacts
 /deploy/backups/
@@ -72,3 +63,8 @@ traefik/acme.json
 !/public/uploads/avatars/.gitkeep
 /public/uploads/photos/*
 !/public/uploads/photos/.gitkeep
+
+# Package manager lockfiles - use bun.lock only
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
