@@ -13,6 +13,9 @@
 - [x] **Type safety & error handling improvements** — Narrowed `role` type to `'admin' | 'user'`, reduced `as any` casts in mongo-adapter (28 occurrences fixed), added proper error logging in top-view and landing-view, deduplicated API calls in match-animation-overlay, tightened ESLint to disallow `console.log`
 - [x] **Улучшение типизации и обработки ошибок** — Сужен тип `role` до `'admin' | 'user'`, сокращены `as any` в mongo-adapter (28 исправлений), добавлено логирование ошибок в top-view и landing-view, устранено дублирование API-вызовов в match-animation-overlay, ужесточён ESLint для запрета `console.log`
 
+- [x] **Eliminate all ESLint warnings and fix type safety** — Reduced warnings from 81 to 0. Replaced `any` with `unknown` in `cleanWhere()`, added string type guards before `toObjectId()` (8 locations), replaced non-null assertions with proper null checks for orphaned sessions, excluded `scripts/` from no-console rule, replaced `console.log` with `console.warn` in email.ts
+- [x] **Устранить все предупреждения ESLint и исправить типизацию** — Сокращены предупреждения с 81 до 0. Заменены `any` на `unknown` в `cleanWhere()`, добавлены строковые проверки типов перед `toObjectId()` (8 мест), заменены ненулевые утверждения на правильные проверки null для осиротевших сессий, исключён `scripts/` из правила no-console, заменён `console.log` на `console.warn` в email.ts
+
 ## Critical
 
 - [x] **Implement real authentication** — Custom auth built with email/password, sessions (httpOnly cookies), CSRF, 2FA/TOTP, password reset, email verification, rate limiting
@@ -121,8 +124,8 @@
 - [x] **Add idempotency to seed** — `seed.ts` uses `upsert` by email, won't destroy existing data
 - [x] **Добавить идемпотентность в seed** — `seed.ts` использует `upsert` по email, не уничтожает существующие данные
 
-- [ ] **Standardize error handling** — Mix of `console.error`, silent failures, and no catch. Use consistent error reporting (Note: empty catch blocks in top-view and landing-view already fixed)
-- [ ] **Стандартизировать обработку ошибок** — Смесь `console.error`, тихих падений и отсутствия catch. Использовать единый стиль обработки ошибок (Примечание: пустые catch-блоки в top-view и landing-view уже исправлены)
+- [ ] **Standardize error handling** — Mix of `console.error`, silent failures, and no catch. Use consistent error reporting (Note: empty catch blocks in top-view and landing-view already fixed; mongo-adapter now throws explicit error for orphaned sessions)
+- [ ] **Стандартизировать обработку ошибок** — Смесь `console.error`, тихих падений и отсутствия catch. Использовать единый стиль обработки ошибок (Примечание: пустые catch-блоки в top-view и landing-view уже исправлены; mongo-adapter теперь выдаёт явную ошибку для осиротевших сессий)
 
 - [ ] **Extract magic numbers** — Swipe thresholds, reply delays, animation durations hardcoded. Use named constants
 - [ ] **Вынести магические числа** — Пороги свайпа, задержки ответов, длительности анимаций захардкожены. Использовать именованные константы
