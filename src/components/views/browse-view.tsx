@@ -162,7 +162,7 @@ function ProfileDetailModal({
 // ─── Browse View ────────────────────────────────────────────────────────────
 export function BrowseView() {
   const {
-    profiles, currentUser, likedUserIds, dislikedUserIds, superLikedUserIds,
+    profiles, currentUser,
     removeProfile, addLikedUserId, addDislikedUserId, addSuperLikedUserId,
     setShowMatchAnimation, setMatchAnimationPartner, showFilters, setShowFilters,
     filterGender, filterAgeMin, filterAgeMax, filterCity, setProfiles,
@@ -275,9 +275,10 @@ export function BrowseView() {
       const t3 = setTimeout(() => removeProfile(profile.id), CARD_REMOVAL_DELAY);
       timerIdsRef.current.push(t3);
     } catch (error) {
-      // Rollback optimistic update
-      const newIds = useAppStore.getState().likedUserIds.filter((id) => id !== profile.id);
-      useAppStore.setState({ likedUserIds: newIds });
+      // Rollback optimistic update atomically to prevent stale state races
+      useAppStore.setState((state) => ({
+        likedUserIds: state.likedUserIds.filter((id) => id !== profile.id),
+      }));
       toast.error('Не удалось отправить лайк', { description: 'Попробуйте ещё раз' });
       console.error('Like failed:', error);
     }
@@ -329,11 +330,11 @@ export function BrowseView() {
       const t3 = setTimeout(() => removeProfile(profile.id), CARD_REMOVAL_DELAY);
       timerIdsRef.current.push(t3);
     } catch (error) {
-      // Rollback optimistic update
-      const state = useAppStore.getState();
-      const newLikeIds = state.likedUserIds.filter((id) => id !== profile.id);
-      const newSuperIds = state.superLikedUserIds.filter((id) => id !== profile.id);
-      useAppStore.setState({ likedUserIds: newLikeIds, superLikedUserIds: newSuperIds });
+      // Rollback optimistic updates atomically to prevent stale state races
+      useAppStore.setState((state) => ({
+        likedUserIds: state.likedUserIds.filter((id) => id !== profile.id),
+        superLikedUserIds: state.superLikedUserIds.filter((id) => id !== profile.id),
+      }));
       toast.error('Не удалось отправить супер-лайк', { description: 'Попробуйте ещё раз' });
       console.error('Super Like failed:', error);
     }
@@ -363,21 +364,25 @@ export function BrowseView() {
     if (!profiles.some((p) => p.id === lastSwipedProfile.id)) {
       setProfiles([lastSwipedProfile, ...profiles]);
     }
-    // Remove from the appropriate list
-    if (lastSwipeAction === 'dislike') {
-      const newIds = dislikedUserIds.filter((id) => id !== lastSwipedProfile.id);
-      useAppStore.setState({ dislikedUserIds: newIds });
-    } else if (lastSwipeAction === 'like') {
-      const newIds = likedUserIds.filter((id) => id !== lastSwipedProfile.id);
-      useAppStore.setState({ likedUserIds: newIds });
-    } else if (lastSwipeAction === 'superLike') {
-      const newLikeIds = likedUserIds.filter((id) => id !== lastSwipedProfile.id);
-      const newSuperIds = superLikedUserIds.filter((id) => id !== lastSwipedProfile.id);
-      useAppStore.setState({ likedUserIds: newLikeIds, superLikedUserIds: newSuperIds });
-    }
+    // Remove from the appropriate list atomically
+    useAppStore.setState((state) => {
+      if (lastSwipeAction === 'dislike') {
+        return { dislikedUserIds: state.dislikedUserIds.filter((id) => id !== lastSwipedProfile.id) };
+      }
+      if (lastSwipeAction === 'like') {
+        return { likedUserIds: state.likedUserIds.filter((id) => id !== lastSwipedProfile.id) };
+      }
+      if (lastSwipeAction === 'superLike') {
+        return {
+          likedUserIds: state.likedUserIds.filter((id) => id !== lastSwipedProfile.id),
+          superLikedUserIds: state.superLikedUserIds.filter((id) => id !== lastSwipedProfile.id),
+        };
+      }
+      return {};
+    });
     setLastSwipedProfile(null);
     setLastSwipeAction(null);
-  }, [lastSwipedProfile, lastSwipeAction, profiles, setProfiles, dislikedUserIds, likedUserIds, superLikedUserIds]);
+  }, [lastSwipedProfile, lastSwipeAction, profiles, setProfiles]);
 
   // Drag handlers for touch swipe
   const handleDragStart = () => {
@@ -601,8 +606,6 @@ export function BrowseView() {
             onDislike={() => handleDislike(detailProfile)}
             onSuperLike={() => handleSuperLike(detailProfile)}
             onBlock={async () => {
-              const state = useAppStore.getState();
-              if (!state.currentUser) return;
               try {
                 await fetchWithCSRF('/api/block', {
                   blockedId: detailProfile.id,
@@ -611,7 +614,11 @@ export function BrowseView() {
               } catch (error) {
                 console.error('Failed to block user via API:', error);
               }
-              state.blockUser(detailProfile.id);
+              useAppStore.setState((state) => {
+                if (!state.currentUser) return {};
+                state.blockUser(detailProfile.id);
+                return {};
+              });
               toast.success(`${detailProfile.name} заблокирован(а)`, { description: 'Вы больше не увидите этого пользователя' });
             }}
             onReport={async () => {

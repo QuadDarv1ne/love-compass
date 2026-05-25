@@ -79,8 +79,10 @@ export function LandingView() {
           body: JSON.stringify({ userId: selectedUser.id }),
         });
         if (loginRes.ok) {
-          const { checkAuth } = useAppStore.getState();
-          await checkAuth();
+          useAppStore.setState((state) => {
+            state.checkAuth();
+            return {};
+          });
         }
       }
     } catch (error) {
