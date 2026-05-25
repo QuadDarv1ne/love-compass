@@ -10,6 +10,8 @@
 - [x] **Админ в seed данных** — Добавлен пользователь-админ (`admin@lovecompass.com`) в seed данные
 - [x] **Auth guard update** — Updated auth guard to support role-based authorization checks
 - [x] **Обновление auth guard** — Обновлён auth guard для поддержки проверки авторизации по ролям
+- [x] **Type safety & error handling improvements** — Narrowed `role` type to `'admin' | 'user'`, reduced `as any` casts in mongo-adapter (28 occurrences fixed), added proper error logging in top-view and landing-view, deduplicated API calls in match-animation-overlay, tightened ESLint to disallow `console.log`
+- [x] **Улучшение типизации и обработки ошибок** — Сужен тип `role` до `'admin' | 'user'`, сокращены `as any` в mongo-adapter (28 исправлений), добавлено логирование ошибок в top-view и landing-view, устранено дублирование API-вызовов в match-animation-overlay, ужесточён ESLint для запрета `console.log`
 
 ## Critical
 
@@ -110,8 +112,8 @@
 - [ ] **Fix race conditions** — Multiple `useEffect` hooks call `useAppStore.getState()` leading to stale state. Refactor to proper Zustand patterns. (Note: setTimeout memory leaks in browse-view already fixed)
 - [ ] **Починить race conditions** — Несколько `useEffect` хуков вызывают `useAppStore.getState()`, что приводит к устаревшему состоянию. Рефакторинг на правильные паттерны Zustand. (Примечание: утечки setTimeout в browse-view уже исправлены)
 
-- [ ] **Fix duplicate API calls** — `LikedYouView` calls `/api/likes/received` twice. `MatchesView` and `ChatListView` both fetch matches independently. Deduplicate
-- [ ] **Починить дублирующиеся API-вызовы** — `LikedYouView` вызывает `/api/likes/received` дважды. `MatchesView` и `ChatListView` оба независимо загружают матчи. Устранить дублирование
+- [ ] **Fix duplicate API calls** — `LikedYouView` calls `/api/likes/received` twice. `MatchesView` and `ChatListView` both fetch matches independently. Deduplicate (Note: match-animation-overlay duplicate already fixed)
+- [ ] **Починить дублирующиеся API-вызовы** — `LikedYouView` вызывает `/api/likes/received` дважды. `MatchesView` и `ChatListView` оба независимо загружают матчи. Устранить дублирование (Примечание: дублирование в match-animation-overlay уже исправлено)
 
 - [x] **Fix memory leaks** — `setTimeout` in browse-view tracked via ref and cleaned up on unmount; chat-view and moments-view intervals already had proper cleanup
 - [x] **Починить утечки памяти** — `setTimeout` в browse-view отслеживаются через ref и очищаются при unmount; intervals в chat-view и moments-view уже имели очистку
@@ -119,8 +121,8 @@
 - [x] **Add idempotency to seed** — `seed.ts` uses `upsert` by email, won't destroy existing data
 - [x] **Добавить идемпотентность в seed** — `seed.ts` использует `upsert` по email, не уничтожает существующие данные
 
-- [ ] **Standardize error handling** — Mix of `console.error`, silent failures, and no catch. Use consistent error reporting
-- [ ] **Стандартизировать обработку ошибок** — Смесь `console.error`, тихих падений и отсутствия catch. Использовать единый стиль обработки ошибок
+- [ ] **Standardize error handling** — Mix of `console.error`, silent failures, and no catch. Use consistent error reporting (Note: empty catch blocks in top-view and landing-view already fixed)
+- [ ] **Стандартизировать обработку ошибок** — Смесь `console.error`, тихих падений и отсутствия catch. Использовать единый стиль обработки ошибок (Примечание: пустые catch-блоки в top-view и landing-view уже исправлены)
 
 - [ ] **Extract magic numbers** — Swipe thresholds, reply delays, animation durations hardcoded. Use named constants
 - [ ] **Вынести магические числа** — Пороги свайпа, задержки ответов, длительности анимаций захардкожены. Использовать именованные константы
