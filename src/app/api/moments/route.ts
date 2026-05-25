@@ -3,7 +3,7 @@ import { db } from '@/lib/db';
 import { z } from 'zod';
 import { requireAuth, requireAuthWithCSRF, isZodError } from '@/lib/auth/guard';
 import { logger } from '@/lib/logger';
-import { VALIDATION } from '@/lib/constants';
+import { VALIDATION, PAGINATION } from '@/lib/constants';
 
 const createMomentSchema = z.object({
   content: z.string().min(1).max(VALIDATION.MOMENT_MAX_LENGTH),
@@ -25,21 +25,36 @@ const actionSchema = z.object({
   content: z.string().optional(),
 });
 
+const momentsQuerySchema = z.object({
+  limit: z.coerce.number().min(1).max(PAGINATION.MOMENTS_MAX_LIMIT).default(PAGINATION.MOMENTS_DEFAULT_LIMIT),
+});
+
 export async function GET(request: Request) {
   try {
     const auth = await requireAuth(request);
     if (auth instanceof NextResponse) return auth;
 
-    const moments = await db.moment.findMany({}, { orderBy: { createdAt: 'desc' } });
+    const { searchParams } = new URL(request.url);
+    const parsed = momentsQuerySchema.safeParse({
+      limit: parseInt(searchParams.get('limit') || String(PAGINATION.MOMENTS_DEFAULT_LIMIT)),
+    });
+
+    const limit = parsed.success ? parsed.data.limit : PAGINATION.MOMENTS_DEFAULT_LIMIT;
+
+    const moments = await db.moment.findMany({}, {
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+    });
 
     // Fetch related data separately
     const userIds = [...new Set(moments.map((m) => m.userId))];
     const momentIds = moments.map((m) => m.id);
 
-    const [users, comments, reactions] = await Promise.all([
+    const [users, comments, reactions, totalMoments] = await Promise.all([
       db.user.findMany({ id: { in: userIds } }),
       db.momentComment.findMany({ momentId: { in: momentIds } }, { orderBy: { createdAt: 'asc' } }),
       db.momentReaction.findMany({ momentId: { in: momentIds } }),
+      db.moment.count({}),
     ]);
 
     // Fetch comment users
@@ -101,7 +116,7 @@ export async function GET(request: Request) {
       };
     });
 
-    return NextResponse.json({ data });
+    return NextResponse.json({ data, total: totalMoments });
   } catch (error) {
     logger.error('/api/moments', 'GET error', error);
     return NextResponse.json({ error: 'Failed to fetch moments' }, { status: 500 });

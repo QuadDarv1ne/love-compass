@@ -344,9 +344,17 @@ export function BrowseView() {
     if (lastSwipeAction === 'like' || lastSwipeAction === 'superLike') {
       try {
         await deleteWithCSRF(`/api/like?toUserId=${lastSwipedProfile.id}`, {});
+        // Restore superLikeRemaining only if API succeeds
+        if (lastSwipeAction === 'superLike') {
+          setSuperLikeRemaining((prev) => Math.min(SUPER_LIKE_DAILY_LIMIT, prev + 1));
+        }
       } catch (error) {
         toast.error('Не удалось отменить лайк', { description: 'Профиль восстановлен, но лайк остался' });
         appLogger.error('browse-view.undo', 'Undo like failed', error);
+        // Don't re-add profile to list if API failed - keep it removed
+        setLastSwipedProfile(null);
+        setLastSwipeAction(null);
+        return;
       }
     }
 
@@ -609,11 +617,13 @@ export function BrowseView() {
                   blockedId: detailProfile.id,
                   reason: 'Blocked from profile detail',
                 });
+                // Only update UI after API succeeds
+                useAppStore.getState().blockUser(detailProfile.id);
+                toast.success(`${detailProfile.name} заблокирован(а)`, { description: 'Вы больше не увидите этого пользователя' });
               } catch (error) {
                 appLogger.error('browse-view.block', 'Failed to block user via API', error);
+                toast.error('Не удалось заблокировать пользователя', { description: 'Попробуйте ещё раз' });
               }
-              useAppStore.getState().blockUser(detailProfile.id);
-              toast.success(`${detailProfile.name} заблокирован(а)`, { description: 'Вы больше не увидите этого пользователя' });
             }}
             onReport={async () => {
               try {
@@ -621,10 +631,12 @@ export function BrowseView() {
                   reportedId: detailProfile.id,
                   reason: 'Inappropriate behavior',
                 });
+                // Only show success after API succeeds
+                toast.info(`Жалоба на ${detailProfile.name} отправлена`, { description: 'Мы рассмотрим вашу жалобу' });
               } catch (error) {
                 appLogger.error('browse-view.report', 'Failed to submit report via API', error);
+                toast.error('Не удалось отправить жалобу', { description: 'Попробуйте ещё раз' });
               }
-              toast.info(`Жалоба на ${detailProfile.name} отправлена`, { description: 'Мы рассмотрим вашу жалобу' });
             }}
           />
         )}
