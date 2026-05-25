@@ -90,26 +90,38 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ us
   const auth = await requireAdminWithCSRF(request);
   if (auth instanceof NextResponse) return auth;
 
-  const { userId } = await params;
+  try {
+    const { userId } = await params;
 
-  const bodySchema = z.object({
-    profileVisible: z.boolean().optional(),
-    role: z.enum(['user', 'admin']).optional(),
-  });
+    const bodySchema = z.object({
+      profileVisible: z.boolean().optional(),
+      role: z.enum(['user', 'admin']).optional(),
+    });
 
-  const body = await request.json();
-  const parsed = bodySchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    const body = await request.json();
+    const parsed = bodySchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    }
+
+    const existingUser = await db.user.findUnique({ id: userId });
+    if (!existingUser) {
+      return NextResponse.json({ error: 'Пользователь не найден' }, { status: 404 });
+    }
+
+    const updated = await db.user.update({ id: userId }, parsed.data);
+
+    return NextResponse.json({ data: {
+      id: updated.id,
+      role: updated.role,
+      profileVisible: updated.profileVisible,
+    } });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: 'Invalid request body', details: error.issues }, { status: 400 });
+    }
+    return NextResponse.json({ error: 'Не удалось обновить пользователя' }, { status: 500 });
   }
-
-  const updated = await db.user.update({ id: userId }, parsed.data);
-
-  return NextResponse.json({ data: {
-    id: updated.id,
-    role: updated.role,
-    profileVisible: updated.profileVisible,
-  } });
 }
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ userId: string }> }) {

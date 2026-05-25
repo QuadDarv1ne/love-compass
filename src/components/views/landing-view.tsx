@@ -74,11 +74,19 @@ export function LandingView() {
       const body = await res.json();
       const users: User[] = body.data ?? body;
       const selectedUser = users[avatarIndex];
-      if (selectedUser) {
+      if (selectedUser && selectedUser.email) {
+        // Get CSRF token first
+        const csrfRes = await fetch('/api/auth/csrf-token');
+        const csrfData = await csrfRes.json();
+        const csrfToken = csrfData.csrfToken;
+
         const loginRes = await fetch('/api/auth/demo-login', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: selectedUser.id }),
+          headers: {
+            'Content-Type': 'application/json',
+            'x-csrf-token': csrfToken,
+          },
+          body: JSON.stringify({ email: selectedUser.email }),
         });
         if (loginRes.ok) {
           useAppStore.setState((state) => {
