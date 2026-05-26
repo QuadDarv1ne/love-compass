@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useAppStore } from '@/lib/store';
+import { FILTER } from '@/lib/constants';
 
 // ─── Avatar Options ──────────────────────────────────────────────────────────
 export const ALL_AVATARS = [
@@ -195,7 +196,7 @@ export function FilterPanel() {
     setFilterCity('');
   };
 
-  const hasActiveFilters = searchQuery !== '' || sortBy !== 'new' || filterGender !== 'all' || filterAgeMin > 0 || filterAgeMax < 99 || filterCity !== '';
+  const hasActiveFilters = searchQuery !== '' || sortBy !== 'new' || filterGender !== 'all' || filterAgeMin > FILTER.AGE_DEFAULT_MIN || filterAgeMax < FILTER.AGE_DEFAULT_MAX || filterCity !== '';
 
   return (
     <motion.div

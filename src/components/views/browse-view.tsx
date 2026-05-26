@@ -235,7 +235,7 @@ export function BrowseView() {
 
   const currentProfile = filteredProfiles.length > 0 ? filteredProfiles[0] : null;
 
-  const activeFilterCount = (searchQuery ? 1 : 0) + (filterGender !== 'all' ? 1 : 0) + (filterAgeMin > FILTER.AGE_DEFAULT_MIN ? 1 : 0) + (filterAgeMax < FILTER.AGE_DEFAULT_MAX ? 1 : 0) + (filterCity ? 1 : 0);
+  const activeFilterCount = (searchQuery ? 1 : 0) + (sortBy !== 'new' ? 1 : 0) + (filterGender !== 'all' ? 1 : 0) + (filterAgeMin > FILTER.AGE_DEFAULT_MIN ? 1 : 0) + (filterAgeMax < FILTER.AGE_DEFAULT_MAX ? 1 : 0) + (filterCity ? 1 : 0);
 
   const canUndo = (lastSwipedProfile !== null && lastSwipeAction !== null);
 

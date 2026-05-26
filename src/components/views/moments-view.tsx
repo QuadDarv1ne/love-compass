@@ -617,6 +617,7 @@ export function MomentsView() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [dialogKey, setDialogKey] = useState(0);
   const [likedMomentIds, setLikedMomentIds] = useState<Set<string>>(new Set());
+  const [, setMyReactions] = useState<Set<string>>(new Set());
 
   // Fetch moments from API — fall back to store data if already hydrated
   useEffect(() => {
@@ -683,39 +684,57 @@ export function MomentsView() {
   };
 
   const toggleFeedLike = async (momentId: string) => {
+    let wasAdding = false;
     setLikedMomentIds((prev) => {
       const next = new Set(prev);
-      if (next.has(momentId)) {
-        next.delete(momentId);
-      } else {
-        next.add(momentId);
-      }
+      wasAdding = !next.has(momentId);
+      if (wasAdding) next.add(momentId);
+      else next.delete(momentId);
       return next;
     });
+    setMoments((prev) =>
+      prev.map((m) => {
+        if (m.id !== momentId) return m;
+        return { ...m, likes: m.likes + (wasAdding ? 1 : -1) };
+      })
+    );
     try {
       await patchWithCSRF('/api/moments', { id: momentId, action: 'like' });
     } catch {
       setLikedMomentIds((prev) => {
         const next = new Set(prev);
-        if (next.has(momentId)) next.delete(momentId);
+        if (wasAdding) next.delete(momentId);
         else next.add(momentId);
         return next;
       });
+      setMoments((prev) =>
+        prev.map((m) => {
+          if (m.id !== momentId) return m;
+          return { ...m, likes: m.likes + (wasAdding ? -1 : 1) };
+        })
+      );
     }
   };
 
   const handleFeedReaction = async (momentId: string, emoji: string) => {
+    const key = `${momentId}:${emoji}`;
     let wasAdding = false;
+    setMyReactions((prev) => {
+      const next = new Set(prev);
+      wasAdding = !next.has(key);
+      if (wasAdding) next.add(key);
+      else next.delete(key);
+      return next;
+    });
     setMoments((prev) =>
       prev.map((m) => {
         if (m.id !== momentId) return m;
         const currentCount = m.reactions[emoji] || 0;
-        wasAdding = currentCount === 0;
         return {
           ...m,
           reactions: {
             ...m.reactions,
-            [emoji]: currentCount > 0 ? currentCount - 1 : currentCount + 1,
+            [emoji]: currentCount + (wasAdding ? 1 : -1),
           },
         };
       })
@@ -723,7 +742,12 @@ export function MomentsView() {
     try {
       await patchWithCSRF('/api/moments', { id: momentId, action: 'react', emoji });
     } catch {
-      // Reverse the optimistic change: if we removed, add back; if we added, remove
+      setMyReactions((prev) => {
+        const next = new Set(prev);
+        if (wasAdding) next.delete(key);
+        else next.add(key);
+        return next;
+      });
       setMoments((prev) =>
         prev.map((m) => {
           if (m.id !== momentId) return m;
@@ -732,7 +756,7 @@ export function MomentsView() {
             ...m,
             reactions: {
               ...m.reactions,
-              [emoji]: wasAdding ? (currentCount > 0 ? currentCount - 1 : currentCount + 1) : currentCount + 1,
+              [emoji]: currentCount + (wasAdding ? -1 : 1),
             },
           };
         })
