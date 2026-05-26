@@ -98,23 +98,38 @@ export function ChatView() {
   const [newMessageCount, setNewMessageCount] = useState(0);
   const hasFocusRef = useRef(true);
 
-  // Polling for real-time message updates
+  // Polling for real-time message updates — cursor-based incremental fetch
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const lastMessageIdRef = useRef<string | null>(null);
   const lastMessageCountRef = useRef<number>(0);
 
   useEffect(() => {
     if (!selectedMatch) return;
     const abortController = new AbortController();
     let cancelled = false;
-    const loadMessages = async () => {
+    lastMessageIdRef.current = null;
+    const loadMessages = async (isPoll = false) => {
       try {
-        const res = await fetch(`/api/messages?matchId=${selectedMatch.id}`, { signal: abortController.signal });
+        let url = `/api/messages?matchId=${selectedMatch.id}`;
+        if (isPoll && lastMessageIdRef.current) {
+          url += `&cursor=${lastMessageIdRef.current}&limit=50`;
+        }
+        const res = await fetch(url, { signal: abortController.signal });
         if (!res.ok) throw new Error('Failed to load messages');
         const data = await res.json();
         if (!cancelled) {
-          const messageList = data.messages ?? data;
-          setMessages(messageList);
-          lastMessageCountRef.current = messageList.length;
+          const messageList: Message[] = data.messages ?? data;
+          if (messageList.length === 0) return;
+          if (isPoll && lastMessageIdRef.current) {
+            // Incremental: append only new messages
+            for (const msg of messageList) {
+              addMessage(msg);
+            }
+          } else {
+            // Initial load: replace all messages
+            setMessages(messageList);
+          }
+          lastMessageIdRef.current = messageList[messageList.length - 1].id;
           // Mark unread messages as read
           const currentUserId = currentUserRef.current?.id;
           const unreadIds = messageList
@@ -136,12 +151,12 @@ export function ChatView() {
         if (!cancelled) appLogger.error('chat-view.loadMessages', 'Failed to load messages', error);
       }
     };
-    loadMessages();
+    loadMessages(false);
 
-    // Set up polling for real-time updates
+    // Set up polling for real-time updates — incremental fetch
     pollingIntervalRef.current = setInterval(() => {
       if (selectedMatchIdRef.current && hasFocusRef.current) {
-        loadMessages();
+        loadMessages(true);
       }
     }, 5000);
 
@@ -154,7 +169,7 @@ export function ChatView() {
     };
     // selectedMatch is used as a guard — only the stable .id is needed for re-trigger
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedMatch?.id, setMessages]);
+  }, [selectedMatch?.id, setMessages, addMessage]);
 
   // Track window focus to control polling
   useEffect(() => {

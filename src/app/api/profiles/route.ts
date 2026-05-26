@@ -39,7 +39,7 @@ export async function GET(request: Request) {
     let cursor = pagination.cursor;
     for (let iteration = 0; iteration < 5 && results.length < pagination.limit; iteration++) {
       const skip = cursor ? 1 : 0;
-      const remaining = pagination.limit - results.length + 1;
+      const remaining = pagination.limit - results.length + (cursor ? 1 : 0);
       const profiles = await db.user.findMany(
         {
           profileVisible: true,

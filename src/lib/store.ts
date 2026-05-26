@@ -376,10 +376,6 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   login: (user) => {
-    const onlineIds: string[] = [];
-    for (let i = 0; i < 7; i++) {
-      onlineIds.push(`online-seed-${i}`);
-    }
     set({
       currentUser: user,
       authStatus: 'authenticated',
