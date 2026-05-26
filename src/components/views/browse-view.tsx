@@ -364,6 +364,20 @@ export function BrowseView() {
       }
     }
 
+    // If it was a dislike, call API to remove the server-side record
+    if (lastSwipeAction === 'dislike') {
+      try {
+        await deleteWithCSRF(`/api/dislike?toUserId=${lastSwipedProfile.id}`, {});
+      } catch (error) {
+        toast.error('Не удалось отменить дизлайк', { description: 'Попробуйте ещё раз' });
+        appLogger.error('browse-view.undo', 'Undo dislike failed', error);
+        // Don't re-add profile to list if API failed - keep it removed
+        setLastSwipedProfile(null);
+        setLastSwipeAction(null);
+        return;
+      }
+    }
+
     // Re-add the profile atomically to prevent stale state races
     useAppStore.setState((state) => {
       const alreadyPresent = state.profiles.some((p) => p.id === lastSwipedProfile.id);

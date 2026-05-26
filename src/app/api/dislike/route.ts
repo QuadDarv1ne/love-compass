@@ -46,3 +46,25 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Failed to fetch dislikes' }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const auth = await requireAuthWithCSRF(request);
+    if (auth instanceof NextResponse) return auth;
+
+    const { user } = auth;
+    const { searchParams } = new URL(request.url);
+    const toUserId = searchParams.get('toUserId')?.trim();
+
+    if (!toUserId) {
+      return NextResponse.json({ error: 'Missing toUserId parameter' }, { status: 400 });
+    }
+
+    await db.dislike.deleteMany({ fromUserId: user.id, toUserId });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    logger.error('/api/dislike', 'Failed to undo dislike', error);
+    return NextResponse.json({ error: 'Failed to undo dislike' }, { status: 500 });
+  }
+}
