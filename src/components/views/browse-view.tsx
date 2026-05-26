@@ -349,7 +349,7 @@ export function BrowseView() {
           setSuperLikeRemaining((prev) => Math.min(SUPER_LIKE_DAILY_LIMIT, prev + 1));
         }
       } catch (error) {
-        toast.error('Не удалось отменить лайк', { description: 'Профиль восстановлен, но лайк остался' });
+        toast.error('Не удалось отменить лайк', { description: 'Попробуйте ещё раз' });
         appLogger.error('browse-view.undo', 'Undo like failed', error);
         // Don't re-add profile to list if API failed - keep it removed
         setLastSwipedProfile(null);

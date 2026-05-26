@@ -15,6 +15,7 @@ const PUBLIC_PATHS = [
 
 const SESSION_COOKIE_NAME = '__session';
 const LAST_SEEN_THROTTLE_MS = 60_000; // 1 minute
+const CACHE_MAX_SIZE = 10_000;
 const lastSeenCache = new Map<string, number>();
 
 async function validateSession(token: string): Promise<{ id: string; expiresAt: Date; userId: string } | null> {
@@ -100,6 +101,10 @@ export async function middleware(request: NextRequest) {
   const now = Date.now();
   const lastUpdate = lastSeenCache.get(session.userId) || 0;
   if (now - lastUpdate >= LAST_SEEN_THROTTLE_MS) {
+    if (lastSeenCache.size >= CACHE_MAX_SIZE) {
+      const oldest = lastSeenCache.entries().next().value;
+      if (oldest) lastSeenCache.delete(oldest[0]);
+    }
     lastSeenCache.set(session.userId, now);
     try {
       await db.user.update({ id: session.userId }, { lastSeenAt: new Date() });

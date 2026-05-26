@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import { SafeImage } from '@/components/ui/safe-image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -18,6 +18,15 @@ import { MATCH_ANIMATION_DELAY } from '@/lib/constants';
 export function LikedYouView() {
   const { currentUser, likedYouProfiles, setLikedYouProfiles, setShowMatchAnimation, setMatchAnimationPartner, navigateTo } = useAppStore();
   const matchAnimationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Clean up timer on unmount
+  useEffect(() => {
+    return () => {
+      if (matchAnimationTimerRef.current) {
+        clearTimeout(matchAnimationTimerRef.current);
+      }
+    };
+  }, []);
 
   // likedYouProfiles is preloaded via hydrateAppData() on login/auth check
   // No duplicate API call needed — see api.ts → hydrateAppData()

@@ -264,8 +264,8 @@ export class PrismaAdapter implements DatabaseAdapter {
     create: (data: Partial<DbMessage>) =>
       prisma.message.create({ data: data as Prisma.MessageCreateInput }).then(toDbMessage),
 
-    findMany: (where?: Record<string, unknown>, options?: { skip?: number; take?: number; orderBy?: Record<string, unknown> }) =>
-      prisma.message.findMany({ where: where as Prisma.MessageWhereInput, ...options }).then((arr) => arr.map(toDbMessage)),
+    findMany: (where?: Record<string, unknown>, options?: { skip?: number; take?: number; orderBy?: Record<string, unknown>; cursor?: Record<string, unknown> }) =>
+      prisma.message.findMany({ where: where as Prisma.MessageWhereInput, ...(options as Prisma.MessageFindManyArgs) }).then((arr) => arr.map(toDbMessage)),
 
     findFirst: (where?: Record<string, unknown>, options?: { orderBy?: Record<string, unknown> }) =>
       prisma.message.findFirst({ where: where as Prisma.MessageWhereInput, ...options }).then((r) => (r ? toDbMessage(r) : null)),

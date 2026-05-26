@@ -204,7 +204,7 @@ export interface DatabaseAdapter {
 
   message: {
     create(data: Partial<DbMessage>): Promise<DbMessage>;
-    findMany(where?: Record<string, unknown>, options?: { skip?: number; take?: number; orderBy?: Record<string, unknown> }): Promise<DbMessage[]>;
+    findMany(where?: Record<string, unknown>, options?: { skip?: number; take?: number; orderBy?: Record<string, unknown>; cursor?: Record<string, unknown> }): Promise<DbMessage[]>;
     findFirst(where?: Record<string, unknown>, options?: { orderBy?: Record<string, unknown> }): Promise<DbMessage | null>;
     updateMany(where: Record<string, unknown>, data: Partial<DbMessage>): Promise<number>;
     deleteMany(where: Record<string, unknown>): Promise<number>;
@@ -237,7 +237,7 @@ export interface DatabaseAdapter {
     create(data: Partial<DbMoment>): Promise<DbMoment>;
     findMany(where?: Record<string, unknown>, options?: { skip?: number; take?: number; orderBy?: Record<string, unknown> }): Promise<DbMoment[]>;
     findUnique(where: { id: string }): Promise<DbMoment | null>;
-    update(where: { id: string }, data: Partial<DbMoment>): Promise<DbMoment>;
+    update(where: { id: string }, data: Partial<DbMoment> | Record<string, unknown>): Promise<DbMoment>;
     deleteMany(where: Record<string, unknown>): Promise<number>;
     count(where?: Record<string, unknown>): Promise<number>;
     groupBy(params: { by: string[]; where?: Record<string, unknown>; _count?: Record<string, boolean> }): Promise<unknown[]>;

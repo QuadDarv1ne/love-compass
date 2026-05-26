@@ -181,25 +181,17 @@ export async function PATCH(request: Request) {
 
         if (existing) {
           await tx.momentLike.delete({ id: existing.id });
-          const current = await tx.moment.findUnique({ id });
-          if (!current) {
-            return { likes: 0, liked: false };
-          }
           const updated = await tx.moment.update(
             { id },
-            { likes: current.likes - 1 }
+            { likes: { decrement: 1 } }
           );
           return { likes: updated.likes, liked: false };
         }
 
         await tx.momentLike.create({ momentId: id, userId: auth.user.id });
-        const current = await tx.moment.findUnique({ id });
-        if (!current) {
-          return { likes: 1, liked: true };
-        }
         const updated = await tx.moment.update(
           { id },
-          { likes: current.likes + 1 }
+          { likes: { increment: 1 } }
         );
         return { likes: updated.likes, liked: true };
       });

@@ -65,6 +65,21 @@ function cleanWhere(where: Record<string, unknown> = {}): Record<string, unknown
   return cleaned;
 }
 
+function parseAtomicOp(data: Record<string, unknown>): { $set: Record<string, unknown>; $inc: Record<string, number> } {
+  const $set: Record<string, unknown> = {};
+  const $inc: Record<string, number> = {};
+  for (const [key, value] of Object.entries(data)) {
+    if (value && typeof value === 'object' && 'increment' in (value as Record<string, unknown>)) {
+      $inc[key] = (value as Record<string, number>).increment;
+    } else if (value && typeof value === 'object' && 'decrement' in (value as Record<string, unknown>)) {
+      $inc[key] = -(value as Record<string, number>).decrement;
+    } else {
+      $set[key] = value;
+    }
+  }
+  return { $set, $inc };
+}
+
 function mongoOrder(orderBy?: Record<string, 'asc' | 'desc'>): Record<string, 1 | -1> | undefined {
   if (!orderBy) return undefined;
   const result: Record<string, 1 | -1> = {};
@@ -408,9 +423,13 @@ export class MongoDBAdapter implements DatabaseAdapter {
       return { ...data, id: result.insertedId.toString() } as DbMessage;
     },
 
-    findMany: async (where?: Record<string, unknown>, options?: { skip?: number; take?: number; orderBy?: Record<string, 'asc' | 'desc'> }): Promise<DbMessage[]> => {
+    findMany: async (where?: Record<string, unknown>, options?: { skip?: number; take?: number; orderBy?: Record<string, 'asc' | 'desc'>; cursor?: Record<string, unknown> }): Promise<DbMessage[]> => {
+      const filter = cleanWhere(where || {});
+      if (options?.cursor?.id && options.skip) {
+        filter._id = { $gt: toObjectId(options.cursor.id as string) };
+      }
       const cursor = this.db.collection<DbMessage>(COLLECTIONS.messages)
-        .find(cleanWhere(where || {}))
+        .find(filter)
         .skip(options?.skip || 0)
         .limit(options?.take || 0);
 
@@ -557,10 +576,14 @@ export class MongoDBAdapter implements DatabaseAdapter {
       return stripId(doc) as DbMoment | null;
     },
 
-    update: async (where: { id: string }, data: Partial<DbMoment>): Promise<DbMoment> => {
+    update: async (where: { id: string }, data: Partial<DbMoment> | Record<string, unknown>): Promise<DbMoment> => {
+      const { $set, $inc } = parseAtomicOp(data as Record<string, unknown>);
+      const updateDoc: Record<string, unknown> = {};
+      if (Object.keys($set).length > 0) updateDoc.$set = $set;
+      if (Object.keys($inc).length > 0) updateDoc.$inc = $inc;
       const result = await this.db.collection<DbMoment>(COLLECTIONS.moments).findOneAndUpdate(
         { _id: toObjectId(where.id) },
-        { $set: data },
+        updateDoc,
         { returnDocument: 'after' }
       );
       if (!result) throw new Error('Moment not found');
@@ -842,9 +865,13 @@ class MongoDBAdapterForTransaction extends MongoDBAdapter {
 
   moment = {
     ...Object.assign({}, MongoDBAdapter.prototype.moment),
-    update: async (where: { id: string }, data: Partial<DbMoment>): Promise<DbMoment> => {
+    update: async (where: { id: string }, data: Partial<DbMoment> | Record<string, unknown>): Promise<DbMoment> => {
+      const { $set, $inc } = parseAtomicOp(data as Record<string, unknown>);
+      const updateDoc: Record<string, unknown> = {};
+      if (Object.keys($set).length > 0) updateDoc.$set = $set;
+      if (Object.keys($inc).length > 0) updateDoc.$inc = $inc;
       const result = await this.getDb().collection<DbMoment>(COLLECTIONS.moments).findOneAndUpdate(
-        { _id: toObjectId(where.id) }, { $set: data }, { returnDocument: 'after', session: this.txSession }
+        { _id: toObjectId(where.id) }, updateDoc, { returnDocument: 'after', session: this.txSession }
       );
       if (!result) throw new Error('Moment not found');
       return stripId(result) as DbMoment;

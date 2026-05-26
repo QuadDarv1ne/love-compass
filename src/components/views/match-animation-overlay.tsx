@@ -16,12 +16,12 @@ export function MatchAnimationOverlay() {
   const refreshMatches = async () => {
     const res = await fetch('/api/matches');
     if (!res.ok) throw new Error('Failed to fetch matches');
-    const matches = await res.json();
+    const { data } = await res.json();
     useAppStore.setState((state) => {
-      state.setMatches(matches);
+      state.setMatches(data);
       return {};
     });
-    return matches;
+    return data;
   };
 
   const handleContinue = async () => {

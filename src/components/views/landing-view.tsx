@@ -89,10 +89,7 @@ export function LandingView() {
           body: JSON.stringify({ email: selectedUser.email }),
         });
         if (loginRes.ok) {
-          useAppStore.setState((state) => {
-            state.checkAuth();
-            return {};
-          });
+          useAppStore.getState().checkAuth();
         }
       }
     } catch (error) {
