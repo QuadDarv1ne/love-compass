@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { SafeImage } from '@/components/ui/safe-image';
+import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import {
-  Heart, X, Star, LogOut, Edit3, MapPin, Zap, MessageSquare,
+  Heart, X, Star, LogOut, Edit3, MapPin, Zap, MessageSquare, Camera, Trash2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,6 +34,8 @@ export function ProfileView() {
   const [city, setCity] = useState('');
   const [interests, setInterests] = useState('');
   const [lookingFor, setLookingFor] = useState('all');
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Sync form values with currentUser when editing
   useEffect(() => {
@@ -90,6 +93,60 @@ export function ProfileView() {
     setSaving(false);
   };
 
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('avatar', file);
+
+      const res = await fetch('/api/profile/avatar', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Upload failed');
+      }
+
+      const data = await res.json();
+      setCurrentUser({ ...currentUser, avatar: data.avatar });
+      toast.success('Аватар обновлён!', { description: 'Новое фото профиля сохранено' });
+    } catch (error) {
+      appLogger.error('profile-view.avatar', 'Failed to upload avatar', error);
+      toast.error('Не удалось загрузить аватар', { description: 'Попробуйте ещё раз' });
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleDeleteAvatar = async () => {
+    setUploading(true);
+    try {
+      const res = await fetch('/api/profile/avatar', { method: 'DELETE' });
+
+      if (!res.ok) {
+        throw new Error('Delete failed');
+      }
+
+      setCurrentUser({ ...currentUser, avatar: '' });
+      toast.success('Аватар удалён', { description: 'Фото профиля удалено' });
+    } catch (error) {
+      appLogger.error('profile-view.avatar', 'Failed to delete avatar', error);
+      toast.error('Не удалось удалить аватар', { description: 'Попробуйте ещё раз' });
+    } finally {
+      setUploading(false);
+    }
+  };
+
   if (!currentUser) return null;
 
   return (
@@ -100,6 +157,48 @@ export function ProfileView() {
           <div className="relative h-48 md:h-56">
             <SafeImage src={currentUser.avatar || 'https://api.dicebear.com/9.x/notionists/svg?seed=Default'} alt={currentUser.name} fill className="object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+            {/* Avatar upload overlay */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={handleAvatarUpload}
+              className="hidden"
+              disabled={uploading}
+            />
+            <div className="absolute top-3 right-3 flex items-center gap-2">
+              {currentUser.avatar && currentUser.avatar.startsWith('/uploads/avatars/') && (
+                <Button
+                  onClick={handleDeleteAvatar}
+                  disabled={uploading}
+                  variant="ghost"
+                  size="icon"
+                  className="bg-white/20 backdrop-blur-sm hover:bg-red-500/40 text-white rounded-full disabled:opacity-50"
+                  title="Удалить аватар"
+                >
+                  <Trash2 className="w-5 h-5" />
+                </Button>
+              )}
+              <Button
+                onClick={handleAvatarClick}
+                disabled={uploading}
+                variant="ghost"
+                size="icon"
+                className="bg-white/20 backdrop-blur-sm hover:bg-white/40 text-white rounded-full disabled:opacity-50"
+                title="Загрузить фото"
+              >
+                {uploading ? (
+                  <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
+                    <Edit3 className="w-5 h-5" />
+                  </motion.div>
+                ) : (
+                  <Camera className="w-5 h-5" />
+                )}
+              </Button>
+              <Button onClick={() => editing ? stopEditing() : startEditing()} variant="ghost" size="icon" className="bg-white/20 backdrop-blur-sm hover:bg-white/40 text-white rounded-full">
+                <Edit3 className="w-5 h-5" />
+              </Button>
+            </div>
             <div className="absolute bottom-4 left-4">
               <h3 className="text-2xl font-bold text-white">{currentUser.name}, {currentUser.age}</h3>
               {currentUser.city && (
@@ -109,9 +208,6 @@ export function ProfileView() {
                 </div>
               )}
             </div>
-            <Button onClick={() => editing ? stopEditing() : startEditing()} variant="ghost" size="icon" className="absolute top-3 right-3 bg-white/20 backdrop-blur-sm hover:bg-white/40 text-white rounded-full">
-              <Edit3 className="w-5 h-5" />
-            </Button>
           </div>
           {!editing ? (
             <CardContent className="p-5 space-y-4">
