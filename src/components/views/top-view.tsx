@@ -319,8 +319,8 @@ export function TopView() {
       key: 'new',
       label: 'Новые лица',
       icon: <UserPlus className="w-4 h-4" />,
-      scoreLabel: 'Лайки',
-      scoreGetter: (r) => r.popularityScore,
+      scoreLabel: 'На платформе',
+      scoreGetter: (r) => Math.floor((Date.now() - new Date(r.createdAt).getTime()) / (1000 * 60 * 60 * 24)),
     },
   ];
 

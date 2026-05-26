@@ -268,11 +268,6 @@ export function ChatView() {
     } catch (error) {
       appLogger.error('chat-view.sendMessage', 'Failed to send message', error);
       toast.error('Не удалось отправить сообщение', { description: 'Попробуйте ещё раз' });
-      // Restore message content on failure using atomic setState
-      useAppStore.setState((state) => ({
-        ...state,
-        messages: [...state.messages], // trigger re-render
-      }));
       setNewMessage(content);
     }
     setSending(false);

@@ -79,7 +79,8 @@ export async function POST(request: Request) {
       });
 
       if (existingMatch) {
-        return { like, match: existingMatch, isMutual: true };
+        // Match already exists — not a new mutual match
+        return { like, match: existingMatch, isMutual: false };
       }
 
       // Create new match (consistent ordering by ID)

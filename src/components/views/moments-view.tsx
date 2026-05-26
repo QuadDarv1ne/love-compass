@@ -613,7 +613,7 @@ export function MomentsView() {
   const { currentUser, moments: storeMoments, setMoments: setStoreMoments, addMoment: addStoreMoment } = useAppStore();
   const [moments, setMoments] = useState<Moment[]>([]);
   const [showStoryViewer, setShowStoryViewer] = useState(false);
-  const [storyStartIndex, setStoryStartIndex] = useState(0);
+  const [selectedStoryUserId, setSelectedStoryUserId] = useState<string | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [dialogKey, setDialogKey] = useState(0);
   const [likedMomentIds, setLikedMomentIds] = useState<Set<string>>(new Set());
@@ -646,9 +646,7 @@ export function MomentsView() {
   const openStory = (userId: string) => {
     const userMoments = moments.filter((m) => m.userId === userId);
     if (userMoments.length === 0) return;
-    // Find the first index in the overall moments array
-    const firstIdx = moments.findIndex((m) => m.userId === userId);
-    setStoryStartIndex(firstIdx);
+    setSelectedStoryUserId(userId);
     setShowStoryViewer(true);
   };
 
@@ -880,13 +878,13 @@ export function MomentsView() {
         onSubmit={handleCreateMoment}
       />
 
-      {/* Full-screen Story Viewer */}
+      {/* Full-screen Story Viewer — only shows selected user's moments */}
       <AnimatePresence>
-        {showStoryViewer && (
+        {showStoryViewer && selectedStoryUserId && (
           <StoryViewer
-            moments={moments}
-            startIndex={storyStartIndex}
-            onClose={() => setShowStoryViewer(false)}
+            moments={moments.filter((m) => m.userId === selectedStoryUserId)}
+            startIndex={0}
+            onClose={() => { setShowStoryViewer(false); setSelectedStoryUserId(null); }}
           />
         )}
       </AnimatePresence>
