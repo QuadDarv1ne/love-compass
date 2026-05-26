@@ -14,6 +14,7 @@ import type {
   DbMomentReaction,
   DbMomentLike,
   DbUserAchievement,
+  DbDislike,
   SessionWithUser,
 } from './types';
 
@@ -102,6 +103,10 @@ function toDbMomentReaction(mr: Prisma.MomentReactionGetPayload<Record<string, n
 
 function toDbMomentLike(ml: Prisma.MomentLikeGetPayload<Record<string, never>>): DbMomentLike {
   return ml as unknown as DbMomentLike;
+}
+
+function toDbDislike(d: Prisma.DislikeGetPayload<Record<string, never>>): DbDislike {
+  return d as unknown as DbDislike;
 }
 
 function toDbUserAchievement(ua: Prisma.UserAchievementGetPayload<Record<string, never>>): DbUserAchievement {
@@ -429,6 +434,17 @@ export class PrismaAdapter implements DatabaseAdapter {
       prisma.userAchievement.count({ where: where as Prisma.UserAchievementWhereInput }),
   };
 
+  dislike = {
+    create: (data: Partial<DbDislike>) =>
+      prisma.dislike.create({ data: data as Prisma.DislikeCreateInput }).then(toDbDislike),
+
+    findMany: (where?: Record<string, unknown>) =>
+      prisma.dislike.findMany({ where: where as Prisma.DislikeWhereInput }).then((arr) => arr.map(toDbDislike)),
+
+    deleteMany: (where: Record<string, unknown>) =>
+      prisma.dislike.deleteMany({ where: where as Prisma.DislikeWhereInput }).then((r) => r.count),
+  };
+
   async transaction<T>(fn: (tx: DatabaseAdapter) => Promise<T>): Promise<T> {
     return prisma.$transaction(async (tx) => {
       const txAdapter: DatabaseAdapter = {
@@ -595,6 +611,11 @@ export class PrismaAdapter implements DatabaseAdapter {
           },
           deleteMany: (where) => tx.userAchievement.deleteMany({ where: where as Prisma.UserAchievementWhereInput }).then((r) => r.count),
           count: (where) => tx.userAchievement.count({ where: where as Prisma.UserAchievementWhereInput }),
+        },
+        dislike: {
+          create: (data) => tx.dislike.create({ data: data as Prisma.DislikeCreateInput }).then(toDbDislike),
+          findMany: (where) => tx.dislike.findMany({ where: where as Prisma.DislikeWhereInput }).then((arr) => arr.map(toDbDislike)),
+          deleteMany: (where) => tx.dislike.deleteMany({ where: where as Prisma.DislikeWhereInput }).then((r) => r.count),
         },
       };
       return fn(txAdapter);

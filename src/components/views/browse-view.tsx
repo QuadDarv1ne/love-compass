@@ -156,7 +156,7 @@ export function BrowseView() {
     removeProfile, addLikedUserId, addDislikedUserId, addSuperLikedUserId,
     setShowMatchAnimation, setMatchAnimationPartner, showFilters, setShowFilters,
     filterGender, filterAgeMin, filterAgeMax, filterCity,
-    searchQuery, sortBy, blockedUserIds,
+    searchQuery, sortBy, blockedUserIds, dislikedUserIds,
   } = useAppStore();
   const [swipeDir, setSwipeDir] = useState<'left' | 'right' | null>(null);
   const [showHeartBurst, setShowHeartBurst] = useState(false);
@@ -211,6 +211,7 @@ export function BrowseView() {
   const filteredProfiles = useMemo(() => {
     const result = profiles.filter((p) => {
       if (blockedUserIds.includes(p.id)) return false;
+      if (dislikedUserIds.includes(p.id)) return false;
       if (filterGender !== 'all' && p.gender !== filterGender) return false;
       if (filterAgeMin > FILTER.AGE_DEFAULT_MIN && p.age < filterAgeMin) return false;
       if (filterAgeMax < FILTER.AGE_DEFAULT_MAX && p.age > filterAgeMax) return false;
@@ -230,7 +231,7 @@ export function BrowseView() {
     }
 
     return result;
-  }, [profiles, filterGender, filterAgeMin, filterAgeMax, filterCity, searchQuery, sortBy, blockedUserIds, popularityMap]);
+  }, [profiles, filterGender, filterAgeMin, filterAgeMax, filterCity, searchQuery, sortBy, blockedUserIds, dislikedUserIds, popularityMap]);
 
   const currentProfile = filteredProfiles.length > 0 ? filteredProfiles[0] : null;
 
@@ -274,7 +275,7 @@ export function BrowseView() {
     }
   }, [currentUser, addLikedUserId, setMatchAnimationPartner, setShowMatchAnimation, removeProfile]);
 
-  const handleDislike = useCallback((profile: User) => {
+  const handleDislike = useCallback(async (profile: User) => {
     setSwipeDir('left');
     setShowX(true);
     addDislikedUserId(profile.id);
@@ -283,6 +284,11 @@ export function BrowseView() {
     const t1 = setTimeout(() => { setSwipeDir(null); setShowX(false); }, SWIPE.ANIMATION_DURATION);
     const t2 = setTimeout(() => removeProfile(profile.id), SWIPE.CARD_REMOVAL_DELAY);
     timerIdsRef.current.push(t1, t2);
+    try {
+      await fetchWithCSRF('/api/dislike', { toUserId: profile.id });
+    } catch (error) {
+      appLogger.error('browse-view.dislike', 'Failed to persist dislike', error);
+    }
   }, [addDislikedUserId, removeProfile]);
 
   const handleSuperLike = useCallback(async (profile: User) => {

@@ -22,15 +22,17 @@ export async function GET(request: Request) {
       limit: parseInt(searchParams.get('limit') || String(PAGINATION.PROFILES_DEFAULT_LIMIT)),
     });
 
-    // Fetch blocked IDs first so we can exclude them at the DB level
-    const [blocked, blockedBy] = await Promise.all([
+    // Fetch blocked and disliked IDs so we can exclude them
+    const [blocked, blockedBy, disliked] = await Promise.all([
       db.block.findMany({ blockerId: user.id }),
       db.block.findMany({ blockedId: user.id }),
+      db.dislike.findMany({ fromUserId: user.id }),
     ]);
     const blockedIds = new Set([
       ...blocked.map(b => b.blockedId),
       ...blockedBy.map(b => b.blockerId),
       user.id,
+      ...disliked.map(d => d.toUserId),
     ]);
 
     // Collect exactly `limit` unblocked profiles by looping DB fetches

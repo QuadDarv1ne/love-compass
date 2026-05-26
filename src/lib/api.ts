@@ -207,6 +207,21 @@ export async function hydrateAppData(user?: User) {
       }
     })();
 
+    // Fetch disliked user IDs
+    const dislikedPromise = (async () => {
+      try {
+        const dislikedRes = await fetchWithTimeout('/api/dislike');
+        if (dislikedRes.ok) {
+          const dislikedBody = await dislikedRes.json();
+          const dislikedIds: string[] = Array.isArray(dislikedBody?.data) ? dislikedBody.data : [];
+          useAppStore.setState({ dislikedUserIds: dislikedIds });
+        }
+      } catch (e) {
+        errors.push('disliked');
+        appLogger.error('api.hydrate', 'Failed to hydrate dislikes', e);
+      }
+    })();
+
     // Fetch moments
     const momentsPromise = (async () => {
       try {
@@ -268,6 +283,7 @@ export async function hydrateAppData(user?: User) {
       likedYouPromise,
       likeSentPromise,
       blockedPromise,
+      dislikedPromise,
       momentsPromise,
       achievementsPromise,
       settingsPromise,

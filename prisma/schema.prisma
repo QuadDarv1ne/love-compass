@@ -57,6 +57,8 @@ model User {
   momentReactions        MomentReaction[] @relation("UserMomentReactions")
   momentLikes            MomentLike[]     @relation("UserMomentLikes")
   achievements           UserAchievement[]
+  sentDislikes           Dislike[]  @relation("SentDislikes")
+  receivedDislikes       Dislike[]  @relation("ReceivedDislikes")
 }
 
 model Like {
@@ -225,3 +227,18 @@ model UserAchievement {
   @@unique([userId, achievementId])
   @@index([userId])
 }
+
+model Dislike {
+  id         String   @id @default(cuid())
+  fromUserId String
+  toUserId   String
+  createdAt  DateTime @default(now())
+  fromUser   User     @relation("SentDislikes", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser     User     @relation("ReceivedDislikes", fields: [toUserId], references: [id], onDelete: Cascade)
+
+  @@unique([fromUserId, toUserId])
+  @@index([fromUserId])
+  @@index([toUserId])
+}
+
+

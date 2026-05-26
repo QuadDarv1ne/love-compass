@@ -135,6 +135,13 @@ export interface DbUserAchievement {
   unlockedAt: Date;
 }
 
+export interface DbDislike {
+  id: string;
+  fromUserId: string;
+  toUserId: string;
+  createdAt: Date;
+}
+
 export type SessionWithUser = DbSession & { user: DbUser };
 
 export interface ProfileSelect {
@@ -272,6 +279,12 @@ export interface DatabaseAdapter {
     findUnique(where: { userId?: string; achievementId?: string }): Promise<DbUserAchievement | null>;
     deleteMany(where: Record<string, unknown>): Promise<number>;
     count(where?: Record<string, unknown>): Promise<number>;
+  };
+
+  dislike: {
+    create(data: Partial<DbDislike>): Promise<DbDislike>;
+    findMany(where?: Record<string, unknown>): Promise<DbDislike[]>;
+    deleteMany(where: Record<string, unknown>): Promise<number>;
   };
 
   transaction<T>(fn: (tx: DatabaseAdapter) => Promise<T>): Promise<T>;

@@ -1,0 +1,48 @@
+import { NextResponse } from 'next/server';
+import { db } from '@/lib/db';
+import { z } from 'zod';
+import { requireAuthWithCSRF } from '@/lib/auth/guard';
+import { logger } from '@/lib/logger';
+
+const dislikeSchema = z.object({
+  toUserId: z.string().min(1),
+});
+
+export async function POST(request: Request) {
+  try {
+    const auth = await requireAuthWithCSRF(request);
+    if (auth instanceof NextResponse) return auth;
+
+    const { user } = auth;
+    const body = await request.json();
+    const { toUserId } = dislikeSchema.parse(body);
+
+    if (user.id === toUserId) {
+      return NextResponse.json({ error: 'Cannot dislike yourself' }, { status: 400 });
+    }
+
+    await db.dislike.create({ fromUserId: user.id, toUserId });
+
+    return NextResponse.json({ success: true }, { status: 201 });
+  } catch (error) {
+    logger.error('/api/dislike', 'Failed to create dislike', error);
+    return NextResponse.json({ error: 'Failed to create dislike' }, { status: 500 });
+  }
+}
+
+export async function GET(request: Request) {
+  try {
+    const auth = await requireAuthWithCSRF(request);
+    if (auth instanceof NextResponse) return auth;
+
+    const { user } = auth;
+
+    const dislikes = await db.dislike.findMany({ fromUserId: user.id });
+    const dislikedIds = dislikes.map((d) => d.toUserId);
+
+    return NextResponse.json({ data: dislikedIds });
+  } catch (error) {
+    logger.error('/api/dislike', 'Failed to fetch dislikes', error);
+    return NextResponse.json({ error: 'Failed to fetch dislikes' }, { status: 500 });
+  }
+}

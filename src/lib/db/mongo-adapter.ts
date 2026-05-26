@@ -15,6 +15,7 @@ import type {
   DbMomentReaction,
   DbMomentLike,
   DbUserAchievement,
+  DbDislike,
   SessionWithUser,
 } from './types';
 
@@ -32,6 +33,7 @@ const COLLECTIONS = {
   momentReactions: 'momentReactions',
   momentLikes: 'momentLikes',
   userAchievements: 'userAchievements',
+  dislikes: 'dislikes',
 } as const;
 
 function toObjectId(id: string): ObjectId {
@@ -733,6 +735,23 @@ export class MongoDBAdapter implements DatabaseAdapter {
     },
   };
 
+  dislike = {
+    create: async (data: Partial<DbDislike>): Promise<DbDislike> => {
+      const result = await this.db.collection(COLLECTIONS.dislikes).insertOne(toInsertDoc(data));
+      return { ...data, id: result.insertedId.toString() } as DbDislike;
+    },
+
+    findMany: async (where?: Record<string, unknown>): Promise<DbDislike[]> => {
+      const docs = await this.db.collection(COLLECTIONS.dislikes).find(cleanWhere(where || {})).toArray();
+      return stripMany(docs) as DbDislike[];
+    },
+
+    deleteMany: async (where: Record<string, unknown>): Promise<number> => {
+      const result = await this.db.collection(COLLECTIONS.dislikes).deleteMany(cleanWhere(where));
+      return result.deletedCount;
+    },
+  };
+
   async transaction<T>(fn: (tx: DatabaseAdapter) => Promise<T>): Promise<T> {
     const session = this.client.startSession();
     try {
@@ -956,5 +975,9 @@ class MongoDBAdapterForTransaction extends MongoDBAdapter {
       const doc = await this.getDb().collection<DbUserAchievement>(COLLECTIONS.userAchievements).findOne(query, { session: this.txSession });
       return stripId(doc) as DbUserAchievement | null;
     },
+  };
+
+  dislike = {
+    ...Object.assign({}, MongoDBAdapter.prototype.dislike),
   };
 }
