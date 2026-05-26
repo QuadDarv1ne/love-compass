@@ -78,12 +78,13 @@ export function ChatView() {
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [partnerTyping, setPartnerTyping] = useState(false);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const autoReplyTimerRef = useRef<NodeJS.Timeout | null>(null);
   const innerTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const partner = selectedMatch
+  const partner = selectedMatch && selectedMatch.user1 && selectedMatch.user2
     ? selectedMatch.user1.id === currentUser?.id ? selectedMatch.user2 : selectedMatch.user1
     : null;
 
@@ -109,6 +110,7 @@ export function ChatView() {
     let cancelled = false;
     lastMessageIdRef.current = null;
     const loadMessages = async (isPoll = false) => {
+      if (!isPoll) setIsLoadingMessages(true);
       try {
         let url = `/api/messages?matchId=${selectedMatch.id}`;
         if (isPoll && lastMessageIdRef.current) {
@@ -149,6 +151,8 @@ export function ChatView() {
       } catch (error) {
         if ((error as Error).name === 'AbortError') return;
         if (!cancelled) appLogger.error('chat-view.loadMessages', 'Failed to load messages', error);
+      } finally {
+        if (!isPoll) setIsLoadingMessages(false);
       }
     };
     loadMessages(false);
@@ -380,10 +384,18 @@ export function ChatView() {
           </div>
         </div>
 
-        {messages.length === 0 && (
+        {messages.length === 0 && !isLoadingMessages && (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <Sparkles className="w-10 h-10 text-rose-300 mb-3" />
             <p className="text-muted-foreground text-sm">Начните разговор! Скажите что-нибудь приятное 💬</p>
+          </div>
+        )}
+
+        {isLoadingMessages && (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 1.2, repeat: Infinity }} className="text-muted-foreground text-sm">
+              Загрузка сообщений...
+            </motion.div>
           </div>
         )}
 

@@ -33,7 +33,8 @@ export function MatchesView() {
     setLocalLoading(false);
   }, [currentUser, matches, setUnreadMatchIds]);
 
-  const getPartner = (match: MatchWithUsers): User => {
+  const getPartner = (match: MatchWithUsers): User | null => {
+    if (!match.user1 || !match.user2) return null;
     return match.user1.id === currentUser?.id ? match.user2 : match.user1;
   };
 
@@ -61,7 +62,10 @@ export function MatchesView() {
     );
   }
 
-  if (matches.length === 0) {
+  // Filter out matches with missing user data (deleted accounts)
+  const validMatches = matches.filter((m) => m.user1 && m.user2);
+
+  if (validMatches.length === 0) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center px-4 py-12">
         <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="text-center">
@@ -79,8 +83,10 @@ export function MatchesView() {
       <h2 className="text-xl font-bold text-rose-700 dark:text-rose-300 mb-4 md:mb-6">Ваши мэтчи</h2>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
         <AnimatePresence>
-          {matches.map((match, idx) => {
+          {validMatches.map((match, idx) => {
             const partner = getPartner(match);
+            // Safety guard — should never be null after filter, but prevent crash
+            if (!partner) return null;
             const isUnread = unreadMatchIds.includes(match.id);
             return (
               <motion.div key={match.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }}>
@@ -115,7 +121,8 @@ export function MatchesView() {
 export function ChatListView() {
   const { matches, currentUser, setSelectedMatch, chatListMatchId, setChatListMatchId } = useAppStore();
 
-  const getPartner = (match: MatchWithUsers): User => {
+  const getPartner = (match: MatchWithUsers): User | null => {
+    if (!match.user1 || !match.user2) return null;
     return match.user1.id === currentUser?.id ? match.user2 : match.user1;
   };
 
@@ -133,14 +140,18 @@ export function ChatListView() {
     setChatListMatchId(match.id);
   };
 
-  if (matches.length === 0) {
+  // Filter out matches with missing user data (deleted accounts)
+  const validMatches = matches.filter((m) => m.user1 && m.user2);
+
+  if (validMatches.length === 0) {
     return <div className="p-4 text-center text-muted-foreground text-sm">Нет мэтчей</div>;
   }
 
   return (
     <div className="space-y-1 p-2">
-      {matches.map((match) => {
+      {validMatches.map((match) => {
         const partner = getPartner(match);
+        if (!partner) return null;
         const isActive = chatListMatchId === match.id;
         return (
           <motion.button
