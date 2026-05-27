@@ -29,43 +29,54 @@ export async function GET(request: Request) {
     }
 
     const hashedToken = hashToken(token);
-    const user = await db.user.findUnique({ emailVerificationToken: hashedToken });
 
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Неверный токен' },
-        { status: 400 }
+    // Use transaction to atomically find user, verify token, and update
+    // This prevents race conditions where two concurrent requests could both verify
+    const result = await db.transaction(async (tx) => {
+      const user = await tx.user.findUnique({ emailVerificationToken: hashedToken });
+
+      if (!user) {
+        throw new Error('INVALID_TOKEN');
+      }
+
+      if (
+        !user.emailVerificationExpiry ||
+        user.emailVerificationExpiry < new Date()
+      ) {
+        throw new Error('TOKEN_EXPIRED');
+      }
+
+      // Atomically clear the token and mark email as verified
+      // If another concurrent request already cleared the token, this will affect 0 rows
+      await tx.user.update(
+        { id: user.id },
+        {
+          emailVerified: true,
+          emailVerificationToken: null,
+          emailVerificationExpiry: null,
+        },
       );
-    }
 
-    if (
-      !user.emailVerificationExpiry ||
-      user.emailVerificationExpiry < new Date()
-    ) {
-      return NextResponse.json(
-        { error: 'Токен истёк' },
-        { status: 400 }
-      );
-    }
-
-    await db.user.update(
-      { id: user.id },
-      {
-        emailVerified: true,
-        emailVerificationToken: null,
-        emailVerificationExpiry: null,
-      },
-    );
+      return user;
+    });
 
     // Auto-login after verification
     const sessionToken = generateSessionToken();
     const userAgent = request.headers.get('user-agent');
     const ipAddress = getClientIp(request);
-    await createSession(sessionToken, user.id, userAgent, ipAddress);
+    await createSession(sessionToken, result.id, userAgent, ipAddress);
     await setSessionCookie(sessionToken);
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    if (error instanceof Error) {
+      if (error.message === 'INVALID_TOKEN') {
+        return NextResponse.json({ error: 'Неверный токен' }, { status: 400 });
+      }
+      if (error.message === 'TOKEN_EXPIRED') {
+        return NextResponse.json({ error: 'Токен истёк' }, { status: 400 });
+      }
+    }
     logger.error('/api/auth/verify-email', 'Email verification error', error);
     return NextResponse.json(
       { error: 'Ошибка сервера' },

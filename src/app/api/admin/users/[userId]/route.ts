@@ -144,10 +144,14 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ u
     }
     // Delete all related data in a transaction to avoid FK constraint violations
     await db.transaction(async (tx) => {
-      // Matches and their messages
-      const matches = await tx.match.findMany({ OR: [{ user1Id: userId }, { user2Id: userId }] });
-      for (const match of matches) {
-        await tx.message.deleteMany({ matchId: match.id });
+      // Messages in user's matches (bulk delete using match IDs)
+      const matches = await tx.match.findMany({
+        where: { OR: [{ user1Id: userId }, { user2Id: userId }] },
+        select: { id: true },
+      });
+      const matchIds = matches.map(m => m.id);
+      if (matchIds.length > 0) {
+        await tx.message.deleteMany({ where: { matchId: { in: matchIds } } });
       }
       await tx.match.deleteMany({ OR: [{ user1Id: userId }, { user2Id: userId }] });
 
@@ -160,12 +164,16 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ u
       // Reports
       await tx.report.deleteMany({ OR: [{ reporterId: userId }, { reportedId: userId }] });
 
-      // Moments and their comments/reactions
-      const moments = await tx.moment.findMany({ userId });
-      for (const moment of moments) {
-        await tx.momentComment.deleteMany({ momentId: moment.id });
-        await tx.momentReaction.deleteMany({ momentId: moment.id });
-        await tx.momentLike.deleteMany({ momentId: moment.id });
+      // Moments: collect IDs for bulk deletion of related data
+      const moments = await tx.moment.findMany({
+        where: { userId },
+        select: { id: true },
+      });
+      const momentIds = moments.map(m => m.id);
+      if (momentIds.length > 0) {
+        await tx.momentComment.deleteMany({ where: { momentId: { in: momentIds } } });
+        await tx.momentReaction.deleteMany({ where: { momentId: { in: momentIds } } });
+        await tx.momentLike.deleteMany({ where: { momentId: { in: momentIds } } });
       }
       await tx.moment.deleteMany({ userId });
 

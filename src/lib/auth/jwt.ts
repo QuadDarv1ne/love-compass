@@ -35,7 +35,7 @@ export async function verifyTempToken(
 ): Promise<Record<string, string> | null> {
   try {
     const secret = getSecret();
-    const { payload } = await jwtVerify(token, secret);
+    const { payload } = await jwtVerify(token, secret, { algorithms: ['HS256'] });
     return payload as Record<string, string>;
   } catch {
     return null;

@@ -22,19 +22,37 @@ export async function fetchWithTimeout(url: string, init?: RequestInit, timeoutM
 }
 
 /**
- * Fetch a fresh CSRF token from the server.
+ * Read the CSRF token from the cookie directly.
+ * The __csrf cookie is set with httpOnly: false so it's readable by JavaScript.
+ * This follows the double-submit CSRF pattern: the token must match between
+ * the cookie and the x-csrf-token header on mutation requests.
+ */
+function getCSRFTokenFromCookie(): string | null {
+  const match = document.cookie.match(/(?:^|;\s*)__csrf=([^;]*)/);
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+/**
+ * Fetch a fresh CSRF token from the server if needed.
  * The token is cached for 5 minutes, then refreshed.
  */
 export async function getCSRFToken(): Promise<string> {
   const now = Date.now();
-  if (csrfToken && csrfTokenFetchedAt && now - csrfTokenFetchedAt < CSRF_TOKEN_TTL) {
+
+  // Try to read from existing cookie first
+  const cookieToken = getCSRFTokenFromCookie();
+  if (cookieToken && csrfTokenFetchedAt && now - csrfTokenFetchedAt < CSRF_TOKEN_TTL) {
+    csrfToken = cookieToken;
     return csrfToken;
   }
 
+  // Fetch a fresh token
   const res = await fetchWithTimeout('/api/auth/csrf-token');
   if (!res.ok) throw new Error('Failed to fetch CSRF token');
-  const data = await res.json();
-  csrfToken = data.csrfToken as string;
+  // Token is now set in the cookie by the server; read it from there
+  const freshToken = getCSRFTokenFromCookie();
+  if (!freshToken) throw new Error('CSRF token not set by server');
+  csrfToken = freshToken;
   csrfTokenFetchedAt = now;
   return csrfToken;
 }

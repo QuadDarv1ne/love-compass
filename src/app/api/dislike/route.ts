@@ -29,7 +29,25 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Cannot dislike yourself' }, { status: 400 });
     }
 
-    await db.dislike.create({ fromUserId: user.id, toUserId });
+    // Use transaction to prevent race conditions and handle cleanup
+    await db.transaction(async (tx) => {
+      // Check if dislike already exists
+      const existingDislike = await tx.dislike.findFirst({
+        where: { fromUserId: user.id, toUserId },
+      });
+
+      if (existingDislike) {
+        return; // Already disliked, no-op
+      }
+
+      // Remove any existing like from this user to the target
+      await tx.like.deleteMany({
+        where: { fromUserId: user.id, toUserId },
+      });
+
+      // Create the dislike
+      await tx.dislike.create({ fromUserId: user.id, toUserId });
+    });
 
     return NextResponse.json({ success: true }, { status: 201 });
   } catch (error) {

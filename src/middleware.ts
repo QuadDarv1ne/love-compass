@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { jwtVerify } from 'jose';
 
 // Paths that require authentication
 const PROTECTED_PATHS = [
@@ -37,7 +38,35 @@ const PUBLIC_AUTH_PATHS = [
   '/api/auth/demo-login',
 ];
 
-export function middleware(request: NextRequest) {
+// Cache the dev secret so middleware uses the same key across requests
+let _devSecret: Uint8Array | undefined;
+
+const getSecret = () => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('JWT_SECRET environment variable is required in production');
+    }
+    if (!_devSecret) {
+      const { randomUUID } = require('crypto');
+      _devSecret = new TextEncoder().encode(randomUUID());
+    }
+    return _devSecret;
+  }
+  return new TextEncoder().encode(secret);
+};
+
+async function validateSessionToken(token: string): Promise<boolean> {
+  try {
+    const secret = getSecret();
+    const { payload } = await jwtVerify(token, secret, { algorithms: ['HS256'] });
+    return !!(payload.sub && payload.exp && payload.exp * 1000 > Date.now());
+  } catch {
+    return false;
+  }
+}
+
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Skip non-API routes and health checks
@@ -53,7 +82,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Verify session cookie exists for protected paths
+  // Verify session cookie exists AND is valid for protected paths
   const sessionCookie = request.cookies.get('__session');
 
   const isProtectedPath = PROTECTED_PATHS.some(
@@ -63,11 +92,25 @@ export function middleware(request: NextRequest) {
     (path) => pathname === path || pathname.startsWith(path + '/')
   );
 
-  if ((isProtectedPath || isAdminPath) && !sessionCookie) {
-    return NextResponse.json(
-      { error: 'Необходима авторизация' },
-      { status: 401 }
-    );
+  if (isProtectedPath || isAdminPath) {
+    if (!sessionCookie) {
+      return NextResponse.json(
+        { error: 'Необходима авторизация' },
+        { status: 401 }
+      );
+    }
+
+    // Validate the session token is genuine and not expired
+    const isValid = await validateSessionToken(sessionCookie.value);
+    if (!isValid) {
+      // Return 401 and clear the invalid cookie
+      const response = NextResponse.json(
+        { error: 'Необходима авторизация' },
+        { status: 401 }
+      );
+      response.cookies.set('__session', '', { maxAge: 0, path: '/' });
+      return response;
+    }
   }
 
   // Security: Validate origin header in production
