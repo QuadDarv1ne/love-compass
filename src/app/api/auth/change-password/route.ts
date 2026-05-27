@@ -41,7 +41,14 @@ export async function POST(request: Request) {
       );
     }
 
-    // Verify current password
+    // Verify current password - users without password (e.g. OAuth) must use password reset flow
+    if (!user.passwordHash) {
+      return NextResponse.json(
+        { error: 'Для смены пароля используйте функцию сброса пароля' },
+        { status: 400 }
+      );
+    }
+
     const validCurrent = await verifyPassword(currentPassword, user.passwordHash);
     if (!validCurrent) {
       return NextResponse.json(

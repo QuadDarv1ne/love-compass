@@ -32,7 +32,8 @@ export async function GET(request: Request) {
     }
 
     // Pagination: default 50 messages, max 100
-    const limit = Math.min(parseInt(searchParams.get('limit') || '50', 10), 100);
+    const parsedLimit = parseInt(searchParams.get('limit') || '50', 10);
+    const limit = Number.isFinite(parsedLimit) ? Math.min(parsedLimit, 100) : 50;
     const cursor = searchParams.get('cursor');
 
     const messages = await db.message.findMany(

@@ -89,6 +89,11 @@ export async function DELETE(request: Request) {
 
     if (user.avatar && user.avatar.startsWith('/uploads/avatars/')) {
       const filename = path.basename(user.avatar);
+      // Verify ownership: filename must start with user ID prefix (format: {userId}-{uuid}.{ext})
+      if (!filename.startsWith(`${user.id}-`)) {
+        logger.warn('/api/profile/avatar', 'Avatar deletion rejected: ownership mismatch', { userId: user.id, filename });
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
       const filePath = path.join(UPLOAD_DIR, filename);
       if (existsSync(filePath)) {
         try {
