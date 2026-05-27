@@ -11,6 +11,7 @@ import { Progress } from '@/components/ui/progress';
 import { useAppStore, type User } from '@/lib/store';
 import { OnlineIndicator } from './shared';
 import { appLogger } from '@/lib/logger';
+import { toast } from 'sonner';
 
 interface RankedUser extends User {
   popularityScore: number;
@@ -257,7 +258,19 @@ export function TopView() {
     let cancelled = false;
     setLoading(true);
     fetch(`/api/leaderboard?sort=${activeTab}`)
-      .then((r) => r.json())
+      .then(async (r) => {
+        if (!r.ok) {
+          const errorData = await r.json().catch(() => ({}));
+          if (r.status === 401) {
+            throw new Error('SESSION_EXPIRED');
+          } else if (r.status === 429) {
+            throw new Error('RATE_LIMITED');
+          } else {
+            throw new Error(errorData.error || 'SERVER_ERROR');
+          }
+        }
+        return r.json();
+      })
       .then(({ data }) => {
         if (!cancelled) {
           setLeaderboardData(data ?? []);
@@ -265,11 +278,26 @@ export function TopView() {
         }
       })
       .catch((err) => {
-        appLogger.error('top-view.leaderboard', 'Failed to fetch leaderboard', err);
-        if (!cancelled) {
-          setLeaderboardData([]);
-          setLoading(false);
+        if (cancelled) return;
+        const errorMessage = err.message || 'UNKNOWN_ERROR';
+
+        if (errorMessage === 'SESSION_EXPIRED') {
+          appLogger.warn('top-view.leaderboard', 'Session expired during leaderboard fetch');
+          // Don't clear data - let user continue browsing
+        } else if (errorMessage === 'RATE_LIMITED') {
+          appLogger.warn('top-view.leaderboard', 'Rate limited on leaderboard');
+          toast.error('Слишком много запросов', {
+            description: 'Попробуйте через несколько секунд',
+          });
+        } else {
+          appLogger.error('top-view.leaderboard', 'Failed to fetch leaderboard', err);
+          toast.error('Ошибка загрузки', {
+            description: 'Не удалось загрузить рейтинг. Попробуйте позже.',
+          });
         }
+
+        setLeaderboardData([]);
+        setLoading(false);
       });
     return () => { cancelled = true; };
   }, [activeTab]);

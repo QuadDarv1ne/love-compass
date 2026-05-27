@@ -7,10 +7,10 @@ import { logger } from '@/lib/logger';
 import { VALIDATION, UPLOAD } from '@/lib/constants';
 
 const updateProfileSchema = z.object({
-  name: z.string().min(1).max(VALIDATION.NAME_MAX_LENGTH).optional(),
-  bio: z.string().max(VALIDATION.BIO_MAX_LENGTH).optional(),
-  city: z.string().max(VALIDATION.CITY_MAX_LENGTH).optional(),
-  interests: z.string().max(VALIDATION.INTERESTS_MAX_LENGTH).optional(),
+  name: z.string().trim().min(1).max(VALIDATION.NAME_MAX_LENGTH).optional(),
+  bio: z.string().trim().max(VALIDATION.BIO_MAX_LENGTH).optional(),
+  city: z.string().trim().max(VALIDATION.CITY_MAX_LENGTH).optional(),
+  interests: z.string().trim().max(VALIDATION.INTERESTS_MAX_LENGTH).optional(),
   lookingFor: z.enum(['all', 'male', 'female']).optional(),
   photos: z.array(z.string()).max(UPLOAD.MAX_PHOTOS).optional(),
 });

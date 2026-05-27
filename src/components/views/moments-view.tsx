@@ -212,6 +212,8 @@ function StoryViewer({
       content,
       createdAt: new Date().toISOString(),
     };
+
+    // Optimistic update
     setLocalMoments((prev) =>
       prev.map((m) => {
         if (m.id !== currentMoment.id) return m;
@@ -220,10 +222,22 @@ function StoryViewer({
     );
     setCommentText('');
     toast.success('Комментарий добавлен!');
-    // Sync with server
+
+    // Sync with server with rollback on failure
     patchWithCSRF('/api/moments', { id: currentMoment.id, action: 'comment', content }).catch((error) => {
       appLogger.error('moments-view.syncComment', 'Failed to sync comment', error);
       toast.error('Не удалось добавить комментарий');
+
+      // Rollback: remove the optimistically added comment
+      setLocalMoments((prev) =>
+        prev.map((m) => {
+          if (m.id !== currentMoment.id) return m;
+          return {
+            ...m,
+            comments: m.comments.filter((c) => c.id !== newComment.id),
+          };
+        })
+      );
     });
   };
 

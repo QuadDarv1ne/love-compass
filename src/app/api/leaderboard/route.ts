@@ -3,8 +3,9 @@ import { db } from '@/lib/db';
 import { z } from 'zod';
 import { requireAuth, isZodError } from '@/lib/auth/guard';
 import { sanitizeUser } from '@/lib/auth/projections';
+import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';
-import { SCORING } from '@/lib/constants';
+import { SCORING, RATE_LIMITS } from '@/lib/constants';
 
 const querySchema = z.object({
   sort: z.enum(['popular', 'active', 'new']).default('popular'),
@@ -20,6 +21,19 @@ export async function GET(request: Request) {
     const { sort } = querySchema.parse({
       sort: searchParams.get('sort') || 'popular',
     });
+
+    // Rate limit leaderboard fetches to prevent database overload
+    const rateLimit = await checkRateLimit(
+      `leaderboard:${user.id}`,
+      RATE_LIMITS.PROFILES.MAX,
+      RATE_LIMITS.PROFILES.WINDOW
+    );
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Слишком много запросов, попробуйте позже' },
+        { status: 429 }
+      );
+    }
 
     // Fetch all visible users except current
     const users = await db.user.findMany(
