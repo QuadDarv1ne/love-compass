@@ -106,7 +106,27 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  return NextResponse.next();
+  // Security: Add security headers to all responses
+  const response = NextResponse.next();
+
+  // Content-Security-Policy: restrict resource loading to same origin
+  response.headers.set(
+    'Content-Security-Policy',
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
+  );
+
+  // Prevent MIME-type sniffing
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+
+  // Prevent clickjacking
+  response.headers.set('X-Frame-Options', 'DENY');
+
+  // Enable strict transport security in production
+  if (process.env.NODE_ENV === 'production') {
+    response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  }
+
+  return response;
 }
 
 export const config = {

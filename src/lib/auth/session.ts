@@ -87,7 +87,7 @@ export async function deleteSessionCookie(): Promise<void> {
   cookieStore.set(SESSION_COOKIE_NAME, '', {
     httpOnly: true,
     secure: isProduction,
-    sameSite: 'lax',
+    sameSite: 'strict',
     path: '/',
     maxAge: 0,
   });

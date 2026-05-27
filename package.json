@@ -3,10 +3,10 @@
   "version": "0.3.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3000 2>&1 | tee dev.log",
+    "dev": "next dev -p 3000",
     "dev:auto": "bun run scripts/dev-wrapper.ts",
     "build": "next build",
-    "start": "cross-env NODE_ENV=production bun .next/standalone/server.js 2>&1 | tee server.log",
+    "start": "cross-env NODE_ENV=production bun .next/standalone/server.js",
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
