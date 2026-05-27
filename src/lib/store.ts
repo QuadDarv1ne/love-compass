@@ -388,11 +388,23 @@ export const useAppStore = create<AppState>((set, get) => ({
   logout: async () => {
     try {
       const { fetchWithCSRF } = await import('@/lib/api');
-      await fetchWithCSRF('/api/auth/logout', {});
+      const res = await fetchWithCSRF('/api/auth/logout', {});
+      if (!res.ok) {
+        // Server rejected logout — session may still be valid. Don't clear state,
+        // show error so user can retry. Clearing state here would leave the
+        // server-side session active, creating a security risk.
+        const data = await res.json();
+        toast.error(data.error || 'Не удалось завершить сессию', {
+          description: 'Попробуйте ещё раз',
+        });
+        return;
+      }
     } catch (error) {
       appLogger.error('store.logout', 'Logout API call failed', error);
       toast.error('Ошибка выхода', { description: 'Не удалось завершить сессию на сервере' });
+      return;
     }
+    // Only clear state after server confirms session is destroyed
     set({ ...clearState, authStatus: 'unauthenticated' });
   },
 

@@ -10,7 +10,7 @@ import { useAppStore, type User, type MatchWithUsers } from '@/lib/store';
 import { OnlineIndicator } from './shared';
 
 export function MatchesView() {
-  const { matches, currentUser, navigateTo, setSelectedMatch, unreadMatchIds, setUnreadMatchIds } = useAppStore();
+  const { matches, currentUser, navigateTo, setSelectedMatch, setChatListMatchId, unreadMatchIds, setUnreadMatchIds } = useAppStore();
   const [localLoading, setLocalLoading] = useState(() => matches.length === 0);
 
   useEffect(() => {
@@ -49,6 +49,7 @@ export function MatchesView() {
 
   const openChat = (match: MatchWithUsers) => {
     setSelectedMatch(match);
+    setChatListMatchId(match.id);
     navigateTo('chat');
   };
 

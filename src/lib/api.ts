@@ -209,6 +209,9 @@ export async function hydrateAppData(user?: User) {
           const matchesBody = await matchesRes.json();
           const matches: MatchWithUsers[] = Array.isArray(matchesBody?.data) ? matchesBody.data : [];
           store.setMatches(matches);
+        } else {
+          errors.push('matches');
+          appLogger.error('api.hydrate', 'Failed to hydrate matches', new Error(`HTTP ${matchesRes.status}`));
         }
       } catch (e) {
         errors.push('matches');
@@ -224,6 +227,9 @@ export async function hydrateAppData(user?: User) {
           const likedYouBody = await likedYouRes.json();
           const likedYouUsers: User[] = Array.isArray(likedYouBody) ? likedYouBody : [];
           store.setLikedYouProfiles(likedYouUsers);
+        } else {
+          errors.push('likedYou');
+          appLogger.error('api.hydrate', 'Failed to hydrate likedYou', new Error(`HTTP ${likedYouRes.status}`));
         }
       } catch (e) {
         errors.push('likedYou');
@@ -241,6 +247,9 @@ export async function hydrateAppData(user?: User) {
           for (const like of likes) {
             if (like.toUserId) store.addLikedUserId(like.toUserId);
           }
+        } else {
+          errors.push('likeSent');
+          appLogger.error('api.hydrate', 'Failed to hydrate likeSent', new Error(`HTTP ${likeSentRes.status}`));
         }
       } catch (e) {
         errors.push('likeSent');
@@ -257,6 +266,9 @@ export async function hydrateAppData(user?: User) {
           const blocks: { blockedId: string }[] = Array.isArray(blockedBody?.blocks) ? blockedBody.blocks : [];
           const blockedIds: string[] = blocks.map((b) => b.blockedId).filter(Boolean);
           useAppStore.setState({ blockedUserIds: blockedIds });
+        } else {
+          errors.push('blocked');
+          appLogger.error('api.hydrate', 'Failed to hydrate blocked', new Error(`HTTP ${blockedRes.status}`));
         }
       } catch (e) {
         errors.push('blocked');
@@ -272,6 +284,9 @@ export async function hydrateAppData(user?: User) {
           const dislikedBody = await dislikedRes.json();
           const dislikedIds: string[] = Array.isArray(dislikedBody?.data) ? dislikedBody.data : [];
           useAppStore.setState({ dislikedUserIds: dislikedIds });
+        } else {
+          errors.push('disliked');
+          appLogger.error('api.hydrate', 'Failed to hydrate dislikes', new Error(`HTTP ${dislikedRes.status}`));
         }
       } catch (e) {
         errors.push('disliked');
@@ -287,6 +302,9 @@ export async function hydrateAppData(user?: User) {
           const momentsBody = await momentsRes.json();
           const momentsData = Array.isArray(momentsBody?.data) ? momentsBody.data : [];
           useAppStore.setState({ moments: momentsData });
+        } else {
+          errors.push('moments');
+          appLogger.error('api.hydrate', 'Failed to hydrate moments', new Error(`HTTP ${momentsRes.status}`));
         }
       } catch (e) {
         errors.push('moments');
@@ -302,6 +320,9 @@ export async function hydrateAppData(user?: User) {
           const achievementsBody = await achievementsRes.json();
           const unlocked = Array.isArray(achievementsBody?.unlocked) ? achievementsBody.unlocked : [];
           useAppStore.setState({ unlockedAchievements: unlocked });
+        } else {
+          errors.push('achievements');
+          appLogger.error('api.hydrate', 'Failed to hydrate achievements', new Error(`HTTP ${achievementsRes.status}`));
         }
       } catch (e) {
         errors.push('achievements');
@@ -327,6 +348,9 @@ export async function hydrateAppData(user?: User) {
               likeNotifications: settings.likeNotifications ?? true,
             });
           }
+        } else {
+          errors.push('settings');
+          appLogger.error('api.hydrate', 'Failed to hydrate settings', new Error(`HTTP ${settingsRes.status}`));
         }
       } catch (e) {
         errors.push('settings');
