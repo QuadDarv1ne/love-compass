@@ -270,6 +270,8 @@ export function BrowseView() {
       useAppStore.setState((state) => ({
         likedUserIds: state.likedUserIds.filter((id) => id !== profile.id),
       }));
+      setLastSwipedProfile(null);
+      setLastSwipeAction(null);
       toast.error('Не удалось отправить лайк', { description: 'Попробуйте ещё раз' });
       appLogger.error('browse-view.like', 'Like failed', error);
     }
@@ -295,6 +297,8 @@ export function BrowseView() {
       useAppStore.setState((state) => ({
         dislikedUserIds: state.dislikedUserIds.filter((id) => id !== profile.id),
       }));
+      setLastSwipedProfile(null);
+      setLastSwipeAction(null);
       toast.error('Не удалось отправить дизлайк', { description: 'Попробуйте ещё раз' });
       appLogger.error('browse-view.dislike', 'Dislike failed', error);
     }
@@ -340,6 +344,8 @@ export function BrowseView() {
         likedUserIds: state.likedUserIds.filter((id) => id !== profile.id),
         superLikedUserIds: state.superLikedUserIds.filter((id) => id !== profile.id),
       }));
+      setLastSwipedProfile(null);
+      setLastSwipeAction(null);
       toast.error('Не удалось отправить супер-лайк', { description: 'Попробуйте ещё раз' });
       appLogger.error('browse-view.superLike', 'Super Like failed', error);
     }

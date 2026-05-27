@@ -6,6 +6,7 @@ let csrfToken: string | null = null;
 let csrfTokenFetchedAt: number | null = null;
 const CSRF_TOKEN_TTL = 5 * 60 * 1000; // 5 minutes
 const FETCH_TIMEOUT_MS = 15_000; // 15 seconds
+let hydrateGeneration = 0;
 
 /**
  * Fetch with an abort timeout to prevent hanging requests.
@@ -163,13 +164,15 @@ export async function patchWithCSRF(url: string, body: unknown): Promise<Respons
  * @param user - Optional user object to use instead of store.currentUser (avoids race condition)
  */
 export async function hydrateAppData(user?: User) {
+  const generation = ++hydrateGeneration;
   const store = useAppStore.getState();
+  if (hydrateGeneration !== generation) return;
   store.setIsLoading(true);
 
   const currentUser = user ?? store.currentUser;
   if (!currentUser) {
     appLogger.error('api.hydrate', 'hydrateAppData called without user context');
-    store.setIsLoading(false);
+    if (hydrateGeneration === generation) store.setIsLoading(false);
     return;
   }
   const errors: string[] = [];
@@ -183,18 +186,20 @@ export async function hydrateAppData(user?: User) {
         const profilesBody = await profilesRes.json();
         const allUsers: User[] = Array.isArray(profilesBody.data) ? profilesBody.data : [];
         const otherProfiles = currentUser ? allUsers.filter((u) => u.id !== currentUser.id) : allUsers;
-        store.setProfiles(otherProfiles);
+        if (hydrateGeneration === generation) store.setProfiles(otherProfiles);
 
         // Set online status based on actual activity (lastSeenAt within threshold)
-        const now = Date.now();
-        const onlineIds = otherProfiles
-          .filter((p) => {
-            if (!p.lastSeenAt) return false;
-            const lastSeen = new Date(p.lastSeenAt).getTime();
-            return (now - lastSeen) <= ONLINE_PRESENCE.ACTIVE_THRESHOLD_MS;
-          })
-          .map((p) => p.id);
-        store.setOnlineUserIds(onlineIds);
+        if (hydrateGeneration === generation) {
+          const now = Date.now();
+          const onlineIds = otherProfiles
+            .filter((p) => {
+              if (!p.lastSeenAt) return false;
+              const lastSeen = new Date(p.lastSeenAt).getTime();
+              return (now - lastSeen) <= ONLINE_PRESENCE.ACTIVE_THRESHOLD_MS;
+            })
+            .map((p) => p.id);
+          store.setOnlineUserIds(onlineIds);
+        }
       } catch (e) {
         errors.push('profiles');
         appLogger.error('api.hydrate', 'Failed to hydrate profiles', e);
@@ -208,7 +213,7 @@ export async function hydrateAppData(user?: User) {
         if (matchesRes.ok) {
           const matchesBody = await matchesRes.json();
           const matches: MatchWithUsers[] = Array.isArray(matchesBody?.data) ? matchesBody.data : [];
-          store.setMatches(matches);
+          if (hydrateGeneration === generation) store.setMatches(matches);
         } else {
           errors.push('matches');
           appLogger.error('api.hydrate', 'Failed to hydrate matches', new Error(`HTTP ${matchesRes.status}`));
@@ -226,7 +231,7 @@ export async function hydrateAppData(user?: User) {
         if (likedYouRes.ok) {
           const likedYouBody = await likedYouRes.json();
           const likedYouUsers: User[] = Array.isArray(likedYouBody) ? likedYouBody : [];
-          store.setLikedYouProfiles(likedYouUsers);
+          if (hydrateGeneration === generation) store.setLikedYouProfiles(likedYouUsers);
         } else {
           errors.push('likedYou');
           appLogger.error('api.hydrate', 'Failed to hydrate likedYou', new Error(`HTTP ${likedYouRes.status}`));
@@ -245,7 +250,7 @@ export async function hydrateAppData(user?: User) {
           const likeSentBody = await likeSentRes.json();
           const likes: { toUserId: string }[] = Array.isArray(likeSentBody) ? likeSentBody : [];
           for (const like of likes) {
-            if (like.toUserId) store.addLikedUserId(like.toUserId);
+            if (hydrateGeneration === generation && like.toUserId) store.addLikedUserId(like.toUserId);
           }
         } else {
           errors.push('likeSent');
@@ -265,7 +270,7 @@ export async function hydrateAppData(user?: User) {
           const blockedBody = await blockedRes.json();
           const blocks: { blockedId: string }[] = Array.isArray(blockedBody?.blocks) ? blockedBody.blocks : [];
           const blockedIds: string[] = blocks.map((b) => b.blockedId).filter(Boolean);
-          useAppStore.setState({ blockedUserIds: blockedIds });
+          if (hydrateGeneration === generation) useAppStore.setState({ blockedUserIds: blockedIds });
         } else {
           errors.push('blocked');
           appLogger.error('api.hydrate', 'Failed to hydrate blocked', new Error(`HTTP ${blockedRes.status}`));
@@ -283,7 +288,7 @@ export async function hydrateAppData(user?: User) {
         if (dislikedRes.ok) {
           const dislikedBody = await dislikedRes.json();
           const dislikedIds: string[] = Array.isArray(dislikedBody?.data) ? dislikedBody.data : [];
-          useAppStore.setState({ dislikedUserIds: dislikedIds });
+          if (hydrateGeneration === generation) useAppStore.setState({ dislikedUserIds: dislikedIds });
         } else {
           errors.push('disliked');
           appLogger.error('api.hydrate', 'Failed to hydrate dislikes', new Error(`HTTP ${dislikedRes.status}`));
@@ -301,7 +306,7 @@ export async function hydrateAppData(user?: User) {
         if (momentsRes.ok) {
           const momentsBody = await momentsRes.json();
           const momentsData = Array.isArray(momentsBody?.data) ? momentsBody.data : [];
-          useAppStore.setState({ moments: momentsData });
+          if (hydrateGeneration === generation) useAppStore.setState({ moments: momentsData });
         } else {
           errors.push('moments');
           appLogger.error('api.hydrate', 'Failed to hydrate moments', new Error(`HTTP ${momentsRes.status}`));
@@ -319,7 +324,7 @@ export async function hydrateAppData(user?: User) {
         if (achievementsRes.ok) {
           const achievementsBody = await achievementsRes.json();
           const unlocked = Array.isArray(achievementsBody?.unlocked) ? achievementsBody.unlocked : [];
-          useAppStore.setState({ unlockedAchievements: unlocked });
+          if (hydrateGeneration === generation) useAppStore.setState({ unlockedAchievements: unlocked });
         } else {
           errors.push('achievements');
           appLogger.error('api.hydrate', 'Failed to hydrate achievements', new Error(`HTTP ${achievementsRes.status}`));
@@ -337,16 +342,18 @@ export async function hydrateAppData(user?: User) {
         if (settingsRes.ok) {
           const settings = await settingsRes.json();
           if (settings && typeof settings === 'object') {
-            useAppStore.setState({
-              notificationsEnabled: settings.notificationsEnabled ?? true,
-              profileVisible: settings.profileVisible ?? true,
-              showOnlineStatus: settings.showOnlineStatus ?? true,
-              language: settings.language ?? 'ru',
-              showDistance: settings.showDistance ?? false,
-              soundEnabled: settings.soundEnabled ?? true,
-              matchNotifications: settings.matchNotifications ?? true,
-              likeNotifications: settings.likeNotifications ?? true,
-            });
+            if (hydrateGeneration === generation) {
+              useAppStore.setState({
+                notificationsEnabled: settings.notificationsEnabled ?? true,
+                profileVisible: settings.profileVisible ?? true,
+                showOnlineStatus: settings.showOnlineStatus ?? true,
+                language: settings.language ?? 'ru',
+                showDistance: settings.showDistance ?? false,
+                soundEnabled: settings.soundEnabled ?? true,
+                matchNotifications: settings.matchNotifications ?? true,
+                likeNotifications: settings.likeNotifications ?? true,
+              });
+            }
           }
         } else {
           errors.push('settings');
@@ -370,9 +377,10 @@ export async function hydrateAppData(user?: User) {
       settingsPromise,
     ]);
   } finally {
-    store.setIsLoading(false);
+    if (hydrateGeneration === generation) store.setIsLoading(false);
   }
 
+  if (hydrateGeneration !== generation) return;
   if (errors.length > 0) {
     const { toast } = await import('sonner');
     toast.warning('Некоторые данные не загрузились', {
