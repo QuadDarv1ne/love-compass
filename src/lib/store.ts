@@ -404,14 +404,14 @@ export const useAppStore = create<AppState>((set, get) => ({
       if (res.ok) {
         const data = await res.json();
         if (data?.user) {
+          const { hydrateAppData } = await import('@/lib/api');
+          await hydrateAppData(data.user);
           if (checkAuthGeneration === generation) {
             set((state) => ({
               currentUser: data.user,
               authStatus: 'authenticated',
               currentView: state.currentView === 'landing' ? 'browse' : state.currentView,
             }));
-            const { hydrateAppData } = await import('@/lib/api');
-            await hydrateAppData(data.user);
           }
           return;
         }

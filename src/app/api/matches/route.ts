@@ -27,18 +27,21 @@ export async function GET() {
       userIds.add(m.user2Id);
     }
 
-    const [users, lastMessages] = await Promise.all([
+    const [users, allMessages] = await Promise.all([
       db.user.findMany({ id: { in: [...userIds] } }),
-      Promise.all(
-        matches.map((m) =>
-          db.message.findMany({ matchId: m.id }, { orderBy: { createdAt: 'desc' }, take: 1 })
-            .then((msgs) => ({ matchId: m.id, last: msgs[0] || null }))
-        )
-      ),
+      db.message.findMany({ matchId: { in: matches.map((m) => m.id) } }),
     ]);
 
+    // Group messages by matchId and get last message per match
+    const lastMsgMap = new Map<string, typeof allMessages[number] | null>();
+    for (const msg of allMessages) {
+      const existing = lastMsgMap.get(msg.matchId);
+      if (!existing || new Date(msg.createdAt) > new Date(existing.createdAt)) {
+        lastMsgMap.set(msg.matchId, msg);
+      }
+    }
+
     const userMap = new Map(users.map((u) => [u.id, u]));
-    const lastMsgMap = new Map(lastMessages.map((lm) => [lm.matchId, lm.last]));
 
     const data = matches.map((m) => {
       const u1 = userMap.get(m.user1Id);

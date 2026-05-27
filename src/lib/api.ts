@@ -115,6 +115,11 @@ export async function hydrateAppData(user?: User) {
   store.setIsLoading(true);
 
   const currentUser = user ?? store.currentUser;
+  if (!currentUser) {
+    appLogger.error('api.hydrate', 'hydrateAppData called without user context');
+    store.setIsLoading(false);
+    return;
+  }
   const errors: string[] = [];
 
   try {

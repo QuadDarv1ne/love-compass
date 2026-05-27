@@ -102,8 +102,16 @@ export async function middleware(request: NextRequest) {
   const lastUpdate = lastSeenCache.get(session.userId) || 0;
   if (now - lastUpdate >= LAST_SEEN_THROTTLE_MS) {
     if (lastSeenCache.size >= CACHE_MAX_SIZE) {
-      const oldest = lastSeenCache.entries().next().value;
-      if (oldest) lastSeenCache.delete(oldest[0]);
+      // Evict the oldest (least recently updated) entry
+      let oldestKey: string | null = null;
+      let oldestTime = Infinity;
+      for (const [key, time] of lastSeenCache) {
+        if (time < oldestTime) {
+          oldestTime = time;
+          oldestKey = key;
+        }
+      }
+      if (oldestKey) lastSeenCache.delete(oldestKey);
     }
     lastSeenCache.set(session.userId, now);
     try {
