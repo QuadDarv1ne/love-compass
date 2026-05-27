@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { putWithCSRF } from '@/lib/api';
+import { putWithCSRF, postWithCSRFFormData, deleteWithCSRFHeader } from '@/lib/api';
 import {
   Select,
   SelectContent,
@@ -72,23 +72,69 @@ export function ProfileView() {
 
   const handleSave = async () => {
     if (!currentUser) return;
+
+    // Client-side validation
+    if (!name.trim()) {
+      toast.error('Имя не может быть пустым');
+      return;
+    }
+    if (name.trim().length > 100) {
+      toast.error('Имя слишком длинное (максимум 100 символов)');
+      return;
+    }
+    if (bio.length > 500) {
+      toast.error('Раздел "О себе" слишком длинный (максимум 500 символов)');
+      return;
+    }
+    if (city.length > 100) {
+      toast.error('Город слишком длинный (максимум 100 символов)');
+      return;
+    }
+    if (interests.length > 500) {
+      toast.error('Раздел "Интересы" слишком длинный (максимум 500 символов)');
+      return;
+    }
+
     setSaving(true);
+    // Save form state for rollback
+    const prevFormState = { name, bio, city, interests, lookingFor };
+
     try {
       const res = await putWithCSRF('/api/profile', { name, bio, city, interests, lookingFor });
       if (res.ok) {
         const updatedUser = await res.json();
         setCurrentUser(updatedUser);
-        stopEditing();
+        setEditing(false);
         toast.success('Профиль сохранён!', {
           description: 'Изменения успешно применены',
         });
       } else {
         const data = await res.json();
-        toast.error(data.error || 'Не удалось сохранить профиль');
+        // Display server validation errors if available
+        const description = data.details
+          ? Array.isArray(data.details)
+            ? data.details.map((d: { message: string }) => d.message).join(', ')
+            : data.details
+          : undefined;
+        toast.error(data.error || 'Не удалось сохранить профиль', { description });
+        // Rollback form state to previous currentUser values
+        if (currentUser) {
+          setName(currentUser.name);
+          setBio(currentUser.bio);
+          setCity(currentUser.city);
+          setInterests(currentUser.interests);
+          setLookingFor(currentUser.lookingFor);
+        }
       }
     } catch (error) {
       appLogger.error('profile-view.update', 'Failed to update profile', error);
       toast.error('Ошибка при сохранении профиля');
+      // Rollback form state
+      setName(prevFormState.name);
+      setBio(prevFormState.bio);
+      setCity(prevFormState.city);
+      setInterests(prevFormState.interests);
+      setLookingFor(prevFormState.lookingFor);
     }
     setSaving(false);
   };
@@ -101,15 +147,28 @@ export function ProfileView() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      toast.error('Неподдерживаемый формат файла', { description: 'Используйте JPEG, PNG или WebP' });
+      return;
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Файл слишком большой', { description: 'Максимальный размер 5 МБ' });
+      return;
+    }
+
     setUploading(true);
+    // Save current avatar URL for rollback
+    const prevAvatar = currentUser?.avatar ?? '';
+
     try {
       const formData = new FormData();
       formData.append('avatar', file);
 
-      const res = await fetch('/api/profile/avatar', {
-        method: 'POST',
-        body: formData,
-      });
+      const res = await postWithCSRFFormData('/api/profile/avatar', formData);
 
       if (!res.ok) {
         const errorData = await res.json();
@@ -122,6 +181,8 @@ export function ProfileView() {
     } catch (error) {
       appLogger.error('profile-view.avatar', 'Failed to upload avatar', error);
       toast.error('Не удалось загрузить аватар', { description: 'Попробуйте ещё раз' });
+      // Rollback avatar
+      setCurrentUser({ ...currentUser, avatar: prevAvatar });
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -130,11 +191,15 @@ export function ProfileView() {
 
   const handleDeleteAvatar = async () => {
     setUploading(true);
+    // Save current avatar URL for rollback
+    const prevAvatar = currentUser?.avatar ?? '';
+
     try {
-      const res = await fetch('/api/profile/avatar', { method: 'DELETE' });
+      const res = await deleteWithCSRFHeader('/api/profile/avatar');
 
       if (!res.ok) {
-        throw new Error('Delete failed');
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Delete failed');
       }
 
       setCurrentUser({ ...currentUser, avatar: '' });
@@ -142,6 +207,8 @@ export function ProfileView() {
     } catch (error) {
       appLogger.error('profile-view.avatar', 'Failed to delete avatar', error);
       toast.error('Не удалось удалить аватар', { description: 'Попробуйте ещё раз' });
+      // Rollback avatar
+      setCurrentUser({ ...currentUser, avatar: prevAvatar });
     } finally {
       setUploading(false);
     }
