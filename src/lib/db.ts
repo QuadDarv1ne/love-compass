@@ -53,16 +53,23 @@ export async function disconnectDb() {
   await db.disconnect();
 }
 
-process.on('beforeExit', async () => {
-  await disconnectDb();
-});
+let cleanupRegistered = false;
 
-process.on('SIGTERM', async () => {
-  await disconnectDb();
-  process.exit(0);
-});
+export function registerGracefulShutdown() {
+  if (cleanupRegistered) return;
+  cleanupRegistered = true;
 
-process.on('SIGINT', async () => {
-  await disconnectDb();
-  process.exit(0);
-});
+  process.on('beforeExit', async () => {
+    await disconnectDb();
+  });
+
+  process.on('SIGTERM', async () => {
+    await disconnectDb();
+    process.exit(0);
+  });
+
+  process.on('SIGINT', async () => {
+    await disconnectDb();
+    process.exit(0);
+  });
+}

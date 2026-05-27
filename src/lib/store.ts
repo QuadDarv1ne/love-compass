@@ -413,25 +413,30 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({ authStatus: 'loading' });
     try {
       const res = await fetch('/api/auth/session');
-      if (res.ok) {
-        const data = await res.json();
-        if (data?.user) {
-          const { hydrateAppData } = await import('@/lib/api');
-          await hydrateAppData(data.user);
-          if (checkAuthGeneration === generation) {
-            set((state) => ({
-              currentUser: data.user,
-              authStatus: 'authenticated',
-              currentView: state.currentView === 'landing' ? 'browse' : state.currentView,
-            }));
-          }
-          return;
+      if (!res.ok) {
+        if (checkAuthGeneration === generation) {
+          set({ authStatus: 'unauthenticated', currentView: 'landing' });
         }
+        return;
       }
+      const data = await res.json();
+      if (!data?.user) {
+        if (checkAuthGeneration === generation) {
+          set({ authStatus: 'unauthenticated', currentView: 'landing' });
+        }
+        return;
+      }
+      const { hydrateAppData } = await import('@/lib/api');
+      await hydrateAppData(data.user);
+      if (checkAuthGeneration !== generation) return;
+      set((state) => ({
+        currentUser: data.user,
+        authStatus: 'authenticated',
+        currentView: state.currentView === 'landing' ? 'browse' : state.currentView,
+      }));
     } catch (error) {
+      if (checkAuthGeneration !== generation) return;
       appLogger.error('store.checkAuth', 'checkAuth failed', error);
-    }
-    if (checkAuthGeneration === generation) {
       set({ authStatus: 'unauthenticated', currentView: 'landing' });
     }
   },
@@ -488,8 +493,14 @@ export const useAppStore = create<AppState>((set, get) => ({
   setSearchQuery: (query) => set({ searchQuery: query }),
   setSortBy: (sort) => set({ sortBy: sort }),
   setFilterGender: (gender) => set({ filterGender: gender }),
-  setFilterAgeMin: (age) => set({ filterAgeMin: age }),
-  setFilterAgeMax: (age) => set({ filterAgeMax: age }),
+  setFilterAgeMin: (age) => {
+    if (typeof age !== 'number' || Number.isNaN(age)) return;
+    set({ filterAgeMin: age });
+  },
+  setFilterAgeMax: (age) => {
+    if (typeof age !== 'number' || Number.isNaN(age)) return;
+    set({ filterAgeMax: age });
+  },
   setFilterCity: (city) => set({ filterCity: city }),
   setShowFilters: (show) => set({ showFilters: show }),
 
