@@ -10,7 +10,7 @@ const FETCH_TIMEOUT_MS = 15_000; // 15 seconds
 /**
  * Fetch with an abort timeout to prevent hanging requests.
  */
-async function fetchWithTimeout(url: string, init?: RequestInit, timeoutMs: number = FETCH_TIMEOUT_MS): Promise<Response> {
+export async function fetchWithTimeout(url: string, init?: RequestInit, timeoutMs: number = FETCH_TIMEOUT_MS): Promise<Response> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
   try {

@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAppStore, type Message, type MatchWithUsers } from '@/lib/store';
 import { OnlineIndicator, TypingIndicator } from './shared';
-import { fetchWithCSRF } from '@/lib/api';
+import { fetchWithCSRF, fetchWithTimeout } from '@/lib/api';
 import { appLogger } from '@/lib/logger';
 import { AUTO_REPLY, EMOJI, ANIMATION } from '@/lib/constants';
 
@@ -103,36 +103,40 @@ export function ChatView() {
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const lastMessageIdRef = useRef<string | null>(null);
   const lastMessageCountRef = useRef<number>(0);
+  const isPollingRef = useRef(false);
 
   useEffect(() => {
     if (!selectedMatch) return;
     const abortController = new AbortController();
     let cancelled = false;
     lastMessageIdRef.current = null;
-    const loadMessages = async (isPoll = false) => {
+    let inFlightAbortController = abortController;
+
+    const wrappedLoadMessages = async (isPoll = false) => {
+      if (isPoll && isPollingRef.current) return;
+      if (isPoll) isPollingRef.current = true;
       if (!isPoll) setIsLoadingMessages(true);
+      const callAbortController = new AbortController();
+      inFlightAbortController = callAbortController;
       try {
         let url = `/api/messages?matchId=${selectedMatch.id}`;
         if (isPoll && lastMessageIdRef.current) {
           url += `&cursor=${lastMessageIdRef.current}&limit=50`;
         }
-        const res = await fetch(url, { signal: abortController.signal });
+        const res = await fetchWithTimeout(url, { signal: callAbortController.signal });
         if (!res.ok) throw new Error('Failed to load messages');
         const data = await res.json();
         if (!cancelled) {
           const messageList: Message[] = data.messages ?? data;
           if (messageList.length === 0) return;
           if (isPoll && lastMessageIdRef.current) {
-            // Incremental: append only new messages
             for (const msg of messageList) {
               addMessage(msg);
             }
           } else {
-            // Initial load: replace all messages
             setMessages(messageList);
           }
           lastMessageIdRef.current = messageList[messageList.length - 1].id;
-          // Mark unread messages as read
           const currentUserId = currentUserRef.current?.id;
           const unreadIds = messageList
             .filter((m: Message) => m.senderId !== currentUserId && !m.read)
@@ -152,28 +156,30 @@ export function ChatView() {
         if ((error as Error).name === 'AbortError') return;
         if (!cancelled) appLogger.error('chat-view.loadMessages', 'Failed to load messages', error);
       } finally {
+        if (isPoll) isPollingRef.current = false;
         if (!isPoll) setIsLoadingMessages(false);
       }
     };
-    loadMessages(false);
+
+    wrappedLoadMessages(false);
 
     // Set up polling for real-time updates — incremental fetch
     pollingIntervalRef.current = setInterval(() => {
       if (selectedMatchIdRef.current && hasFocusRef.current) {
-        loadMessages(true);
+        wrappedLoadMessages(true);
       }
     }, 5000);
 
     return () => {
       cancelled = true;
-      abortController.abort();
+      inFlightAbortController.abort();
       if (autoReplyTimerRef.current) clearTimeout(autoReplyTimerRef.current);
       if (innerTimerRef.current) clearTimeout(innerTimerRef.current);
       if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
     };
     // selectedMatch is used as a guard — only the stable .id is needed for re-trigger
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedMatch?.id, setMessages, addMessage]);
+  }, [selectedMatch?.id]);
 
   // Track window focus to control polling
   useEffect(() => {
