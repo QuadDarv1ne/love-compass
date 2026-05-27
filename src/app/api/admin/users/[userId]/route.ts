@@ -5,10 +5,10 @@ import { sanitizeUser } from '@/lib/auth/projections';
 import { z } from 'zod';
 
 export async function GET(request: Request, { params }: { params: Promise<{ userId: string }> }) {
-  const auth = await requireAdminWithCSRF(request);
-  if (auth instanceof NextResponse) return auth;
-
   try {
+    const auth = await requireAdminWithCSRF(request);
+    if (auth instanceof NextResponse) return auth;
+
     const { userId } = await params;
 
     const user = await db.user.findUnique({ id: userId });
@@ -39,9 +39,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
       db.like.count({ toUserId: userId }),
       db.match.count({ OR: [{ user1Id: userId }, { user2Id: userId }] }),
       db.message.count({ senderId: userId }),
-      // Two-step: relation filter doesn't work through custom adapter
+      // Count messages received: all messages in user's matches where sender is not the user
       (async () => {
         const matches = await db.match.findMany({ OR: [{ user1Id: userId }, { user2Id: userId }] });
+        if (matches.length === 0) return 0;
         const matchIds = matches.map(m => m.id);
         return db.message.count({ matchId: { in: matchIds }, senderId: { not: userId } });
       })(),
@@ -87,10 +88,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
 }
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ userId: string }> }) {
-  const auth = await requireAdminWithCSRF(request);
-  if (auth instanceof NextResponse) return auth;
-
   try {
+    const auth = await requireAdminWithCSRF(request);
+    if (auth instanceof NextResponse) return auth;
     const { userId } = await params;
 
     const bodySchema = z.object({
@@ -125,24 +125,23 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ us
 }
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ userId: string }> }) {
-  const auth = await requireAdminWithCSRF(request);
-  if (auth instanceof NextResponse) return auth;
-
-  const { userId } = await params;
-
-  // Prevent self-deletion
-  const adminUser = (auth as { user: { id: string } }).user;
-  if (userId === adminUser.id) {
-    return NextResponse.json({ error: 'Нельзя удалить свой аккаунт' }, { status: 400 });
-  }
-
-  // Verify user exists
-  const user = await db.user.findUnique({ id: userId });
-  if (!user) {
-    return NextResponse.json({ error: 'Пользователь не найден' }, { status: 404 });
-  }
-
   try {
+    const auth = await requireAdminWithCSRF(request);
+    if (auth instanceof NextResponse) return auth;
+
+    const { userId } = await params;
+
+    // Prevent self-deletion
+    const adminUser = (auth as { user: { id: string } }).user;
+    if (userId === adminUser.id) {
+      return NextResponse.json({ error: 'Нельзя удалить свой аккаунт' }, { status: 400 });
+    }
+
+    // Verify user exists
+    const user = await db.user.findUnique({ id: userId });
+    if (!user) {
+      return NextResponse.json({ error: 'Пользователь не найден' }, { status: 404 });
+    }
     // Delete all related data in a transaction to avoid FK constraint violations
     await db.transaction(async (tx) => {
       // Matches and their messages

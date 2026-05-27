@@ -2,7 +2,9 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { z } from 'zod';
 import { requireAuth, requireAuthWithCSRF } from '@/lib/auth/guard';
+import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';
+import { RATE_LIMITS } from '@/lib/constants';
 
 const dislikeSchema = z.object({
   toUserId: z.string().min(1),
@@ -16,6 +18,12 @@ export async function POST(request: Request) {
     const { user } = auth;
     const body = await request.json();
     const { toUserId } = dislikeSchema.parse(body);
+
+    // Rate limit dislikes to prevent spam
+    const rateLimit = await checkRateLimit(`dislike:${user.id}`, RATE_LIMITS.DISLIKE.MAX, RATE_LIMITS.DISLIKE.WINDOW);
+    if (!rateLimit.allowed) {
+      return NextResponse.json({ error: 'Слишком много действий, попробуйте позже' }, { status: 429 });
+    }
 
     if (user.id === toUserId) {
       return NextResponse.json({ error: 'Cannot dislike yourself' }, { status: 400 });

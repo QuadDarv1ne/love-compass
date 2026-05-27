@@ -2,8 +2,9 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { z } from 'zod';
 import { requireAuth, requireAuthWithCSRF, isZodError } from '@/lib/auth/guard';
+import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';
-import { VALIDATION, PAGINATION } from '@/lib/constants';
+import { VALIDATION, PAGINATION, RATE_LIMITS } from '@/lib/constants';
 
 const createMomentSchema = z.object({
   content: z.string().min(1).max(VALIDATION.MOMENT_MAX_LENGTH),
@@ -136,6 +137,12 @@ export async function POST(request: Request) {
     }
 
     const { content, gradient } = result.data;
+
+    // Rate limit moment creation
+    const rateLimit = await checkRateLimit(`moment:${user.id}`, RATE_LIMITS.MOMENT.MAX, RATE_LIMITS.MOMENT.WINDOW);
+    if (!rateLimit.allowed) {
+      return NextResponse.json({ error: 'Слишком много публикаций, попробуйте позже' }, { status: 429 });
+    }
 
     const moment = await db.moment.create({
       userId: user.id,

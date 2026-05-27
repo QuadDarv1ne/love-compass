@@ -118,6 +118,9 @@ export const RATE_LIMITS = {
   TOTP_VERIFY: { MAX: 5, WINDOW: 300 },
   TOTP_REPLAY: { MAX: 1, WINDOW: 300 },
   MESSAGE: { MAX: 10, WINDOW: 60 },
+  DISLIKE: { MAX: 30, WINDOW: 600 },
+  BLOCK: { MAX: 10, WINDOW: 3600 },
+  MOMENT: { MAX: 20, WINDOW: 3600 },
 } as const;
 
 export const TOTP = {

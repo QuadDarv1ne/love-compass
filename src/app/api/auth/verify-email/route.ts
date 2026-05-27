@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
 import { db } from '@/lib/db';
 import {
   generateSessionToken,
@@ -10,6 +11,10 @@ import { generateRandomToken, hashToken, getClientIp } from '@/lib/auth/crypto';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';
 import { RATE_LIMITS, TIME, TOKEN } from '@/lib/constants';
+
+const resendEmailSchema = z.object({
+  email: z.string().email('Неверный формат email'),
+});
 
 export async function GET(request: Request) {
   try {
@@ -72,16 +77,16 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { email } = body;
+    const result = resendEmailSchema.safeParse(body);
 
-    if (!email) {
+    if (!result.success) {
       return NextResponse.json(
-        { error: 'Укажите email' },
+        { error: 'Укажите корректный email' },
         { status: 400 }
       );
     }
 
-    const emailLower = email.toLowerCase();
+    const emailLower = result.data.email.toLowerCase();
 
     // Rate limit: 3 per hour
     const rateLimit = await checkRateLimit(`verify:${emailLower}`, RATE_LIMITS.VERIFY_EMAIL.MAX, RATE_LIMITS.VERIFY_EMAIL.WINDOW);

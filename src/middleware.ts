@@ -70,15 +70,27 @@ export function middleware(request: NextRequest) {
     );
   }
 
-  // Security: Block requests with suspicious origin header spoofing
+  // Security: Validate origin header in production
   const origin = request.headers.get('origin');
   if (origin) {
     try {
       const originUrl = new URL(origin);
-      // In production, validate against allowed origins
-      if (process.env.NODE_ENV === 'production' && process.env.ALLOWED_ORIGINS) {
-        const allowedOrigins = process.env.ALLOWED_ORIGINS.split(',');
-        if (!allowedOrigins.includes(originUrl.origin)) {
+      if (process.env.NODE_ENV === 'production') {
+        const allowedOrigins = process.env.ALLOWED_ORIGINS
+          ? process.env.ALLOWED_ORIGINS.split(',')
+          : [];
+        // If ALLOWED_ORIGINS is not set, fall back to verifying the origin
+        // matches the request's own host (same-origin check)
+        if (allowedOrigins.length === 0) {
+          const host = request.headers.get('host');
+          const requestOrigin = `https://${host}`;
+          if (originUrl.origin !== requestOrigin) {
+            return NextResponse.json(
+              { error: 'Forbidden' },
+              { status: 403 }
+            );
+          }
+        } else if (!allowedOrigins.includes(originUrl.origin)) {
           return NextResponse.json(
             { error: 'Forbidden' },
             { status: 403 }

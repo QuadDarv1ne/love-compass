@@ -2,8 +2,9 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@/lib/db';
 import { requireAuth, requireAuthWithCSRF, isZodError } from '@/lib/auth/guard';
+import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';
-import { VALIDATION } from '@/lib/constants';
+import { VALIDATION, RATE_LIMITS } from '@/lib/constants';
 
 const blockSchema = z.object({
   blockedId: z.string().min(1),
@@ -19,6 +20,12 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { blockedId, reason } = blockSchema.parse(body);
     const blockerId = user.id;
+
+    // Rate limit blocks to prevent abuse
+    const rateLimit = await checkRateLimit(`block:${blockerId}`, RATE_LIMITS.BLOCK.MAX, RATE_LIMITS.BLOCK.WINDOW);
+    if (!rateLimit.allowed) {
+      return NextResponse.json({ error: 'Слишком много действий, попробуйте позже' }, { status: 429 });
+    }
 
     if (blockerId === blockedId) {
       return NextResponse.json({ error: 'Cannot block yourself' }, { status: 400 });
