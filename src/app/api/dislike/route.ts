@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { z } from 'zod';
-import { requireAuthWithCSRF } from '@/lib/auth/guard';
+import { requireAuth, requireAuthWithCSRF } from '@/lib/auth/guard';
 import { logger } from '@/lib/logger';
 
 const dislikeSchema = z.object({
@@ -30,9 +30,9 @@ export async function POST(request: Request) {
   }
 }
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
-    const auth = await requireAuthWithCSRF(request);
+    const auth = await requireAuth();
     if (auth instanceof NextResponse) return auth;
 
     const { user } = auth;

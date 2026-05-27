@@ -8,7 +8,7 @@ import { PAGINATION } from '@/lib/constants';
 
 export async function GET(request: Request) {
   try {
-    const auth = await requireAuth(request);
+    const auth = await requireAuth();
     if (auth instanceof NextResponse) return auth;
 
     const { user } = auth;

@@ -8,9 +8,9 @@ const unlockSchema = z.object({
   achievementId: z.string(),
 });
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
-    const auth = await requireAuth(request);
+    const auth = await requireAuth();
     if (auth instanceof NextResponse) return auth;
 
     const { user } = auth;

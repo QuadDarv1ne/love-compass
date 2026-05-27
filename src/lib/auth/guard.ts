@@ -12,9 +12,7 @@ export function isZodError(error: unknown): error is { name: 'ZodError'; issues:
   return error instanceof Error && error.name === 'ZodError';
 }
 
-export async function requireAuth(
-  _request: Request
-): Promise<{ user: DbUser } | NextResponse> {
+export async function requireAuth(): Promise<{ user: DbUser } | NextResponse> {
   const user = await getUserFromRequest();
 
   if (!user) {
@@ -34,7 +32,7 @@ export async function requireAuth(
 export async function requireAuthWithCSRF(
   request: Request
 ): Promise<{ user: DbUser } | NextResponse> {
-  const auth = await requireAuth(request);
+  const auth = await requireAuth();
   if (auth instanceof NextResponse) return auth;
 
   const csrfValid = await validateCSRFToken(request);
@@ -45,10 +43,8 @@ export async function requireAuthWithCSRF(
   return auth;
 }
 
-export async function requireVerifiedEmail(
-  request: Request
-): Promise<{ user: DbUser } | NextResponse> {
-  const auth = await requireAuth(request);
+export async function requireVerifiedEmail(): Promise<{ user: DbUser } | NextResponse> {
+  const auth = await requireAuth();
   if (auth instanceof NextResponse) return auth;
 
   if (!auth.user.emailVerified) {
@@ -61,10 +57,8 @@ export async function requireVerifiedEmail(
   return auth;
 }
 
-export async function requireAdmin(
-  request: Request
-): Promise<{ user: DbUser } | NextResponse> {
-  const auth = await requireAuth(request);
+export async function requireAdmin(): Promise<{ user: DbUser } | NextResponse> {
+  const auth = await requireAuth();
   if (auth instanceof NextResponse) return auth;
 
   const userWithRole = auth.user as { role: string };
@@ -78,7 +72,7 @@ export async function requireAdmin(
 export async function requireAdminWithCSRF(
   request: Request
 ): Promise<{ user: DbUser } | NextResponse> {
-  const auth = await requireAdmin(request);
+  const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
 
   const csrfValid = await validateCSRFToken(request);

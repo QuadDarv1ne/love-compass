@@ -40,7 +40,8 @@ function toObjectId(id: string): ObjectId {
   try {
     return new ObjectId(id);
   } catch {
-    return new ObjectId();
+    appLogger.error('MongoDB', 'Invalid ObjectId', `Value "${id}" is not a valid 24-character hex string or 12-byte binary`);
+    throw new Error(`Invalid MongoDB ObjectId: "${id}"`);
   }
 }
 

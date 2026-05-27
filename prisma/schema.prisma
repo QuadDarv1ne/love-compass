@@ -32,7 +32,7 @@ model User {
   lockedUntil            DateTime?
   notificationsEnabled   Boolean   @default(true)
   profileVisible         Boolean   @default(true)
-  role                   String    @default("user")
+  role                   String    @default("user") @db.VarChar(10)
   showOnlineStatus       Boolean   @default(true)
   language               String    @default("ru")
   showDistance           Boolean   @default(false)

@@ -5,9 +5,7 @@ import { requireAuth, requireAuthWithCSRF, isZodError } from '@/lib/auth/guard';
 import { sanitizeUser } from '@/lib/auth/projections';
 import { logger } from '@/lib/logger';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
-import { RATE_LIMITS } from '@/lib/constants';
-
-import { VALIDATION } from '@/lib/constants';
+import { RATE_LIMITS, VALIDATION } from '@/lib/constants';
 
 const sendMessageSchema = z.object({
   matchId: z.string().min(1),
@@ -16,7 +14,7 @@ const sendMessageSchema = z.object({
 
 export async function GET(request: Request) {
   try {
-    const auth = await requireAuth(request);
+    const auth = await requireAuth();
     if (auth instanceof NextResponse) return auth;
 
     const { searchParams } = new URL(request.url);
