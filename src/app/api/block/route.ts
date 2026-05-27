@@ -45,6 +45,14 @@ export async function POST(request: Request) {
     if (isZodError(error)) {
       return NextResponse.json({ error: 'Validation failed', details: error.issues }, { status: 400 });
     }
+    // Handle unique constraint violation from TOCTOU race
+    if (
+      error instanceof Error &&
+      (error.message.includes('Unique constraint failed') || error.message.includes('UNIQUE constraint failed'))
+    ) {
+      return NextResponse.json({ error: 'Already blocked' }, { status: 409 });
+    }
+    logger.error('/api/block', 'Failed to block user', error);
     return NextResponse.json({ error: 'Failed to block user' }, { status: 500 });
   }
 }

@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { requireAdminWithCSRF, isZodError } from '@/lib/auth/guard';
 import { sanitizeUser } from '@/lib/auth/projections';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
 
 export async function GET(request: Request, { params }: { params: Promise<{ userId: string }> }) {
   try {
@@ -82,7 +83,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
         },
       },
     });
-  } catch {
+  } catch (error) {
+    logger.error('/api/admin/users/[userId]', 'Failed to fetch user details', error);
     return NextResponse.json({ error: 'Failed to fetch user details' }, { status: 500 });
   }
 }

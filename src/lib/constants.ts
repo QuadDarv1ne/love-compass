@@ -121,6 +121,7 @@ export const RATE_LIMITS = {
   DISLIKE: { MAX: 30, WINDOW: 600 },
   BLOCK: { MAX: 10, WINDOW: 3600 },
   MOMENT: { MAX: 20, WINDOW: 3600 },
+  PROFILES: { MAX: 30, WINDOW: 60 },
 } as const;
 
 export const TOTP = {

@@ -134,6 +134,7 @@ model Report {
   @@index([reporterId])
   @@index([reportedId])
   @@index([createdAt])
+  @@unique([reporterId, reportedId])
 }
 
 model Session {

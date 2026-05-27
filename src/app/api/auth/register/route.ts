@@ -97,6 +97,19 @@ export async function POST(request: Request) {
       { status: 201 }
     );
   } catch (error) {
+    // Handle unique constraint violation from TOCTOU race
+    if (
+      error instanceof Error &&
+      (error.message.includes('Unique constraint failed') || error.message.includes('UNIQUE constraint failed'))
+    ) {
+      return NextResponse.json(
+        {
+          success: true,
+          message: 'Проверьте вашу почту для подтверждения email',
+        },
+        { status: 200 }
+      );
+    }
     logger.error('/api/auth/register', 'Registration error', error);
     return NextResponse.json(
       { error: 'Ошибка сервера' },

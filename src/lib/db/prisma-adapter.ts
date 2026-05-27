@@ -1,4 +1,5 @@
 import { Prisma, PrismaClient } from '@prisma/client';
+import { detectDbType } from './detect';
 import type {
   DatabaseAdapter,
   DbUser,
@@ -50,8 +51,6 @@ export const profileSelect = {
   createdAt: true,
   updatedAt: true,
 };
-
-import { detectDbType } from './detect';
 
 function toDbUser(u: Prisma.UserGetPayload<Record<string, never>>): DbUser {
   return u as unknown as DbUser;
@@ -438,6 +437,9 @@ export class PrismaAdapter implements DatabaseAdapter {
     create: (data: Partial<DbDislike>) =>
       prisma.dislike.create({ data: data as Prisma.DislikeCreateInput }).then(toDbDislike),
 
+    findFirst: (where?: Record<string, unknown>) =>
+      prisma.dislike.findFirst({ where: where as Prisma.DislikeWhereInput }).then((r) => (r ? toDbDislike(r) : null)),
+
     findMany: (where?: Record<string, unknown>) =>
       prisma.dislike.findMany({ where: where as Prisma.DislikeWhereInput }).then((arr) => arr.map(toDbDislike)),
 
@@ -614,6 +616,7 @@ export class PrismaAdapter implements DatabaseAdapter {
         },
         dislike: {
           create: (data) => tx.dislike.create({ data: data as Prisma.DislikeCreateInput }).then(toDbDislike),
+          findFirst: (where) => tx.dislike.findFirst({ where: where as Prisma.DislikeWhereInput }).then((r) => (r ? toDbDislike(r) : null)),
           findMany: (where) => tx.dislike.findMany({ where: where as Prisma.DislikeWhereInput }).then((arr) => arr.map(toDbDislike)),
           deleteMany: (where) => tx.dislike.deleteMany({ where: where as Prisma.DislikeWhereInput }).then((r) => r.count),
         },

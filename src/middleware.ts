@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
+import { randomUUID } from 'crypto';
 
 // Paths that require authentication
 const PROTECTED_PATHS = [
@@ -48,7 +49,6 @@ const getSecret = () => {
       throw new Error('JWT_SECRET environment variable is required in production');
     }
     if (!_devSecret) {
-      const { randomUUID } = require('crypto');
       _devSecret = new TextEncoder().encode(randomUUID());
     }
     return _devSecret;
@@ -155,7 +155,7 @@ export async function middleware(request: NextRequest) {
   // Content-Security-Policy: restrict resource loading to same origin
   response.headers.set(
     'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
+    "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
   );
 
   // Prevent MIME-type sniffing

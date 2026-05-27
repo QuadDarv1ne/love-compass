@@ -742,6 +742,11 @@ export class MongoDBAdapter implements DatabaseAdapter {
       return { ...data, id: result.insertedId.toString() } as DbDislike;
     },
 
+    findFirst: async (where?: Record<string, unknown>): Promise<DbDislike | null> => {
+      const doc = await this.db.collection(COLLECTIONS.dislikes).findOne(cleanWhere(where || {}));
+      return stripId(doc) as DbDislike | null;
+    },
+
     findMany: async (where?: Record<string, unknown>): Promise<DbDislike[]> => {
       const docs = await this.db.collection(COLLECTIONS.dislikes).find(cleanWhere(where || {})).toArray();
       return stripMany(docs) as DbDislike[];

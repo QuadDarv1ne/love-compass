@@ -176,13 +176,13 @@ export function ProfileView() {
       }
 
       const data = await res.json();
-      setCurrentUser({ ...currentUser, avatar: data.avatar });
+      setCurrentUser({ ...currentUser!, avatar: data.avatar });
       toast.success('Аватар обновлён!', { description: 'Новое фото профиля сохранено' });
     } catch (error) {
       appLogger.error('profile-view.avatar', 'Failed to upload avatar', error);
       toast.error('Не удалось загрузить аватар', { description: 'Попробуйте ещё раз' });
       // Rollback avatar
-      setCurrentUser({ ...currentUser, avatar: prevAvatar });
+      setCurrentUser({ ...currentUser!, avatar: prevAvatar });
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -202,13 +202,13 @@ export function ProfileView() {
         throw new Error(errorData.error || 'Delete failed');
       }
 
-      setCurrentUser({ ...currentUser, avatar: '' });
+      setCurrentUser({ ...currentUser!, avatar: '' });
       toast.success('Аватар удалён', { description: 'Фото профиля удалено' });
     } catch (error) {
       appLogger.error('profile-view.avatar', 'Failed to delete avatar', error);
       toast.error('Не удалось удалить аватар', { description: 'Попробуйте ещё раз' });
       // Rollback avatar
-      setCurrentUser({ ...currentUser, avatar: prevAvatar });
+      setCurrentUser({ ...currentUser!, avatar: prevAvatar });
     } finally {
       setUploading(false);
     }

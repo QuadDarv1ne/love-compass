@@ -283,6 +283,7 @@ export interface DatabaseAdapter {
 
   dislike: {
     create(data: Partial<DbDislike>): Promise<DbDislike>;
+    findFirst(where?: Record<string, unknown>): Promise<DbDislike | null>;
     findMany(where?: Record<string, unknown>): Promise<DbDislike[]>;
     deleteMany(where: Record<string, unknown>): Promise<number>;
   };
