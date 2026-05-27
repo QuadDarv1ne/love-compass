@@ -276,20 +276,29 @@ export function BrowseView() {
   }, [currentUser, addLikedUserId, setMatchAnimationPartner, setShowMatchAnimation, removeProfile]);
 
   const handleDislike = useCallback(async (profile: User) => {
+    if (!currentUser) return;
     setSwipeDir('left');
     setShowX(true);
     addDislikedUserId(profile.id);
     setLastSwipedProfile(profile);
     setLastSwipeAction('dislike');
+
     const t1 = setTimeout(() => { setSwipeDir(null); setShowX(false); }, SWIPE.ANIMATION_DURATION);
-    const t2 = setTimeout(() => removeProfile(profile.id), SWIPE.CARD_REMOVAL_DELAY);
-    timerIdsRef.current.push(t1, t2);
+    timerIdsRef.current.push(t1);
+
     try {
-      await fetchWithCSRF('/api/dislike', { toUserId: profile.id });
+      const res = await fetchWithCSRF('/api/dislike', { toUserId: profile.id });
+      if (!res.ok) throw new Error('Dislike failed');
+      const t2 = setTimeout(() => removeProfile(profile.id), SWIPE.CARD_REMOVAL_DELAY);
+      timerIdsRef.current.push(t2);
     } catch (error) {
-      appLogger.error('browse-view.dislike', 'Failed to persist dislike', error);
+      useAppStore.setState((state) => ({
+        dislikedUserIds: state.dislikedUserIds.filter((id) => id !== profile.id),
+      }));
+      toast.error('Не удалось отправить дизлайк', { description: 'Попробуйте ещё раз' });
+      appLogger.error('browse-view.dislike', 'Dislike failed', error);
     }
-  }, [addDislikedUserId, removeProfile]);
+  }, [currentUser, addDislikedUserId, removeProfile]);
 
   const handleSuperLike = useCallback(async (profile: User) => {
     if (!currentUser) return;

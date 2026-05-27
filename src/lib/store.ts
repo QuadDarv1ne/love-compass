@@ -673,9 +673,14 @@ export const useAppStore = create<AppState>((set, get) => ({
           adminSelectedUser: state.adminSelectedUser?.id === userId ? null : state.adminSelectedUser,
           adminTotal: state.adminTotal - 1,
         }));
+        toast.success('Пользователь удалён');
+      } else {
+        const data = await res.json();
+        toast.error(data.error || 'Не удалось удалить пользователя');
       }
     } catch (error) {
       appLogger.error('store.deleteUser', 'Failed to delete user', error);
+      toast.error('Ошибка при удалении пользователя');
     }
   },
 
@@ -684,18 +689,22 @@ export const useAppStore = create<AppState>((set, get) => ({
       const { patchWithCSRF } = await import('@/lib/api');
       const user = get().adminUsers.find((u) => u.id === userId);
       if (!user) return;
-      const res = await patchWithCSRF(`/api/admin/users/${userId}`, {
-        role: user.role === 'admin' ? 'user' : 'admin',
-      });
+      const newRole = user.role === 'admin' ? 'user' : 'admin';
+      const res = await patchWithCSRF(`/api/admin/users/${userId}`, { role: newRole });
       if (res.ok) {
         const updated = await res.json();
         set((state) => ({
           adminUsers: state.adminUsers.map((u) => u.id === userId ? { ...u, role: updated.data.role } : u),
           adminSelectedUser: state.adminSelectedUser?.id === userId ? { ...state.adminSelectedUser, role: updated.data.role } : state.adminSelectedUser,
         }));
+        toast.success(`Роль изменена на ${updated.data.role === 'admin' ? 'администратора' : 'пользователя'}`);
+      } else {
+        const data = await res.json();
+        toast.error(data.error || 'Не удалось изменить роль');
       }
     } catch (error) {
       appLogger.error('store.toggleUserRole', 'Failed to toggle user role', error);
+      toast.error('Ошибка при изменении роли');
     }
   },
 
@@ -704,18 +713,22 @@ export const useAppStore = create<AppState>((set, get) => ({
       const { patchWithCSRF } = await import('@/lib/api');
       const user = get().adminUsers.find((u) => u.id === userId);
       if (!user) return;
-      const res = await patchWithCSRF(`/api/admin/users/${userId}`, {
-        profileVisible: !user.profileVisible,
-      });
+      const newVisible = !user.profileVisible;
+      const res = await patchWithCSRF(`/api/admin/users/${userId}`, { profileVisible: newVisible });
       if (res.ok) {
         const updated = await res.json();
         set((state) => ({
           adminUsers: state.adminUsers.map((u) => u.id === userId ? { ...u, profileVisible: updated.data.profileVisible } : u),
           adminSelectedUser: state.adminSelectedUser?.id === userId ? { ...state.adminSelectedUser, profileVisible: updated.data.profileVisible } : state.adminSelectedUser,
         }));
+        toast.success(updated.data.profileVisible ? 'Профиль стал видимым' : 'Профиль скрыт');
+      } else {
+        const data = await res.json();
+        toast.error(data.error || 'Не удалось изменить видимость профиля');
       }
     } catch (error) {
       appLogger.error('store.toggleProfileVisible', 'Failed to toggle profile visible', error);
+      toast.error('Ошибка при изменении видимости');
     }
   },
 }));
