@@ -526,70 +526,15 @@ export const useAppStore = create<AppState>((set, get) => ({
   setCurrentMomentIndex: (index) => set({ currentMomentIndex: index }),
   addMoment: (moment) => set((state) => ({ moments: [moment, ...state.moments] })),
 
-  setNotificationsEnabled: (enabled) => {
-    const prev = get().notificationsEnabled;
-    set({ notificationsEnabled: enabled });
-    get().saveSettings({ notificationsEnabled: enabled }).catch(() => {
-      set({ notificationsEnabled: prev });
-      toast.error('Не удалось сохранить настройку');
-    });
-  },
-  setProfileVisible: (visible) => {
-    const prev = get().profileVisible;
-    set({ profileVisible: visible });
-    get().saveSettings({ profileVisible: visible }).catch(() => {
-      set({ profileVisible: prev });
-      toast.error('Не удалось сохранить настройку');
-    });
-  },
-  setShowOnlineStatus: (show) => {
-    const prev = get().showOnlineStatus;
-    set({ showOnlineStatus: show });
-    get().saveSettings({ showOnlineStatus: show }).catch(() => {
-      set({ showOnlineStatus: prev });
-      toast.error('Не удалось сохранить настройку');
-    });
-  },
-  setLanguage: (lang) => {
-    const prev = get().language;
-    set({ language: lang });
-    get().saveSettings({ language: lang }).catch(() => {
-      set({ language: prev });
-      toast.error('Не удалось сохранить настройку');
-    });
-  },
-  setShowDistance: (show) => {
-    const prev = get().showDistance;
-    set({ showDistance: show });
-    get().saveSettings({ showDistance: show }).catch(() => {
-      set({ showDistance: prev });
-      toast.error('Не удалось сохранить настройку');
-    });
-  },
-  setSoundEnabled: (enabled) => {
-    const prev = get().soundEnabled;
-    set({ soundEnabled: enabled });
-    get().saveSettings({ soundEnabled: enabled }).catch(() => {
-      set({ soundEnabled: prev });
-      toast.error('Не удалось сохранить настройку');
-    });
-  },
-  setMatchNotifications: (enabled) => {
-    const prev = get().matchNotifications;
-    set({ matchNotifications: enabled });
-    get().saveSettings({ matchNotifications: enabled }).catch(() => {
-      set({ matchNotifications: prev });
-      toast.error('Не удалось сохранить настройку');
-    });
-  },
-  setLikeNotifications: (enabled) => {
-    const prev = get().likeNotifications;
-    set({ likeNotifications: enabled });
-    get().saveSettings({ likeNotifications: enabled }).catch(() => {
-      set({ likeNotifications: prev });
-      toast.error('Не удалось сохранить настройку');
-    });
-  },
+  // Settings setters — initialized below via setState
+  setNotificationsEnabled: (() => {}) as (enabled: boolean) => void,
+  setProfileVisible: (() => {}) as (visible: boolean) => void,
+  setShowOnlineStatus: (() => {}) as (show: boolean) => void,
+  setLanguage: (() => {}) as (lang: string) => void,
+  setShowDistance: (() => {}) as (show: boolean) => void,
+  setSoundEnabled: (() => {}) as (enabled: boolean) => void,
+  setMatchNotifications: (() => {}) as (enabled: boolean) => void,
+  setLikeNotifications: (() => {}) as (enabled: boolean) => void,
   loadSettings: async () => {
     try {
       const res = await fetch('/api/settings');
@@ -755,3 +700,28 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 }));
+
+// Initialize settings setters with shared pattern
+const createSettingSetter = <K extends keyof AppState>(
+  key: K,
+) => {
+  return (value: AppState[K]) => {
+    const prev = useAppStore.getState()[key];
+    useAppStore.setState({ [key]: value } as Partial<AppState>);
+    useAppStore.getState().saveSettings({ [key]: value } as Parameters<AppState['saveSettings']>[0]).catch(() => {
+      useAppStore.setState({ [key]: prev } as Partial<AppState>);
+      toast.error('Не удалось сохранить настройку');
+    });
+  };
+};
+
+useAppStore.setState({
+  setNotificationsEnabled: createSettingSetter('notificationsEnabled'),
+  setProfileVisible: createSettingSetter('profileVisible'),
+  setShowOnlineStatus: createSettingSetter('showOnlineStatus'),
+  setLanguage: createSettingSetter('language'),
+  setShowDistance: createSettingSetter('showDistance'),
+  setSoundEnabled: createSettingSetter('soundEnabled'),
+  setMatchNotifications: createSettingSetter('matchNotifications'),
+  setLikeNotifications: createSettingSetter('likeNotifications'),
+});

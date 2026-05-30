@@ -2,20 +2,13 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAuthWithCSRF } from '@/lib/auth/guard';
 import { logger } from '@/lib/logger';
-import { randomUUID } from 'crypto';
-import { existsSync, mkdirSync, writeFileSync, unlinkSync } from 'fs';
 import path from 'path';
+import { existsSync, unlinkSync } from 'fs';
 import { UPLOAD } from '@/lib/constants';
+import { validateAndProcessImage, cleanupFile } from '@/lib/upload';
 
-const MAX_FILE_SIZE = UPLOAD.MAX_FILE_SIZE;
-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads', 'avatars');
-
-function ensureUploadDir() {
-  if (!existsSync(UPLOAD_DIR)) {
-    mkdirSync(UPLOAD_DIR, { recursive: true });
-  }
-}
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 export async function POST(request: Request) {
   try {
@@ -30,42 +23,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      return NextResponse.json(
-        { error: 'Invalid file type. Only JPEG, PNG, and WebP are allowed' },
-        { status: 400 }
-      );
-    }
+    const result = await validateAndProcessImage(file, {
+      uploadDir: UPLOAD_DIR,
+      urlPrefix: '/uploads/avatars/',
+      allowedMimeTypes: ALLOWED_TYPES,
+      maxSize: UPLOAD.MAX_FILE_SIZE,
+    });
 
-    if (file.size > MAX_FILE_SIZE) {
-      return NextResponse.json(
-        { error: 'File too large. Maximum size is 5MB' },
-        { status: 400 }
-      );
-    }
-
-    ensureUploadDir();
-
-    const ext = file.type === 'image/jpeg' ? 'jpg' : file.type === 'image/png' ? 'png' : 'webp';
-    const filename = `${user.id}-${randomUUID()}.${ext}`;
-    const filePath = path.join(UPLOAD_DIR, filename);
-
-    const buffer = Buffer.from(await file.arrayBuffer());
-    writeFileSync(filePath, buffer);
-
-    const avatarUrl = `/uploads/avatars/${filename}`;
+    const avatarUrl = result.url;
 
     // Delete old avatar if it was a custom upload
     if (user.avatar && user.avatar.startsWith('/uploads/avatars/')) {
       const oldFilename = path.basename(user.avatar);
       const oldPath = path.join(UPLOAD_DIR, oldFilename);
-      if (existsSync(oldPath)) {
-        try {
-          unlinkSync(oldPath);
-        } catch {
-          // Ignore deletion errors
-        }
-      }
+      await cleanupFile(oldPath);
     }
 
     await db.user.update(
@@ -75,6 +46,18 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ avatar: avatarUrl });
   } catch (error) {
+    if (error instanceof Error) {
+      if (
+        error.message.includes('Invalid file type') ||
+        error.message.includes('File too large') ||
+        error.message.includes('Empty file') ||
+        error.message.includes('Invalid image file') ||
+        error.message.includes('File content does not match') ||
+        error.message.includes('Unable to read image')
+      ) {
+        return NextResponse.json({ error: error.message }, { status: 400 });
+      }
+    }
     logger.error('/api/profile/avatar', 'Failed to upload avatar', error);
     return NextResponse.json({ error: 'Failed to upload avatar' }, { status: 500 });
   }

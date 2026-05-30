@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { jwtVerify } from 'jose';
-import { randomUUID } from 'crypto';
+import { validateSessionToken } from '@/lib/auth/session';
 
 // Paths that require authentication
 const PROTECTED_PATHS = [
@@ -39,31 +38,9 @@ const PUBLIC_AUTH_PATHS = [
   '/api/auth/demo-login',
 ];
 
-// Cache the dev secret so middleware uses the same key across requests
-let _devSecret: Uint8Array | undefined;
-
-const getSecret = () => {
-  const secret = process.env.JWT_SECRET;
-  if (!secret) {
-    if (process.env.NODE_ENV === 'production') {
-      throw new Error('JWT_SECRET environment variable is required in production');
-    }
-    if (!_devSecret) {
-      _devSecret = new TextEncoder().encode(randomUUID());
-    }
-    return _devSecret;
-  }
-  return new TextEncoder().encode(secret);
-};
-
-async function validateSessionToken(token: string): Promise<boolean> {
-  try {
-    const secret = getSecret();
-    const { payload } = await jwtVerify(token, secret, { algorithms: ['HS256'] });
-    return !!(payload.sub && payload.exp && payload.exp * 1000 > Date.now());
-  } catch {
-    return false;
-  }
+async function isValidSession(token: string): Promise<boolean> {
+  const result = await validateSessionToken(token);
+  return result !== null;
 }
 
 export async function middleware(request: NextRequest) {
@@ -100,10 +77,9 @@ export async function middleware(request: NextRequest) {
       );
     }
 
-    // Validate the session token is genuine and not expired
-    const isValid = await validateSessionToken(sessionCookie.value);
+    // Validate the session token against the database
+    const isValid = await isValidSession(sessionCookie.value);
     if (!isValid) {
-      // Return 401 and clear the invalid cookie
       const response = NextResponse.json(
         { error: 'Необходима авторизация' },
         { status: 401 }

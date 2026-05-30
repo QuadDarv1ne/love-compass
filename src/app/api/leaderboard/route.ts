@@ -9,6 +9,8 @@ import { SCORING, RATE_LIMITS } from '@/lib/constants';
 
 const querySchema = z.object({
   sort: z.enum(['popular', 'active', 'new']).default('popular'),
+  page: z.coerce.number().min(1).default(1),
+  limit: z.coerce.number().min(1).max(50).default(20),
 });
 
 export async function GET(request: Request) {
@@ -18,8 +20,10 @@ export async function GET(request: Request) {
 
     const { user } = auth;
     const { searchParams } = new URL(request.url);
-    const { sort } = querySchema.parse({
+    const { sort, page, limit } = querySchema.parse({
       sort: searchParams.get('sort') || 'popular',
+      page: searchParams.get('page') || 1,
+      limit: searchParams.get('limit') || 20,
     });
 
     // Rate limit leaderboard fetches to prevent database overload
@@ -35,10 +39,7 @@ export async function GET(request: Request) {
       );
     }
 
-    // Fetch all visible users except current
-    const users = await db.user.findMany(
-      { id: { not: user.id }, profileVisible: true }
-    );
+    const skip = (page - 1) * limit;
 
     // Count likes received per user
     const likeCounts = await db.like.groupBy({
@@ -64,7 +65,16 @@ export async function GET(request: Request) {
       matchMap.set(m.user2Id, (matchMap.get(m.user2Id) || 0) + m._count.user2Id);
     }
 
-    // Compute scores
+    // Get total count for pagination
+    const totalUsers = await db.user.count({ profileVisible: true, id: { not: user.id } });
+
+    // Fetch only the page of visible users with minimal fields for scoring
+    const users = await db.user.findMany(
+      { id: { not: user.id }, profileVisible: true },
+      { skip, take: limit },
+    );
+
+    // Compute scores for the page
     const ranked = users.map((u) => {
       const likesReceived = likeMap.get(u.id) || 0;
       const matchCount = matchMap.get(u.id) || 0;
@@ -83,7 +93,7 @@ export async function GET(request: Request) {
       };
     });
 
-    // Sort
+    // Sort the page
     if (sort === 'popular') {
       ranked.sort((a, b) => b.popularityScore - a.popularityScore);
     } else if (sort === 'active') {
@@ -92,7 +102,16 @@ export async function GET(request: Request) {
       ranked.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     }
 
-    return NextResponse.json({ data: ranked, sort });
+    return NextResponse.json({
+      data: ranked,
+      sort,
+      pagination: {
+        page,
+        limit,
+        total: totalUsers,
+        totalPages: Math.ceil(totalUsers / limit),
+      },
+    });
   } catch (error) {
     if (isZodError(error)) {
       return NextResponse.json({ error: 'Invalid query parameters', details: error.issues }, { status: 400 });
