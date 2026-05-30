@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { requireAdminWithCSRF, isZodError } from '@/lib/auth/guard';
+import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { sanitizeUser } from '@/lib/auth/projections';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
-import { PAGINATION } from '@/lib/constants';
+import { PAGINATION, RATE_LIMITS } from '@/lib/constants';
 
 const querySchema = z.object({
   gender: z.enum(['all', 'male', 'female', 'other']).default('all'),
@@ -18,6 +19,20 @@ export async function GET(request: Request) {
   try {
     const auth = await requireAdminWithCSRF(request);
     if (auth instanceof NextResponse) return auth;
+
+    const { user } = auth;
+
+    const rateLimit = await checkRateLimit(
+      `admin-users:${user.id}`,
+      RATE_LIMITS.ADMIN.MAX,
+      RATE_LIMITS.ADMIN.WINDOW
+    );
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests, try again later' },
+        { status: 429 }
+      );
+    }
 
     const { searchParams } = new URL(request.url);
     const parsed = querySchema.safeParse(Object.fromEntries(searchParams));

@@ -2,9 +2,8 @@ import { NextResponse } from 'next/server';
 import { requireAuthWithCSRF } from '@/lib/auth/guard';
 import { logger } from '@/lib/logger';
 import path from 'path';
-import { existsSync, unlinkSync } from 'fs';
 import { UPLOAD } from '@/lib/constants';
-import { validateAndProcessImage } from '@/lib/upload';
+import { validateAndProcessImage, cleanupFile } from '@/lib/upload';
 
 const UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads', 'photos');
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -86,13 +85,7 @@ export async function DELETE(request: Request) {
     }
 
     const filePath = path.join(UPLOAD_DIR, filename);
-    if (existsSync(filePath)) {
-      try {
-        unlinkSync(filePath);
-      } catch {
-        // Ignore deletion errors
-      }
-    }
+    await cleanupFile(filePath);
 
     return NextResponse.json({ success: true });
   } catch (error) {

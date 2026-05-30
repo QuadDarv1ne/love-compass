@@ -122,6 +122,7 @@ export const RATE_LIMITS = {
   BLOCK: { MAX: 10, WINDOW: 3600 },
   MOMENT: { MAX: 20, WINDOW: 3600 },
   PROFILES: { MAX: 30, WINDOW: 60 },
+  ADMIN: { MAX: 20, WINDOW: 60 },
 } as const;
 
 export const TOTP = {

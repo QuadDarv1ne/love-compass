@@ -3,7 +3,6 @@ import { db } from '@/lib/db';
 import { requireAuthWithCSRF } from '@/lib/auth/guard';
 import { logger } from '@/lib/logger';
 import path from 'path';
-import { existsSync, unlinkSync } from 'fs';
 import { UPLOAD } from '@/lib/constants';
 import { validateAndProcessImage, cleanupFile } from '@/lib/upload';
 
@@ -78,13 +77,7 @@ export async function DELETE(request: Request) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
       const filePath = path.join(UPLOAD_DIR, filename);
-      if (existsSync(filePath)) {
-        try {
-          unlinkSync(filePath);
-        } catch {
-          // Ignore deletion errors
-        }
-      }
+      await cleanupFile(filePath);
     }
 
     await db.user.update(
