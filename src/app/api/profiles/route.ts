@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { requireAuth, isZodError } from '@/lib/auth/guard';
 import { sanitizeUser } from '@/lib/auth/projections';
 import { PAGINATION } from '@/lib/constants';
+import { checkRateLimit } from '@/lib/auth/rate-limit';
 
 export async function GET(request: Request) {
   try {
@@ -12,6 +13,16 @@ export async function GET(request: Request) {
     if (auth instanceof NextResponse) return auth;
 
     const { user } = auth;
+
+    // Rate limit profile browsing to prevent data scraping
+    // Allow 30 requests per 5 minutes (enough for normal browsing)
+    const rateLimit = await checkRateLimit(`profiles:${user.id}`, 30, 300);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please wait a moment before browsing more profiles.' },
+        { status: 429 }
+      );
+    }
 
     const { searchParams } = new URL(request.url);
     const pagination = z.object({

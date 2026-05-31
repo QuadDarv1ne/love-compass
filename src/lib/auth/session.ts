@@ -90,6 +90,7 @@ export async function deleteSessionCookie(): Promise<void> {
     sameSite: 'strict',
     path: '/',
     maxAge: 0,
+    partitioned: isProduction,
   });
 }
 
