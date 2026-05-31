@@ -19,10 +19,12 @@ import { TopView } from '@/components/views/top-view';
 import { SettingsView } from '@/components/views/settings-view';
 import { AchievementsView } from '@/components/views/achievements-view';
 import { Separator } from '@/components/ui/separator';
+import { useTranslation } from '@/hooks/useTranslation';
 
 // ─── Main Page ──────────────────────────────────────────────────────────────
 export default function HomePage() {
   const { currentView, matches, likedYouCount, viewDirection, authStatus, checkAuth, showMatchAnimation } = useAppStore();
+  const { t } = useTranslation();
 
   // Check auth session on mount
   useEffect(() => {
@@ -35,18 +37,18 @@ export default function HomePage() {
 
   // Primary nav items (bottom bar + sidebar top)
   const navItems = [
-    { view: 'browse' as const, icon: Search, label: 'Анкеты' },
-    { view: 'moments' as const, icon: Camera, label: 'Моменты' },
-    { view: 'matches' as const, icon: Heart, label: 'Мэтчи', badge: matchCount },
-    { view: 'top' as const, icon: Trophy, label: 'Рейтинг' },
-    { view: 'profile' as const, icon: User, label: 'Профиль' },
+    { view: 'browse' as const, icon: Search, label: t('nav.browse'), badge: undefined as number | undefined },
+    { view: 'moments' as const, icon: Camera, label: t('nav.moments'), badge: undefined as number | undefined },
+    { view: 'matches' as const, icon: Heart, label: t('nav.matches'), badge: matchCount },
+    { view: 'top' as const, icon: Trophy, label: t('nav.top'), badge: undefined as number | undefined },
+    { view: 'profile' as const, icon: User, label: t('nav.profile'), badge: undefined as number | undefined },
   ];
 
   // Secondary nav items (sidebar only)
   const secondaryNavItems = [
-    { view: 'likedYou' as const, icon: Eye, label: 'Лайки', badge: likedYouCount },
-    { view: 'achievements' as const, icon: Trophy, label: 'Достижения' },
-    { view: 'settings' as const, icon: SettingsIcon, label: 'Настройки' },
+    { view: 'likedYou' as const, icon: Eye, label: t('nav.likedYou'), badge: likedYouCount },
+    { view: 'achievements' as const, icon: Trophy, label: t('nav.achievements'), badge: undefined as number | undefined },
+    { view: 'settings' as const, icon: SettingsIcon, label: t('nav.settings'), badge: undefined as number | undefined },
   ];
 
   return (
@@ -128,7 +130,7 @@ export default function HomePage() {
             {/* Chat List */}
             <div className="flex-1 overflow-y-auto custom-scrollbar pb-2">
               <div className="p-3 pb-1">
-                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-1">Сообщения</h3>
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-1">{t('nav.messages')}</h3>
               </div>
               <ChatListView />
             </div>
@@ -179,7 +181,7 @@ export default function HomePage() {
           {/* Copyright Footer */}
           <footer className="md:hidden text-center py-2 border-t border-rose-100 dark:border-rose-900/30 bg-card/40 backdrop-blur-sm safe-area-pb">
             <p className="text-[10px] text-muted-foreground">
-              © 2026 Love Compass. Все права защищены
+              {t('footer.copyright')}
             </p>
           </footer>
         </div>

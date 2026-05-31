@@ -50,6 +50,8 @@ import { TOTP } from '@/lib/constants';
 import { QRCodeCanvas } from 'qrcode.react';
 import { fetchWithCSRF, deleteWithCSRF } from '@/lib/api';
 import { AvatarUpload } from '@/components/ui/avatar-upload';
+import { useTranslation } from '@/hooks/useTranslation';
+import { LOCALE_FLAGS, LOCALE_NAMES, SUPPORTED_LOCALES, type Locale } from '@/lib/i18n';
 
 /* ─── shared animation ────────────────────────────────────────── */
 const fadeUp = {
@@ -243,6 +245,7 @@ function TwoFASetupDialog({
 /* ═══════════════════════════════════════════════════════════════ */
 export function SettingsView() {
   const { setTheme, theme, resolvedTheme } = useTheme();
+  const { t } = useTranslation();
   const {
     currentUser,
     refreshUser,
@@ -376,10 +379,10 @@ export function SettingsView() {
           transition={{ duration: 0.4 }}
         >
           <h2 className="text-xl font-bold text-rose-700 dark:text-rose-300">
-            Настройки
+            {t('settings.title')}
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Управление вашим аккаунтом и приложением
+            {t('settings.subtitle')}
           </p>
         </motion.div>
 
@@ -389,16 +392,16 @@ export function SettingsView() {
             <CardContent className="p-5">
               <h3 className="text-sm font-bold text-rose-600 dark:text-rose-400 flex items-center gap-2 mb-4">
                 <Sun className="w-4 h-4" />
-                Внешний вид
+                {t('settings.appearance')}
               </h3>
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   {themeIcon}
                   <div>
-                    <Label className="text-sm font-medium">Тема оформления</Label>
+                    <Label className="text-sm font-medium">{t('settings.theme')}</Label>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      Выберите удобную тему для интерфейса
+                      {t('settings.themeDesc')}
                     </p>
                   </div>
                 </div>
@@ -410,15 +413,15 @@ export function SettingsView() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="light">☀️ Светлая</SelectItem>
-                    <SelectItem value="dark">🌙 Тёмная</SelectItem>
-                    <SelectItem value="system">💻 Системная</SelectItem>
+                    <SelectItem value="light">☀️ {t('settings.themeLight')}</SelectItem>
+                    <SelectItem value="dark">🌙 {t('settings.themeDark')}</SelectItem>
+                    <SelectItem value="system">💻 {t('settings.themeSystem')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="mt-4 flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">Текущая тема:</span>
+                <span className="text-xs text-muted-foreground">{t('settings.currentTheme')}</span>
                 <Badge
                   variant="secondary"
                   className="bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800"
@@ -437,39 +440,39 @@ export function SettingsView() {
             <CardContent className="p-5">
               <h3 className="text-sm font-bold text-rose-600 dark:text-rose-400 flex items-center gap-2 mb-2">
                 <Bell className="w-4 h-4" />
-                Уведомления
+                {t('settings.notifications')}
               </h3>
 
               <Separator className="bg-rose-100 dark:bg-rose-900/50 mb-1" />
 
               <SettingRow
                 icon={<Bell className="w-4 h-4" />}
-                label="Push-уведомления"
-                description="Получайте уведомления на устройстве"
+                label={t('settings.pushNotifications')}
+                description={t('settings.pushNotificationsDesc')}
                 checked={notificationsEnabled}
                 onCheckedChange={setNotificationsEnabled}
               />
 
               <SettingRow
                 icon={<Volume2 className="w-4 h-4" />}
-                label="Звуки сообщений"
-                description="Воспроизводить звук при новом сообщении"
+                label={t('settings.sound')}
+                description={t('settings.soundDesc')}
                 checked={soundEnabled}
                 onCheckedChange={setSoundEnabled}
               />
 
               <SettingRow
                 icon={<HeartHandshake className="w-4 h-4" />}
-                label="Уведомления о мэтчах"
-                description="Узнавайте, когда произойдёт совпадение"
+                label={t('settings.matchNotif')}
+                description={t('settings.matchNotifDesc')}
                 checked={matchNotif}
                 onCheckedChange={setMatchNotif}
               />
 
               <SettingRow
                 icon={<ThumbsUp className="w-4 h-4" />}
-                label="Уведомления о лайках"
-                description="Получайте уведомления о симпатиях"
+                label={t('settings.likeNotif')}
+                description={t('settings.likeNotifDesc')}
                 checked={likeNotif}
                 onCheckedChange={setLikeNotif}
               />
@@ -483,31 +486,31 @@ export function SettingsView() {
             <CardContent className="p-5">
               <h3 className="text-sm font-bold text-rose-600 dark:text-rose-400 flex items-center gap-2 mb-2">
                 <Shield className="w-4 h-4" />
-                Приватность
+                {t('settings.privacy')}
               </h3>
 
               <Separator className="bg-rose-100 dark:bg-rose-900/50 mb-1" />
 
               <SettingRow
                 icon={<Eye className="w-4 h-4" />}
-                label="Показывать профиль"
-                description="Ваш профиль будет виден другим пользователям в поиске"
+                label={t('settings.showProfile')}
+                description={t('settings.showProfileDesc')}
                 checked={profileVisible}
                 onCheckedChange={setProfileVisible}
               />
 
               <SettingRow
                 icon={<Wifi className="w-4 h-4" />}
-                label="Показывать статус онлайн"
-                description="Другие пользователи увидят, что вы сейчас в приложении"
+                label={t('settings.showOnline')}
+                description={t('settings.showOnlineDesc')}
                 checked={showOnlineStatus}
                 onCheckedChange={setShowOnlineStatus}
               />
 
               <SettingRow
                 icon={<MapPin className="w-4 h-4" />}
-                label="Показывать расстояние"
-                description="Отображать расстояние до вас в других профилях"
+                label={t('settings.showDistance')}
+                description={t('settings.showDistanceDesc')}
                 checked={showDistance}
                 onCheckedChange={setShowDistance}
               />
@@ -521,7 +524,7 @@ export function SettingsView() {
             <CardContent className="p-5">
               <h3 className="text-sm font-bold text-rose-600 dark:text-rose-400 flex items-center gap-2 mb-2">
                 <Key className="w-4 h-4" />
-                Безопасность
+                {t('settings.security')}
               </h3>
 
               <Separator className="bg-rose-100 dark:bg-rose-900/50 mb-4" />
@@ -531,13 +534,13 @@ export function SettingsView() {
                 <div className="flex items-center gap-3">
                   <Smartphone className="w-4 h-4 text-muted-foreground" />
                   <div>
-                    <p className="text-sm font-medium">Двухфакторная аутентификация</p>
-                    <p className="text-xs text-muted-foreground">Дополнительная защита аккаунта</p>
+                    <p className="text-sm font-medium">{t('settings.twoFA')}</p>
+                    <p className="text-xs text-muted-foreground">{t('settings.twoFADesc')}</p>
                   </div>
                 </div>
                 {currentUser?.totpEnabled ? (
                   <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-green-200 dark:border-green-800">
-                    <CheckCircle className="w-3 h-3 mr-1" /> Включена
+                    <CheckCircle className="w-3 h-3 mr-1" /> {t('settings.twoFAEnabled')}
                   </Badge>
                 ) : (
                   <Button
@@ -546,7 +549,7 @@ export function SettingsView() {
                     onClick={() => setTwoFADialogOpen(true)}
                     className="border-rose-200 text-rose-600 hover:bg-rose-50"
                   >
-                    Включить
+                    {t('settings.enable2FA')}
                   </Button>
                 )}
               </div>
@@ -558,7 +561,7 @@ export function SettingsView() {
                     <Input
                       value={disable2FACode}
                       onChange={(e) => setDisable2FACode(e.target.value.replace(/\D/g, '').slice(0, TOTP.TOKEN_LENGTH))}
-                      placeholder="Код для отключения"
+                      placeholder={t('settings.disable2FACode')}
                       maxLength={TOTP.TOKEN_LENGTH}
                       className="text-center tracking-widest"
                     />
@@ -568,7 +571,7 @@ export function SettingsView() {
                       onClick={handleDisable2FA}
                       disabled={disabling2FA}
                     >
-                      {disabling2FA ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Отключить'}
+                      {disabling2FA ? <Loader2 className="w-4 h-4 animate-spin" /> : t('settings.disable2FA')}
                     </Button>
                   </div>
                 </div>
@@ -576,23 +579,23 @@ export function SettingsView() {
 
               {/* Change Password */}
               <Separator className="bg-rose-100 dark:bg-rose-900/50 mb-4" />
-              <h4 className="text-sm font-medium mb-3">Сменить пароль</h4>
+              <h4 className="text-sm font-medium mb-3">{t('settings.changePassword')}</h4>
               <div className="space-y-3">
                 <Input
                   type="password"
-                  placeholder="Текущий пароль"
+                  placeholder={t('settings.currentPassword')}
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                 />
                 <Input
                   type="password"
-                  placeholder="Новый пароль"
+                  placeholder={t('settings.newPassword')}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                 />
                 <Input
                   type="password"
-                  placeholder="Подтвердите новый пароль"
+                  placeholder={t('settings.confirmNewPassword')}
                   value={confirmNewPassword}
                   onChange={(e) => setConfirmNewPassword(e.target.value)}
                 />
@@ -601,7 +604,7 @@ export function SettingsView() {
                   disabled={changingPassword || !currentPassword || !newPassword || !confirmNewPassword}
                   className="w-full"
                 >
-                  {changingPassword ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Сменить пароль'}
+                  {changingPassword ? <Loader2 className="w-4 h-4 animate-spin" /> : t('settings.changePassword')}
                 </Button>
               </div>
             </CardContent>
@@ -614,16 +617,16 @@ export function SettingsView() {
             <CardContent className="p-5">
               <h3 className="text-sm font-bold text-rose-600 dark:text-rose-400 flex items-center gap-2 mb-4">
                 <Globe className="w-4 h-4" />
-                Язык
+                {t('settings.language')}
               </h3>
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <Globe className="w-4 h-4 text-muted-foreground" />
                   <div>
-                    <Label className="text-sm font-medium">Язык интерфейса</Label>
+                    <Label className="text-sm font-medium">{t('settings.languageTitle')}</Label>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      Выберите язык отображения
+                      {t('settings.languageDesc')}
                     </p>
                   </div>
                 </div>
@@ -632,10 +635,11 @@ export function SettingsView() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="ru">🇷🇺 Русский</SelectItem>
-                    <SelectItem value="en">🇬🇧 English</SelectItem>
-                    <SelectItem value="de">🇩🇪 Deutsch</SelectItem>
-                    <SelectItem value="es">🇪🇸 Español</SelectItem>
+                    {(SUPPORTED_LOCALES as Locale[]).map((locale) => (
+                      <SelectItem key={locale} value={locale}>
+                        {LOCALE_FLAGS[locale]} {LOCALE_NAMES[locale]}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -649,7 +653,7 @@ export function SettingsView() {
             <CardContent className="p-5">
               <h3 className="text-sm font-bold text-rose-600 dark:text-rose-400 flex items-center gap-2 mb-2">
                 <Mail className="w-4 h-4" />
-                Аккаунт
+                {t('settings.account')}
               </h3>
 
               <Separator className="bg-rose-100 dark:bg-rose-900/50 mb-4" />
@@ -669,13 +673,13 @@ export function SettingsView() {
               <div className="flex items-center gap-3 mb-3">
                 <Mail className="w-4 h-4 text-muted-foreground shrink-0" />
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs text-muted-foreground">Электронная почта</p>
+                  <p className="text-xs text-muted-foreground">{t('settings.email')}</p>
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-medium truncate">
                       {currentUser?.email ?? '—'}
                     </p>
                     {!currentUser?.emailVerified && (
-                      <Badge variant="destructive" className="text-[10px]">Не подтверждён</Badge>
+                      <Badge variant="destructive" className="text-[10px]">{t('settings.notVerified')}</Badge>
                     )}
                   </div>
                 </div>
@@ -685,7 +689,7 @@ export function SettingsView() {
               <div className="flex items-center gap-3 mb-5">
                 <CalendarDays className="w-4 h-4 text-muted-foreground shrink-0" />
                 <div className="min-w-0">
-                  <p className="text-xs text-muted-foreground">Дата регистрации</p>
+                  <p className="text-xs text-muted-foreground">{t('settings.memberSince')}</p>
                   <p className="text-sm font-medium">
                     {formatCreatedDate(currentUser?.createdAt)}
                   </p>
@@ -702,14 +706,14 @@ export function SettingsView() {
                   onClick={async () => {
                     try {
                       await logout();
-                      toast.success('Вы вышли из аккаунта');
+                      toast.success(t('settings.loggedOut'));
                     } catch {
-                      toast.error('Ошибка при выходе');
+                      toast.error(t('settings.logoutError'));
                     }
                   }}
                 >
                   <LogOut className="w-4 h-4" />
-                  Выйти
+                  {t('auth.logout')}
                 </Button>
 
                 <Button
@@ -717,19 +721,19 @@ export function SettingsView() {
                   className="w-full justify-start gap-2 border-orange-200 dark:border-orange-800 text-orange-600 dark:text-orange-300 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-xl"
                   onClick={() => {
                     const confirmed = window.confirm(
-                      'Вы уверены? Это сбросит все данные приложения (лайки, мэтчи, сообщения) к начальному состоянию. Ваш аккаунт будет сохранён.'
+                      t('settings.clearConfirm')
                     );
                     if (!confirmed) return;
 
                     clearAllData();
                     try { localStorage.clear(); } catch { /* ignore */ }
-                    toast.success('Кеш очищен', {
-                      description: 'Приложение сброшено к начальному состоянию',
+                    toast.success(t('settings.cleared'), {
+                      description: t('settings.clearedDesc'),
                     });
                   }}
                 >
                   <Trash2 className="w-4 h-4" />
-                  Очистить кеш приложения
+                  {t('settings.clearCache')}
                 </Button>
 
                 <Button
@@ -737,7 +741,7 @@ export function SettingsView() {
                   className="w-full justify-start gap-2 border-destructive/40 text-destructive hover:bg-destructive/10 rounded-xl"
                   onClick={async () => {
                     const confirmed = window.confirm(
-                      'Вы уверены? Все ваши данные, мэтчи и переписки будут удалены безвозвратно.'
+                      t('settings.deleteConfirm')
                     );
                     if (!confirmed) return;
 
@@ -747,24 +751,23 @@ export function SettingsView() {
                         const data = await res.json();
                         throw new Error(data.error || 'Failed to delete account');
                       }
-                      toast.success('Аккаунт удалён', {
-                        description: 'Все ваши данные были удалены',
+                      toast.success(t('settings.accountDeleted'), {
+                        description: t('settings.accountDeletedDesc'),
                       });
                       clearAllData();
                       try { localStorage.clear(); } catch { /* ignore */ }
                     } catch (error: unknown) {
-                      const message = error instanceof Error ? error.message : 'Ошибка при удалении';
-                      toast.error('Ошибка', { description: message });
+                      const message = error instanceof Error ? error.message : t('settings.deleteError');
+                      toast.error(t('error.server'), { description: message });
                     }
                   }}
                 >
                   <Trash2 className="w-4 h-4" />
-                  Удалить аккаунт
+                  {t('settings.deleteAccount')}
                 </Button>
 
                 <p className="text-[11px] text-muted-foreground text-center">
-                  При удалении аккаунта все данные, включая переписки и мэтчи, будут удалены
-                  безвозвратно.
+                  {t('settings.deleteAccountWarn')}
                 </p>
               </div>
             </CardContent>
@@ -782,7 +785,7 @@ export function SettingsView() {
             <CardContent className="p-5">
               <h3 className="text-sm font-bold text-rose-600 dark:text-rose-400 flex items-center gap-2 mb-2">
                 <Info className="w-4 h-4" />
-                О приложении
+                {t('settings.about')}
               </h3>
 
               <Separator className="bg-rose-100 dark:bg-rose-900/50 mb-4" />
@@ -798,11 +801,10 @@ export function SettingsView() {
                   variant="secondary"
                   className="bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800"
                 >
-                  версия 3.0.0
+                  {t('app.version')}
                 </Badge>
                 <p className="text-xs text-muted-foreground mt-2 max-w-[260px] mx-auto leading-relaxed">
-                  Love Compass — ваш надёжный путеводитель в мире знакомств. Мы помогаем
-                  находить людей, с которыми хочется общаться.
+                  {t('settings.aboutDesc')}
                 </p>
               </div>
 
@@ -810,18 +812,18 @@ export function SettingsView() {
                 {[
                   {
                     icon: <FileText className="w-4 h-4 text-rose-400" />,
-                    title: 'Условия использования',
-                    desc: 'Правила и условия платформы',
+                    title: t('settings.terms'),
+                    desc: t('settings.termsDesc'),
                   },
                   {
                     icon: <Shield className="w-4 h-4 text-rose-400" />,
-                    title: 'Политика конфиденциальности',
-                    desc: 'Как мы защищаем ваши данные',
+                    title: t('settings.privacyPolicy'),
+                    desc: t('settings.privacyPolicyDesc'),
                   },
                   {
                     icon: <Headphones className="w-4 h-4 text-rose-400" />,
-                    title: 'Поддержка',
-                    desc: 'Свяжитесь с нашей командой',
+                    title: t('settings.support'),
+                    desc: t('settings.supportDesc'),
                   },
                 ].map((item) => (
                   <div

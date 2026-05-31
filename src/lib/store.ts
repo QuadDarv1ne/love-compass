@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { toast } from 'sonner';
 import { appLogger } from '@/lib/logger';
+import { createTranslatorForLanguage } from '@/lib/i18n';
 
 // Monotonic counter to prevent stale checkAuth results from overwriting newer ones
 let checkAuthGeneration = 0;
@@ -394,14 +395,16 @@ export const useAppStore = create<AppState>((set, get) => ({
         // show error so user can retry. Clearing state here would leave the
         // server-side session active, creating a security risk.
         const data = await res.json();
-        toast.error(data.error || 'Не удалось завершить сессию', {
-          description: 'Попробуйте ещё раз',
+        const t = createTranslatorForLanguage(get().language);
+        toast.error(data.error || t('settings.logoutError'), {
+          description: t('auth.tooManyAttempts'),
         });
         return;
       }
     } catch (error) {
       appLogger.error('store.logout', 'Logout API call failed', error);
-      toast.error('Ошибка выхода', { description: 'Не удалось завершить сессию на сервере' });
+      const t = createTranslatorForLanguage(get().language);
+      toast.error(t('settings.logoutError'), { description: t('settings.logoutError') });
       return;
     }
     // Only clear state after server confirms session is destroyed
@@ -532,7 +535,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({ notificationsEnabled: enabled });
     get().saveSettings({ notificationsEnabled: enabled }).catch(() => {
       set({ notificationsEnabled: prev });
-      toast.error('Не удалось сохранить настройку');
+      const t = createTranslatorForLanguage(get().language);
+      toast.error(t('settings.saveError'));
     });
   },
   setProfileVisible: (visible: boolean) => {
@@ -540,7 +544,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({ profileVisible: visible });
     get().saveSettings({ profileVisible: visible }).catch(() => {
       set({ profileVisible: prev });
-      toast.error('Не удалось сохранить настройку');
+      const t = createTranslatorForLanguage(get().language);
+      toast.error(t('settings.saveError'));
     });
   },
   setShowOnlineStatus: (show: boolean) => {
@@ -548,7 +553,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({ showOnlineStatus: show });
     get().saveSettings({ showOnlineStatus: show }).catch(() => {
       set({ showOnlineStatus: prev });
-      toast.error('Не удалось сохранить настройку');
+      const t = createTranslatorForLanguage(get().language);
+      toast.error(t('settings.saveError'));
     });
   },
   setLanguage: (lang: string) => {
@@ -556,7 +562,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({ language: lang });
     get().saveSettings({ language: lang }).catch(() => {
       set({ language: prev });
-      toast.error('Не удалось сохранить настройку');
+      const t = createTranslatorForLanguage(get().language);
+      toast.error(t('settings.saveError'));
     });
   },
   setShowDistance: (show: boolean) => {
@@ -564,7 +571,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({ showDistance: show });
     get().saveSettings({ showDistance: show }).catch(() => {
       set({ showDistance: prev });
-      toast.error('Не удалось сохранить настройку');
+      const t = createTranslatorForLanguage(get().language);
+      toast.error(t('settings.saveError'));
     });
   },
   setSoundEnabled: (enabled: boolean) => {
@@ -572,7 +580,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({ soundEnabled: enabled });
     get().saveSettings({ soundEnabled: enabled }).catch(() => {
       set({ soundEnabled: prev });
-      toast.error('Не удалось сохранить настройку');
+      const t = createTranslatorForLanguage(get().language);
+      toast.error(t('settings.saveError'));
     });
   },
   setMatchNotifications: (enabled: boolean) => {
@@ -580,7 +589,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({ matchNotifications: enabled });
     get().saveSettings({ matchNotifications: enabled }).catch(() => {
       set({ matchNotifications: prev });
-      toast.error('Не удалось сохранить настройку');
+      const t = createTranslatorForLanguage(get().language);
+      toast.error(t('settings.saveError'));
     });
   },
   setLikeNotifications: (enabled: boolean) => {
@@ -588,7 +598,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({ likeNotifications: enabled });
     get().saveSettings({ likeNotifications: enabled }).catch(() => {
       set({ likeNotifications: prev });
-      toast.error('Не удалось сохранить настройку');
+      const t = createTranslatorForLanguage(get().language);
+      toast.error(t('settings.saveError'));
     });
   },
   loadSettings: async () => {
@@ -697,14 +708,17 @@ export const useAppStore = create<AppState>((set, get) => ({
           adminSelectedUser: state.adminSelectedUser?.id === userId ? null : state.adminSelectedUser,
           adminTotal: state.adminTotal - 1,
         }));
-        toast.success('Пользователь удалён');
+        const t = createTranslatorForLanguage(get().language);
+        toast.success(t('admin.userDeleted'));
       } else {
         const data = await res.json();
-        toast.error(data.error || 'Не удалось удалить пользователя');
+        const t = createTranslatorForLanguage(get().language);
+        toast.error(data.error || t('admin.deleteError'));
       }
     } catch (error) {
       appLogger.error('store.deleteUser', 'Failed to delete user', error);
-      toast.error('Ошибка при удалении пользователя');
+      const t = createTranslatorForLanguage(get().language);
+      toast.error(t('admin.deleteError'));
     }
   },
 
@@ -721,14 +735,17 @@ export const useAppStore = create<AppState>((set, get) => ({
           adminUsers: state.adminUsers.map((u) => u.id === userId ? { ...u, role: updated.data.role } : u),
           adminSelectedUser: state.adminSelectedUser?.id === userId ? { ...state.adminSelectedUser, role: updated.data.role } : state.adminSelectedUser,
         }));
-        toast.success(`Роль изменена на ${updated.data.role === 'admin' ? 'администратора' : 'пользователя'}`);
+        const t = createTranslatorForLanguage(get().language);
+        toast.success(t('admin.roleChanged', { role: updated.data.role }));
       } else {
         const data = await res.json();
-        toast.error(data.error || 'Не удалось изменить роль');
+        const t = createTranslatorForLanguage(get().language);
+        toast.error(data.error || t('admin.roleError'));
       }
     } catch (error) {
       appLogger.error('store.toggleUserRole', 'Failed to toggle user role', error);
-      toast.error('Ошибка при изменении роли');
+      const t = createTranslatorForLanguage(get().language);
+      toast.error(t('admin.roleError'));
     }
   },
 
@@ -745,14 +762,17 @@ export const useAppStore = create<AppState>((set, get) => ({
           adminUsers: state.adminUsers.map((u) => u.id === userId ? { ...u, profileVisible: updated.data.profileVisible } : u),
           adminSelectedUser: state.adminSelectedUser?.id === userId ? { ...state.adminSelectedUser, profileVisible: updated.data.profileVisible } : state.adminSelectedUser,
         }));
-        toast.success(updated.data.profileVisible ? 'Профиль стал видимым' : 'Профиль скрыт');
+        const t = createTranslatorForLanguage(get().language);
+        toast.success(updated.data.profileVisible ? t('admin.profileVisible') : t('admin.profileHidden'));
       } else {
         const data = await res.json();
-        toast.error(data.error || 'Не удалось изменить видимость профиля');
+        const t = createTranslatorForLanguage(get().language);
+        toast.error(data.error || t('admin.visibilityError'));
       }
     } catch (error) {
       appLogger.error('store.toggleProfileVisible', 'Failed to toggle profile visible', error);
-      toast.error('Ошибка при изменении видимости');
+      const t = createTranslatorForLanguage(get().language);
+      toast.error(t('admin.visibilityError'));
     }
   },
 }));

@@ -1,6 +1,7 @@
 import { useAppStore, type User, type MatchWithUsers } from '@/lib/store';
 import { appLogger } from '@/lib/logger';
 import { PAGINATION, ONLINE_PRESENCE } from '@/lib/constants';
+import { detectBrowserLocale, SUPPORTED_LOCALES, type Locale } from '@/lib/i18n';
 
 let csrfToken: string | null = null;
 let csrfTokenFetchedAt: number | null = null;
@@ -365,7 +366,7 @@ export async function hydrateAppData(user?: User) {
                 notificationsEnabled: settings.notificationsEnabled ?? true,
                 profileVisible: settings.profileVisible ?? true,
                 showOnlineStatus: settings.showOnlineStatus ?? true,
-                language: settings.language ?? 'ru',
+                language: settings.language ?? (SUPPORTED_LOCALES.includes(detectBrowserLocale() as Locale) ? detectBrowserLocale() : 'ru'),
                 showDistance: settings.showDistance ?? false,
                 soundEnabled: settings.soundEnabled ?? true,
                 matchNotifications: settings.matchNotifications ?? true,
