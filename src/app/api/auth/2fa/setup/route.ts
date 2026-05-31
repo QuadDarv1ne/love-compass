@@ -7,7 +7,9 @@ import {
   hashBackupCodes,
 } from '@/lib/auth/totp';
 import { db } from '@/lib/db';
+import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';
+import { RATE_LIMITS } from '@/lib/constants';
 
 export async function POST(request: Request) {
   try {
@@ -15,6 +17,27 @@ export async function POST(request: Request) {
     if (auth instanceof NextResponse) return auth;
 
     const { user } = auth;
+
+    // Prevent 2FA setup if already enabled
+    if (user.totpEnabled) {
+      return NextResponse.json(
+        { error: '2FA уже включён. Отключите его перед повторной настройкой' },
+        { status: 409 },
+      );
+    }
+
+    // Rate limit 2FA setup to prevent abuse
+    const rateLimit = await checkRateLimit(
+      `2fa-setup:${user.id}`,
+      RATE_LIMITS.TOTP_SETUP.MAX,
+      RATE_LIMITS.TOTP_SETUP.WINDOW,
+    );
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Слишком много попыток настройки 2FA. Попробуйте позже' },
+        { status: 429 },
+      );
+    }
 
     const secret = generateTOTPSecret();
     const uri = generateTOTPURI(secret, user.email);
