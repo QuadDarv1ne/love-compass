@@ -21,7 +21,7 @@ const demoLoginSchema = z.object({
 const DEMO_EMAIL_SUFFIX = '@example.com' as const;
 
 export async function POST(request: Request) {
-  if (process.env.NEXT_PUBLIC_DEMO_MODE !== 'true') {
+  if (process.env.DEMO_MODE !== 'true') {
     return NextResponse.json(
       { error: 'Demo mode is disabled' },
       { status: 403 }

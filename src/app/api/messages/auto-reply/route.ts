@@ -34,7 +34,7 @@ const AUTO_REPLIES = [
 ];
 
 export async function POST(request: Request) {
-  if (process.env.NEXT_PUBLIC_DEMO_MODE !== 'true') {
+  if (process.env.DEMO_MODE !== 'true') {
     return NextResponse.json(
       { error: 'Auto-reply is only available in demo mode' },
       { status: 403 }

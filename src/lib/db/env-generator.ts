@@ -38,6 +38,7 @@ export async function generateDefaultEnv(
   env.set('DB_PROVIDER', rec.provider);
   env.set('JWT_SECRET', randomBytes(32).toString('base64'));
   env.set('NEXT_PUBLIC_APP_URL', `http://localhost:${appPort}`);
+  env.set('DEMO_MODE', 'true');
   env.set('NEXT_PUBLIC_DEMO_MODE', 'true');
   env.set('RESEND_API_KEY', 're_xxxxxxxxxxxxx');
   env.set('RESEND_FROM_EMAIL', 'onboarding@resend.dev');
@@ -84,6 +85,7 @@ export function writeEnvFile(path: string, env: Map<string, string>): void {
     '',
     '# App',
     `NEXT_PUBLIC_APP_URL=${formatEnvValue(env.get('NEXT_PUBLIC_APP_URL') || '')}`,
+    `DEMO_MODE=${formatEnvValue(env.get('DEMO_MODE') || 'true')}`,
     `NEXT_PUBLIC_DEMO_MODE=${formatEnvValue(env.get('NEXT_PUBLIC_DEMO_MODE') || 'true')}`,
     '',
     '# Email (Resend) - Get key from https://resend.com',

@@ -35,7 +35,8 @@ Run `bun run check-env` to automatically detect and validate all available param
 | `RESEND_API_KEY` | API key for Resend email service | - |
 | `RESEND_FROM_EMAIL` | Sender email address | `onboarding@resend.dev` |
 | `NEXT_PUBLIC_APP_URL` | Public URL of the application | `http://localhost:3000` |
-| `NEXT_PUBLIC_DEMO_MODE` | Enable demo mode | `true` |
+| `DEMO_MODE` | Enable demo mode (server-side API routes) | `true` |
+| `NEXT_PUBLIC_DEMO_MODE` | Enable demo mode (client-side components) | `true` |
 
 ## Available Scripts
 

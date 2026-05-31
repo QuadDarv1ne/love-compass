@@ -89,8 +89,16 @@ function detectEnvVars(): EnvVar[] {
       isSet: currentVars.has("NEXT_PUBLIC_APP_URL"),
     },
     {
+      name: "DEMO_MODE",
+      description: "Enable demo mode on server-side API routes (true/false)",
+      defaultValue: "true",
+      required: false,
+      currentValue: currentVars.get("DEMO_MODE"),
+      isSet: currentVars.has("DEMO_MODE"),
+    },
+    {
       name: "NEXT_PUBLIC_DEMO_MODE",
-      description: "Enable demo mode (true/false)",
+      description: "Enable demo mode on client-side components (true/false)",
       defaultValue: "true",
       required: false,
       currentValue: currentVars.get("NEXT_PUBLIC_DEMO_MODE"),
