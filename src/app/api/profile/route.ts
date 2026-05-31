@@ -58,9 +58,6 @@ export async function PUT(request: Request) {
     const validated = updateProfileSchema.parse(body);
 
     const updateData: Record<string, unknown> = { ...validated };
-    if (validated.photos) {
-      updateData.photos = JSON.stringify(validated.photos);
-    }
 
     const updatedUser = await db.user.update(
       { id: user.id },

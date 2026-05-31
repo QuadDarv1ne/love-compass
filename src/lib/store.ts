@@ -14,7 +14,7 @@ export interface User {
   bio: string;
   interests: string;
   avatar: string;
-  photos: string;
+  photos: string[];
   city: string;
   lookingFor: string;
   emailVerified: boolean;
@@ -37,7 +37,7 @@ export interface AdminUser {
   gender: string;
   bio: string;
   avatar: string;
-  photos: string;
+  photos: string[];
   city: string;
   role: 'admin' | 'user';
   emailVerified: boolean;

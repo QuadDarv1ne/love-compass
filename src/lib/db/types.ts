@@ -10,7 +10,7 @@ export interface DbUser {
   bio: string;
   interests: string;
   avatar: string;
-  photos: string;
+  photos: string[];
   city: string;
   lookingFor: string;
   emailVerified: boolean;
@@ -152,7 +152,7 @@ export interface ProfileSelect {
   bio: string;
   interests: string;
   avatar: string;
-  photos: string;
+  photos: string[];
   city: string;
   lookingFor: string;
   profileVisible: boolean;

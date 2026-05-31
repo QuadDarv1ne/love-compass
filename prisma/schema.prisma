@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = env("DB_PROVIDER")
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -17,7 +17,7 @@ model User {
   bio                    String    @default("")
   interests              String    @default("")
   avatar                 String    @default("")
-  photos                 String    @default("[]")
+  photos                 Json      @default("[]")
   city                   String    @default("")
   lookingFor             String    @default("all")
   emailVerified          Boolean   @default(false)
@@ -32,7 +32,7 @@ model User {
   lockedUntil            DateTime?
   notificationsEnabled   Boolean   @default(true)
   profileVisible         Boolean   @default(true)
-  role                   String    @default("user") @db.VarChar(10)
+  role                   String    @default("user")
   showOnlineStatus       Boolean   @default(true)
   language               String    @default("ru")
   showDistance           Boolean   @default(false)
