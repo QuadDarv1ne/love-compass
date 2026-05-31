@@ -14,7 +14,7 @@ export async function GET() {
       { fromUserId: user.id }
     );
 
-    return NextResponse.json(likes);
+    return NextResponse.json({ data: likes });
   } catch (error) {
     logger.error('/api/likes/sent', 'Failed to fetch sent likes', error);
     return NextResponse.json({ error: 'Failed to fetch sent likes' }, { status: 500 });

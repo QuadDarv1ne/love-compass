@@ -59,6 +59,8 @@ model User {
   achievements           UserAchievement[]
   sentDislikes           Dislike[]  @relation("SentDislikes")
   receivedDislikes       Dislike[]  @relation("ReceivedDislikes")
+
+  @@index([role])
 }
 
 model Like {

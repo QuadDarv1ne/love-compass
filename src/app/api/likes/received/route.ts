@@ -16,7 +16,7 @@ export async function GET() {
     });
 
     if (receivedLikes.length === 0) {
-      return NextResponse.json([]);
+      return NextResponse.json({ data: [] });
     }
 
     const likedUserIds = receivedLikes.map((like) => like.fromUserId);
@@ -37,7 +37,7 @@ export async function GET() {
     const pendingLikes = pendingUsers.map(({ id, name, age, gender, bio, interests, avatar, city, lookingFor, createdAt }) => ({
       id, name, age, gender, bio, interests, avatar, city, lookingFor, createdAt,
     }));
-    return NextResponse.json(pendingLikes);
+    return NextResponse.json({ data: pendingLikes });
   } catch (error) {
     logger.error('/api/likes/received', 'Failed to fetch received likes', error);
     return NextResponse.json({ error: 'Failed to fetch received likes' }, { status: 500 });
