@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { validatePasswordStrength } from '@/lib/auth/password';
+import { appLogger } from '@/lib/logger';
 import { toast } from 'sonner';
 import { Eye, EyeOff } from 'lucide-react';
 
@@ -62,8 +63,9 @@ function ResetPasswordContent() {
 
       toast.success('Пароль изменён! Войдите с новым паролем');
       router.push('/login');
-    } catch {
-      toast.error('Ошибка сервера');
+    } catch (error) {
+      appLogger.error('reset-password.submit', 'Reset password request failed', error);
+      toast.error('Ошибка сервера. Попробуйте ещё раз');
     } finally {
       setLoading(false);
     }

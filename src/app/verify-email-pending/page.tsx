@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { AuthLayout } from '@/components/auth/auth-layout';
 import { Button } from '@/components/ui/button';
 import { Mail, AlertCircle } from 'lucide-react';
+import { appLogger } from '@/lib/logger';
 import { toast } from 'sonner';
 
 function VerifyEmailPendingContent() {
@@ -40,8 +41,9 @@ function VerifyEmailPendingContent() {
 
       toast.success('Письмо отправлено повторно');
       setCooldown(60);
-    } catch {
-      toast.error('Ошибка сервера');
+    } catch (error) {
+      appLogger.error('verify-email.resend', 'Email resend failed', error);
+      toast.error('Ошибка сервера. Попробуйте ещё раз');
     } finally {
       setSending(false);
     }

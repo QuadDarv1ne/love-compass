@@ -36,6 +36,7 @@ export async function POST(request: Request) {
         urlPrefix: '/uploads/photos/',
         allowedMimeTypes: ALLOWED_TYPES,
         maxSize: UPLOAD.MAX_FILE_SIZE,
+        userId: _user.id,
       });
       photoUrls.push(result.url);
     }
@@ -72,19 +73,24 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'No photo URL provided' }, { status: 400 });
     }
 
-    // Validate ownership: photo must belong to the authenticated user
-    const expectedPrefix = `/uploads/photos/${user.id}-`;
-    if (!photoUrl.startsWith(expectedPrefix)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    // Validate ownership: photo filename must start with user ID prefix
+    // Format: /uploads/photos/{userId}-image-{uuid}.webp
+    const urlPath = new URL(photoUrl, 'http://localhost').pathname;
+    const filename = path.basename(urlPath);
+
+    if (!filename.startsWith(`${user.id}-image-`) || !filename.endsWith('.webp')) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Prevent path traversal: extract only the filename and use known-safe upload dir
-    const filename = path.basename(photoUrl);
-    if (!filename.startsWith(`${user.id}-`)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
-    }
-
+    // Prevent path traversal by using only the sanitized filename
     const filePath = path.join(UPLOAD_DIR, filename);
+
+    // Verify file is within upload dir (defense in depth)
+    const resolvedPath = path.resolve(filePath);
+    if (!resolvedPath.startsWith(path.resolve(UPLOAD_DIR))) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     await cleanupFile(filePath);
 
     return NextResponse.json({ success: true });

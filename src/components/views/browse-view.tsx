@@ -190,8 +190,8 @@ export function BrowseView() {
           const data = await res.json();
           setSuperLikeRemaining(data.remaining);
         }
-      } catch {
-        // Ignore errors
+      } catch (error) {
+        appLogger.warn('browse-view.superlike-status', 'Failed to load super-like status', error);
       }
     };
     loadSuperLikeStatus();

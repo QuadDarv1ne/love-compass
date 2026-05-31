@@ -15,6 +15,7 @@ export interface UploadOptions {
   urlPrefix: string;
   allowedMimeTypes: string[];
   maxSize: number;
+  userId?: string; // Included in filename for ownership validation
 }
 
 const MAGIC_BYTES: Record<string, Uint8Array[]> = {
@@ -85,7 +86,8 @@ export async function validateAndProcessImage(
   }
 
   // Convert to WebP for optimal file size and consistent format
-  const filename = `image-${randomUUID()}.webp`;
+  const userIdPrefix = options.userId ? `${options.userId}-` : '';
+  const filename = `${userIdPrefix}image-${randomUUID()}.webp`;
   const filePath = path.join(options.uploadDir, filename);
 
   const optimizedBuffer = await sharp(buffer)

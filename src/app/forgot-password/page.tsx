@@ -6,6 +6,7 @@ import { AuthLayout } from '@/components/auth/auth-layout';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { appLogger } from '@/lib/logger';
 import { toast } from 'sonner';
 import { Mail } from 'lucide-react';
 
@@ -34,8 +35,9 @@ export default function ForgotPasswordPage() {
 
       // Always show success (timing-safe)
       setSent(true);
-    } catch {
-      toast.error('Ошибка сервера');
+    } catch (error) {
+      appLogger.error('forgot-password.submit', 'Forgot password request failed', error);
+      toast.error('Ошибка сервера. Попробуйте ещё раз');
     } finally {
       setLoading(false);
     }

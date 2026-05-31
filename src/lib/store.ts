@@ -671,6 +671,9 @@ export const useAppStore = create<AppState>((set, get) => ({
       if (usersRes.ok) {
         const { data, total } = await usersRes.json();
         set({ adminUsers: data ?? [], adminTotal: total ?? 0 });
+      } else {
+        const t = createTranslatorForLanguage(get().language);
+        toast.error(t('admin.deleteError'));
       }
       if (statsRes.ok) {
         const { data } = await statsRes.json();
@@ -678,6 +681,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       }
     } catch (error) {
       appLogger.error('store.fetchAdminData', 'Failed to fetch admin data', error);
+      const t = createTranslatorForLanguage(get().language);
+      toast.error(t('error.server'));
     } finally {
       set({ adminLoading: false });
     }
@@ -690,6 +695,9 @@ export const useAppStore = create<AppState>((set, get) => ({
       if (res.ok) {
         const { data } = await res.json();
         set({ adminSelectedUser: data });
+      } else {
+        const t = createTranslatorForLanguage(get().language);
+        toast.error(t('error.server'));
       }
     } catch (error) {
       appLogger.error('store.fetchUserDetail', 'Failed to fetch user detail', error);

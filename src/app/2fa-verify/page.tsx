@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useAppStore } from '@/lib/store';
 import { hydrateAppData, fetchWithCSRF } from '@/lib/api';
+import { appLogger } from '@/lib/logger';
 import { toast } from 'sonner';
 import { Shield, KeyRound, Loader2 } from 'lucide-react';
 
@@ -47,11 +48,16 @@ function TwoFAVerifyContent() {
       }
 
       login(data.user);
-      await hydrateAppData();
+      try {
+        await hydrateAppData();
+      } catch (hydrateError) {
+        appLogger.error('2fa-verify.hydrate', 'Failed to hydrate app data after 2FA', hydrateError);
+      }
       toast.success('Добро пожаловать!');
       router.push('/');
-    } catch {
-      toast.error('Ошибка сервера');
+    } catch (error) {
+      appLogger.error('2fa-verify.submit', '2FA verification failed', error);
+      toast.error('Ошибка сервера. Попробуйте ещё раз');
     } finally {
       setLoading(false);
     }

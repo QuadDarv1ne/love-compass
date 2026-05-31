@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { AvatarPicker } from '@/components/views/shared';
 import { validatePasswordStrength } from '@/lib/auth/password';
+import { appLogger } from '@/lib/logger';
 import { toast } from 'sonner';
 import { Eye, EyeOff } from 'lucide-react';
 
@@ -92,8 +93,9 @@ export default function RegisterPage() {
 
       toast.success('Регистрация успешна! Проверьте вашу почту.');
       router.push(`/verify-email-pending?email=${encodeURIComponent(form.email)}`);
-    } catch {
-      toast.error('Ошибка сервера');
+    } catch (error) {
+      appLogger.error('register.submit', 'Registration failed', error);
+      toast.error('Ошибка сервера. Попробуйте ещё раз');
     } finally {
       setLoading(false);
     }

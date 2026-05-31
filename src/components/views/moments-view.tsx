@@ -661,7 +661,8 @@ export function MomentsView() {
           setMoments(data ?? []);
           setStoreMoments(data ?? []);
         }
-      } catch {
+      } catch (error) {
+        appLogger.error('moments-view.fetch', 'Failed to fetch moments', error);
         if (!cancelled) setMoments([]);
       }
     })();
@@ -705,7 +706,8 @@ export function MomentsView() {
         addStoreMoment(newMoment);
         toast.success('Момент опубликован!');
       }
-    } catch {
+    } catch (error) {
+      appLogger.error('moments-view.create', 'Failed to create moment', error);
       toast.error('Не удалось опубликовать момент');
     }
   };
@@ -727,7 +729,8 @@ export function MomentsView() {
     );
     try {
       await patchWithCSRF('/api/moments', { id: momentId, action: 'like' });
-    } catch {
+    } catch (error) {
+      appLogger.error('moments-view.toggleLike', 'Failed to toggle like on moment', error);
       setLikedMomentIds((prev) => {
         const next = new Set(prev);
         if (wasAdding) next.delete(momentId);
@@ -768,7 +771,8 @@ export function MomentsView() {
     );
     try {
       await patchWithCSRF('/api/moments', { id: momentId, action: 'react', emoji });
-    } catch {
+    } catch (error) {
+      appLogger.error('moments-view.feedReaction', 'Failed to sync feed reaction', error);
       setMyReactions((prev) => {
         const next = new Set(prev);
         if (wasAdding) next.delete(key);
