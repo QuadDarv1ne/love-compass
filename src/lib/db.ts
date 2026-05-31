@@ -52,24 +52,3 @@ export async function connectDb() {
 export async function disconnectDb() {
   await db.disconnect();
 }
-
-let cleanupRegistered = false;
-
-export function registerGracefulShutdown() {
-  if (cleanupRegistered) return;
-  cleanupRegistered = true;
-
-  process.on('beforeExit', async () => {
-    await disconnectDb();
-  });
-
-  process.on('SIGTERM', async () => {
-    await disconnectDb();
-    process.exit(0);
-  });
-
-  process.on('SIGINT', async () => {
-    await disconnectDb();
-    process.exit(0);
-  });
-}
