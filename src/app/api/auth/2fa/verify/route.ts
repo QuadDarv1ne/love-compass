@@ -9,6 +9,7 @@ import {
   createSession,
   setSessionCookie,
 } from '@/lib/auth/session';
+import { validateCSRFToken } from '@/lib/auth/csrf';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';
 import { sanitizeUser } from '@/lib/auth/projections';
@@ -21,6 +22,14 @@ const verifySchema = z.object({
 
 export async function POST(request: Request) {
   try {
+    const csrfValid = await validateCSRFToken(request);
+    if (!csrfValid) {
+      return NextResponse.json(
+        { error: 'CSRF validation failed' },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
     const result = verifySchema.safeParse(body);
 

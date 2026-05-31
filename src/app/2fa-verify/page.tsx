@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useAppStore } from '@/lib/store';
-import { hydrateAppData } from '@/lib/api';
+import { hydrateAppData, fetchWithCSRF } from '@/lib/api';
 import { toast } from 'sonner';
 import { Shield, KeyRound, Loader2 } from 'lucide-react';
 
@@ -34,13 +34,9 @@ function TwoFAVerifyContent() {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/auth/2fa/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          tempToken,
-          code: useBackup ? backupCode : code,
-        }),
+      const res = await fetchWithCSRF('/api/auth/2fa/verify', {
+        tempToken,
+        code: useBackup ? backupCode : code,
       });
 
       const data = await res.json();
