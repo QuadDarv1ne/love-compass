@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@/lib/db';
 import { hashPassword, validatePasswordStrength } from '@/lib/auth/password';
-import { invalidateAllUserSessions } from '@/lib/auth/session';
+import { invalidateAllUserSessions } from '@/lib/auth/session-server';
 import { hashToken } from '@/lib/auth/crypto';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';

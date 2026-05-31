@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { validateSessionToken } from '@/lib/auth/session';
 
 // Paths that require authentication
 const PROTECTED_PATHS = [
@@ -38,11 +37,6 @@ const PUBLIC_AUTH_PATHS = [
   '/api/auth/demo-login',
 ];
 
-async function isValidSession(token: string): Promise<boolean> {
-  const result = await validateSessionToken(token);
-  return result !== null;
-}
-
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -59,7 +53,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Verify session cookie exists AND is valid for protected paths
+  // Check session cookie presence for protected paths
+  // Full token validation is handled by each API route via requireAuth()
   const sessionCookie = request.cookies.get('__session');
 
   const isProtectedPath = PROTECTED_PATHS.some(
@@ -69,24 +64,11 @@ export async function middleware(request: NextRequest) {
     (path) => pathname === path || pathname.startsWith(path + '/')
   );
 
-  if (isProtectedPath || isAdminPath) {
-    if (!sessionCookie) {
-      return NextResponse.json(
-        { error: 'Необходима авторизация' },
-        { status: 401 }
-      );
-    }
-
-    // Validate the session token against the database
-    const isValid = await isValidSession(sessionCookie.value);
-    if (!isValid) {
-      const response = NextResponse.json(
-        { error: 'Необходима авторизация' },
-        { status: 401 }
-      );
-      response.cookies.set('__session', '', { maxAge: 0, path: '/' });
-      return response;
-    }
+  if ((isProtectedPath || isAdminPath) && !sessionCookie) {
+    return NextResponse.json(
+      { error: 'Необходима авторизация' },
+      { status: 401 }
+    );
   }
 
   // Security: Validate origin header in production

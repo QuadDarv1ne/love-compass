@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getUserFromRequest } from '@/lib/auth/session';
+import { getUserFromRequest } from '@/lib/auth/session-server';
 import { sanitizeUser } from '@/lib/auth/projections';
 import { logger } from '@/lib/logger';
 

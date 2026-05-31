@@ -6,8 +6,8 @@ import { getClientIp } from '@/lib/auth/crypto';
 import {
   generateSessionToken,
   createSession,
-  setSessionCookie,
-} from '@/lib/auth/session';
+} from '@/lib/auth/session-server';
+import { setSessionCookie } from '@/lib/auth/session';
 import { signTempToken } from '@/lib/auth/jwt';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';

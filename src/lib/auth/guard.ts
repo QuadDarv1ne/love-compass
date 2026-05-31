@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getUserFromRequest } from './session';
+import { getUserFromRequest } from './session-server';
 import { validateCSRFToken } from './csrf';
 import type { DbUser } from '@/lib/db';
 

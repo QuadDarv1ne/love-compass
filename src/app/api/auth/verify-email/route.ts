@@ -4,8 +4,8 @@ import { db } from '@/lib/db';
 import {
   generateSessionToken,
   createSession,
-  setSessionCookie,
-} from '@/lib/auth/session';
+} from '@/lib/auth/session-server';
+import { setSessionCookie } from '@/lib/auth/session';
 import { sendVerificationEmail } from '@/lib/email';
 import { generateRandomToken, hashToken, getClientIp } from '@/lib/auth/crypto';
 import { checkRateLimit } from '@/lib/auth/rate-limit';

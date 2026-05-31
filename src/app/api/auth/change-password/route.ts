@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { db } from '@/lib/db';
 import { verifyPassword, hashPassword, validatePasswordStrength } from '@/lib/auth/password';
 import { requireAuthWithCSRF } from '@/lib/auth/guard';
-import { invalidateAllUserSessions } from '@/lib/auth/session';
+import { invalidateAllUserSessions } from '@/lib/auth/session-server';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';
 import { RATE_LIMITS } from '@/lib/constants';
