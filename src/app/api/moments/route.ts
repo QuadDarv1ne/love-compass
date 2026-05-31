@@ -16,7 +16,7 @@ const commentSchema = z.object({
 });
 
 const reactionSchema = z.object({
-  emoji: z.string().min(1).max(4),
+  emoji: z.string().regex(/^[\p{Emoji_Presentation}\p{Emoji}\uFE0F\u200D]+$/u, 'Must be a valid emoji'),
 });
 
 const actionSchema = z.object({

@@ -199,6 +199,19 @@ function StoryViewer({
     patchWithCSRF('/api/moments', { id: currentMoment.id, action: 'react', emoji }).catch((error) => {
       appLogger.error('moments-view.syncReaction', 'Failed to sync reaction', error);
       toast.error('Не удалось добавить реакцию');
+      // Rollback: decrement the optimistically added reaction
+      setLocalMoments((prev) =>
+        prev.map((m) => {
+          if (m.id !== currentMoment.id) return m;
+          return {
+            ...m,
+            reactions: {
+              ...m.reactions,
+              [emoji]: Math.max((m.reactions[emoji] || 0) - 1, 0),
+            },
+          };
+        })
+      );
     });
   };
 
@@ -283,7 +296,7 @@ function StoryViewer({
               <Avatar className="h-10 w-10 border-2 border-white/80">
                 <AvatarImage src={currentMoment.userAvatar} alt={currentMoment.userName} />
                 <AvatarFallback className="bg-white/30 text-white text-sm font-semibold">
-                  {currentMoment.userName[0]}
+                  {currentMoment.userName?.[0] ?? '?'}
                 </AvatarFallback>
               </Avatar>
               <OnlineIndicator userId={currentMoment.userId} size="sm" />
@@ -530,7 +543,7 @@ function MomentFeedCard({
           <Avatar className="h-9 w-9 border border-rose-200 dark:border-rose-800">
             <AvatarImage src={moment.userAvatar} alt={moment.userName} />
             <AvatarFallback className="bg-rose-100 text-rose-600 dark:bg-rose-900 dark:text-rose-300 text-sm">
-              {moment.userName[0]}
+              {moment.userName?.[0] ?? '?'}
             </AvatarFallback>
           </Avatar>
           <OnlineIndicator userId={moment.userId} size="sm" />
@@ -857,7 +870,7 @@ export function MomentsView() {
                       <Avatar className="w-full h-full border-0">
                         <AvatarImage src={user.avatar} alt={user.name} />
                         <AvatarFallback className="bg-rose-100 text-rose-600 dark:bg-rose-900 dark:text-rose-300 font-bold text-lg">
-                          {user.name[0]}
+                          {user.name?.[0] ?? '?'}
                         </AvatarFallback>
                       </Avatar>
                     </div>
