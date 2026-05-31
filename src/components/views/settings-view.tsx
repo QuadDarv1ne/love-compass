@@ -242,7 +242,7 @@ function TwoFASetupDialog({
 
 /* ═══════════════════════════════════════════════════════════════ */
 export function SettingsView() {
-  const { setTheme, theme } = useTheme();
+  const { setTheme, theme, resolvedTheme } = useTheme();
   const {
     currentUser,
     refreshUser,
@@ -275,11 +275,6 @@ export function SettingsView() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [changingPassword, setChangingPassword] = useState(false);
-
-  /* resolve hydration mismatch — standard next-themes pattern */
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
     loadSettings();
@@ -352,24 +347,24 @@ export function SettingsView() {
     }
   };
 
+  const currentTheme = theme ?? 'system';
+  const actualTheme = resolvedTheme ?? 'light';
+
   const themeIcon =
-    theme === 'dark' ? (
+    actualTheme === 'dark' ? (
       <Moon className="w-4 h-4 text-rose-400" />
-    ) : theme === 'light' ? (
+    ) : actualTheme === 'light' ? (
       <Sun className="w-4 h-4 text-rose-400" />
     ) : (
       <Monitor className="w-4 h-4 text-rose-400" />
     );
 
   const themeLabel =
-    theme === 'dark'
+    currentTheme === 'dark'
       ? 'Тёмная'
-      : theme === 'light'
+      : currentTheme === 'light'
         ? 'Светлая'
         : 'Системная';
-
-  /* ═══════════════════════════════════════════════════════════════ */
-  if (!mounted) return null;
 
   return (
     <div className="flex-1 px-4 py-4 md:py-6 overflow-y-auto custom-scrollbar">
@@ -408,7 +403,7 @@ export function SettingsView() {
                   </div>
                 </div>
                 <Select
-                  value={theme ?? 'system'}
+                  value={currentTheme}
                   onValueChange={(v) => setTheme(v)}
                 >
                   <SelectTrigger className="w-[130px] border-rose-200 dark:border-rose-800">

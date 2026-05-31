@@ -86,15 +86,35 @@ function useClientMounted() {
 }
 
 export function DarkModeToggle() {
-  const { setTheme, resolvedTheme } = useTheme();
+  const { setTheme, resolvedTheme, theme } = useTheme();
   const mounted = useClientMounted();
   if (!mounted) return <div className="w-9 h-9" />;
+
+  // Cycle: light → dark → system → light
+  const cycleTheme = () => {
+    const current = theme ?? 'system';
+    if (current === 'light') setTheme('dark');
+    else if (current === 'dark') setTheme('system');
+    else setTheme('light');
+  };
+
+  // Icon reflects the ACTUAL rendered theme (resolvedTheme)
   const isDark = resolvedTheme === 'dark';
+
+  // Tooltip label based on current setting
+  const current = theme ?? 'system';
+  const tooltipLabel = current === 'system'
+    ? `Системная (${isDark ? 'тёмная' : 'светлая'})`
+    : current === 'dark'
+      ? 'Тёмная'
+      : 'Светлая';
+
   return (
     <Button
       variant="ghost"
       size="icon"
-      onClick={() => setTheme(isDark ? 'light' : 'dark')}
+      onClick={cycleTheme}
+      title={tooltipLabel}
       className="text-rose-500 hover:text-rose-600 hover:bg-rose-100 dark:hover:bg-rose-900/30 rounded-full"
     >
       {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}

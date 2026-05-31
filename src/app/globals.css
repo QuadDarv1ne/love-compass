@@ -120,6 +120,15 @@
   body {
     @apply bg-background text-foreground;
   }
+  html {
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+  /* Smooth theme transitions on interactive elements */
+  button, a, input, select, textarea, [role="button"] {
+    transition-property: background-color, border-color, color;
+    transition-duration: 0.2s;
+    transition-timing-function: ease;
+  }
 }
 
 /* Custom scrollbar */
