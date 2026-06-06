@@ -65,17 +65,15 @@ export async function GET(request: Request) {
       matchMap.set(m.user2Id, (matchMap.get(m.user2Id) || 0) + m._count.user2Id);
     }
 
-    // Get total count for pagination
-    const totalUsers = await db.user.count({ profileVisible: true, id: { not: user.id } });
-
-    // Fetch only the page of visible users with minimal fields for scoring
-    const users = await db.user.findMany(
+    // Fetch ALL visible users (excluding current user) — keep minimal fields
+    const allUsers = await db.user.findMany(
       { id: { not: user.id }, profileVisible: true },
-      { skip, take: limit },
     );
 
-    // Compute scores for the page
-    const ranked = users.map((u) => {
+    const totalUsers = allUsers.length;
+
+    // Compute scores for all users
+    const ranked = allUsers.map((u) => {
       const likesReceived = likeMap.get(u.id) || 0;
       const matchCount = matchMap.get(u.id) || 0;
       const popularityScore = likesReceived * SCORING.LIKE_WEIGHT + matchCount * SCORING.MATCH_WEIGHT;
@@ -93,7 +91,7 @@ export async function GET(request: Request) {
       };
     });
 
-    // Sort the page
+    // Sort the entire dataset
     if (sort === 'popular') {
       ranked.sort((a, b) => b.popularityScore - a.popularityScore);
     } else if (sort === 'active') {
@@ -102,8 +100,11 @@ export async function GET(request: Request) {
       ranked.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     }
 
+    // Paginate after sorting
+    const paged = ranked.slice(skip, skip + limit);
+
     return NextResponse.json({
-      data: ranked,
+      data: paged,
       sort,
       pagination: {
         page,

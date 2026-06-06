@@ -82,6 +82,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
+    // Check if either user has blocked the other
+    const otherUserId = match.user1Id === user.id ? match.user2Id : match.user1Id;
+    const existingBlock = await db.block.findFirst({
+      OR: [
+        { blockerId: user.id, blockedId: otherUserId },
+        { blockerId: otherUserId, blockedId: user.id },
+      ],
+    });
+
+    if (existingBlock) {
+      return NextResponse.json({ error: 'Unable to interact with this user' }, { status: 403 });
+    }
+
     const [message, sender] = await Promise.all([
       db.message.create({ matchId, senderId: user.id, content }),
       db.user.findUnique({ id: user.id }),

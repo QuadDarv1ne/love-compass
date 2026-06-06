@@ -496,6 +496,11 @@ export class MongoDBAdapter implements DatabaseAdapter {
       return stripId(doc) as DbBlock | null;
     },
 
+    findFirst: async (where?: Record<string, unknown>): Promise<DbBlock | null> => {
+      const doc = await this.db.collection<DbBlock>(COLLECTIONS.blocks).findOne(cleanWhere(where || {}));
+      return stripId(doc) as DbBlock | null;
+    },
+
     findMany: async (where?: Record<string, unknown>): Promise<DbBlock[]> => {
       const docs = await this.db.collection<DbBlock>(COLLECTIONS.blocks).find(cleanWhere(where || {})).toArray();
       return stripMany(docs);
@@ -773,217 +778,215 @@ export class MongoDBAdapter implements DatabaseAdapter {
 
 class MongoDBAdapterForTransaction extends MongoDBAdapter {
   private txSession: ClientSession;
+  private _client: MongoClient;
+  private _dbName: string;
 
   constructor(client: MongoClient, dbName: string, session: ClientSession) {
-    // Call parent with a dummy connection string; we override client/dbName directly
     super('mongodb://localhost');
-    this.client = client;
-    this.dbName = dbName;
+
+    this.user = {
+      ...this.user,
+      create: async (data: Partial<DbUser>): Promise<DbUser> => {
+        const result = await this._db.collection<DbUser>(COLLECTIONS.users).insertOne(toInsertDoc(data), { session: this.txSession });
+        return { ...data, id: result.insertedId.toString() } as DbUser;
+      },
+      findUnique: async (where: Parameters<MongoDBAdapter['user']['findUnique']>[0]): Promise<DbUser | null> => {
+        const query = cleanWhere(where as Record<string, unknown>);
+        if (query.id && typeof query.id === 'string') { query._id = toObjectId(query.id); delete query.id; }
+        const doc = await this._db.collection<DbUser>(COLLECTIONS.users).findOne(query, { session: this.txSession });
+        return stripId(doc) as DbUser | null;
+      },
+      update: async (where: { id: string }, data: Partial<DbUser>): Promise<DbUser> => {
+        const result = await this._db.collection<DbUser>(COLLECTIONS.users).findOneAndUpdate(
+          { _id: toObjectId(where.id) }, { $set: toInsertDoc(data) }, { returnDocument: 'after', session: this.txSession }
+        );
+        if (!result) throw new Error('User not found');
+        return stripId(result) as DbUser;
+      },
+    };
+
+    this.session = {
+      ...this.session,
+      create: async (data: Partial<DbSession>): Promise<DbSession> => {
+        const result = await this._db.collection<DbSession>(COLLECTIONS.sessions).insertOne(toInsertDoc(data), { session: this.txSession });
+        return { ...data, id: result.insertedId.toString() } as DbSession;
+      },
+      findUnique: async (where: { token?: string; id?: string }, includeUser?: boolean): Promise<DbSession | SessionWithUser | null> => {
+        const query = cleanWhere(where as Record<string, unknown>);
+        if (query.id && typeof query.id === 'string') { query._id = toObjectId(query.id); delete query.id; }
+        const doc = await this._db.collection<DbSession>(COLLECTIONS.sessions).findOne(query, { session: this.txSession });
+        if (!doc || !includeUser) return stripId(doc) as DbSession | null;
+        const user = await this._db.collection<DbUser>(COLLECTIONS.users).findOne({ _id: toObjectId(doc.userId) }, { session: this.txSession });
+        if (!user) throw new Error('Session references deleted user');
+        return { ...stripId(doc), user: stripId(user) } as SessionWithUser;
+      },
+      update: async (where: { id: string }, data: Partial<DbSession>): Promise<DbSession> => {
+        const result = await this._db.collection<DbSession>(COLLECTIONS.sessions).findOneAndUpdate(
+          { _id: toObjectId(where.id) }, { $set: data }, { returnDocument: 'after', session: this.txSession }
+        );
+        if (!result) throw new Error('Session not found');
+        return stripId(result) as DbSession;
+      },
+      deleteMany: async (where: Record<string, unknown>): Promise<number> => {
+        const result = await this._db.collection<DbSession>(COLLECTIONS.sessions).deleteMany(cleanWhere(where), { session: this.txSession });
+        return result.deletedCount;
+      },
+    };
+
+    this.like = {
+      ...this.like,
+      create: async (data: Partial<DbLike>): Promise<DbLike> => {
+        const result = await this._db.collection<DbLike>(COLLECTIONS.likes).insertOne(toInsertDoc(data), { session: this.txSession });
+        return { ...data, id: result.insertedId.toString() } as DbLike;
+      },
+      findUnique: async (where: { fromUserId?: string; toUserId?: string; id?: string }): Promise<DbLike | null> => {
+        const query = cleanWhere(where as Record<string, unknown>);
+        if (query.id && typeof query.id === 'string') { query._id = toObjectId(query.id); delete query.id; }
+        const doc = await this._db.collection<DbLike>(COLLECTIONS.likes).findOne(query, { session: this.txSession });
+        return stripId(doc) as DbLike | null;
+      },
+      deleteMany: async (where: Record<string, unknown>): Promise<number> => {
+        const result = await this._db.collection<DbLike>(COLLECTIONS.likes).deleteMany(cleanWhere(where), { session: this.txSession });
+        return result.deletedCount;
+      },
+    };
+
+    this.match = {
+      ...this.match,
+      create: async (data: Partial<DbMatch>): Promise<DbMatch> => {
+        const result = await this._db.collection<DbMatch>(COLLECTIONS.matches).insertOne(toInsertDoc(data), { session: this.txSession });
+        return { ...data, id: result.insertedId.toString() } as DbMatch;
+      },
+      findFirst: async (where?: Record<string, unknown>): Promise<DbMatch | null> => {
+        const doc = await this._db.collection<DbMatch>(COLLECTIONS.matches).findOne(cleanWhere(where || {}), { session: this.txSession });
+        return stripId(doc) as DbMatch | null;
+      },
+    };
+
+    this.rateLimit = {
+      ...this.rateLimit,
+      findUnique: async (where: { key: string }): Promise<DbRateLimit | null> => {
+        const doc = await this._db.collection<DbRateLimit>(COLLECTIONS.rateLimits).findOne({ key: where.key }, { session: this.txSession });
+        return stripId(doc) as DbRateLimit | null;
+      },
+      create: async (data: Partial<DbRateLimit>): Promise<DbRateLimit> => {
+        const result = await this._db.collection<DbRateLimit>(COLLECTIONS.rateLimits).insertOne(toInsertDoc(data), { session: this.txSession });
+        return { ...data, id: result.insertedId.toString() } as DbRateLimit;
+      },
+      update: async (where: { key: string }, data: Partial<DbRateLimit>): Promise<DbRateLimit> => {
+        const result = await this._db.collection<DbRateLimit>(COLLECTIONS.rateLimits).findOneAndUpdate(
+          { key: where.key }, { $set: data }, { returnDocument: 'after', session: this.txSession }
+        );
+        if (!result) throw new Error('RateLimit not found');
+        return stripId(result) as DbRateLimit;
+      },
+    };
+
+    this.moment = {
+      ...this.moment,
+      update: async (where: { id: string }, data: Partial<DbMoment> | Record<string, unknown>): Promise<DbMoment> => {
+        const { $set, $inc } = parseAtomicOp(data as Record<string, unknown>);
+        const updateDoc: Record<string, unknown> = {};
+        if (Object.keys($set).length > 0) updateDoc.$set = $set;
+        if (Object.keys($inc).length > 0) updateDoc.$inc = $inc;
+        const result = await this._db.collection<DbMoment>(COLLECTIONS.moments).findOneAndUpdate(
+          { _id: toObjectId(where.id) }, updateDoc, { returnDocument: 'after', session: this.txSession }
+        );
+        if (!result) throw new Error('Moment not found');
+        return stripId(result) as DbMoment;
+      },
+    };
+
+    this.momentReaction = {
+      ...this.momentReaction,
+      create: async (data: Partial<DbMomentReaction>): Promise<DbMomentReaction> => {
+        const result = await this._db.collection<DbMomentReaction>(COLLECTIONS.momentReactions).insertOne(toInsertDoc(data), { session: this.txSession });
+        return { ...data, id: result.insertedId.toString() } as DbMomentReaction;
+      },
+      findUnique: async (where: { momentId?: string; userId?: string; emoji?: string }): Promise<DbMomentReaction | null> => {
+        const query = cleanWhere(where as Record<string, unknown>);
+        if (Object.keys(query).length === 0) return null;
+        const doc = await this._db.collection<DbMomentReaction>(COLLECTIONS.momentReactions).findOne(query, { session: this.txSession });
+        return stripId(doc) as DbMomentReaction | null;
+      },
+      delete: async (where: { id: string }): Promise<void> => {
+        await this._db.collection<DbMomentReaction>(COLLECTIONS.momentReactions).deleteOne({ _id: toObjectId(where.id) }, { session: this.txSession });
+      },
+    };
+
+    this.momentLike = {
+      ...this.momentLike,
+      create: async (data: Partial<DbMomentLike>): Promise<DbMomentLike> => {
+        const result = await this._db.collection<DbMomentLike>(COLLECTIONS.momentLikes).insertOne(toInsertDoc(data), { session: this.txSession });
+        return { ...data, id: result.insertedId.toString() } as DbMomentLike;
+      },
+      findUnique: async (where: { momentId?: string; userId?: string }): Promise<DbMomentLike | null> => {
+        const query = cleanWhere(where as Record<string, unknown>);
+        if (Object.keys(query).length === 0) return null;
+        const doc = await this._db.collection<DbMomentLike>(COLLECTIONS.momentLikes).findOne(query, { session: this.txSession });
+        return stripId(doc) as DbMomentLike | null;
+      },
+      delete: async (where: { id: string }): Promise<void> => {
+        await this._db.collection<DbMomentLike>(COLLECTIONS.momentLikes).deleteOne({ _id: toObjectId(where.id) }, { session: this.txSession });
+      },
+    };
+
+    this.message = {
+      ...this.message,
+      create: async (data: Partial<DbMessage>): Promise<DbMessage> => {
+        const result = await this._db.collection<DbMessage>(COLLECTIONS.messages).insertOne(toInsertDoc(data), { session: this.txSession });
+        return { ...data, id: result.insertedId.toString() } as DbMessage;
+      },
+    };
+
+    this.block = {
+      ...this.block,
+      create: async (data: Partial<DbBlock>): Promise<DbBlock> => {
+        const result = await this._db.collection<DbBlock>(COLLECTIONS.blocks).insertOne(toInsertDoc(data), { session: this.txSession });
+        return { ...data, id: result.insertedId.toString() } as DbBlock;
+      },
+    };
+
+    this.report = {
+      ...this.report,
+      create: async (data: Partial<DbReport>): Promise<DbReport> => {
+        const result = await this._db.collection<DbReport>(COLLECTIONS.reports).insertOne(toInsertDoc(data), { session: this.txSession });
+        return { ...data, id: result.insertedId.toString() } as DbReport;
+      },
+    };
+
+    this.momentComment = {
+      ...this.momentComment,
+      create: async (data: Partial<DbMomentComment>): Promise<DbMomentComment> => {
+        const result = await this._db.collection<DbMomentComment>(COLLECTIONS.momentComments).insertOne(toInsertDoc(data), { session: this.txSession });
+        return { ...data, id: result.insertedId.toString() } as DbMomentComment;
+      },
+    };
+
+    this.userAchievement = {
+      ...this.userAchievement,
+      create: async (data: Partial<DbUserAchievement>): Promise<DbUserAchievement> => {
+        const result = await this._db.collection<DbUserAchievement>(COLLECTIONS.userAchievements).insertOne(toInsertDoc(data), { session: this.txSession });
+        return { ...data, id: result.insertedId.toString() } as DbUserAchievement;
+      },
+      findUnique: async (where: { userId?: string; achievementId?: string }): Promise<DbUserAchievement | null> => {
+        const query = cleanWhere(where as Record<string, unknown>);
+        if (Object.keys(query).length === 0) return null;
+        const doc = await this._db.collection<DbUserAchievement>(COLLECTIONS.userAchievements).findOne(query, { session: this.txSession });
+        return stripId(doc) as DbUserAchievement | null;
+      },
+    };
+
+    this.dislike = {
+      ...this.dislike,
+    };
+
+    this._client = client;
+    this._dbName = dbName;
     this.txSession = session;
   }
 
-  protected get txDb() {
-    return this.client.db(this.dbName);
+  private get _db() {
+    return this._client.db(this._dbName);
   }
-
-  private getDb() {
-    return this.txDb;
-  }
-
-  user = {
-    ...Object.assign({}, MongoDBAdapter.prototype.user),
-    create: async (data: Partial<DbUser>): Promise<DbUser> => {
-      const result = await this.getDb().collection<DbUser>(COLLECTIONS.users).insertOne(toInsertDoc(data), { session: this.txSession });
-      return { ...data, id: result.insertedId.toString() } as DbUser;
-    },
-    findUnique: async (where: { id?: string; email?: string; emailVerificationToken?: string; passwordResetToken?: string }): Promise<DbUser | null> => {
-      const query = cleanWhere(where);
-      if (query.id && typeof query.id === 'string') { query._id = toObjectId(query.id); delete query.id; }
-      const doc = await this.getDb().collection<DbUser>(COLLECTIONS.users).findOne(query, { session: this.txSession });
-      return stripId(doc) as DbUser | null;
-    },
-    update: async (where: { id: string }, data: Partial<DbUser>): Promise<DbUser> => {
-      const result = await this.getDb().collection<DbUser>(COLLECTIONS.users).findOneAndUpdate(
-        { _id: toObjectId(where.id) }, { $set: toInsertDoc(data) }, { returnDocument: 'after', session: this.txSession }
-      );
-      if (!result) throw new Error('User not found');
-      return stripId(result) as DbUser;
-    },
-  };
-
-  session = {
-    ...Object.assign({}, MongoDBAdapter.prototype.session),
-    create: async (data: Partial<DbSession>): Promise<DbSession> => {
-      const result = await this.getDb().collection<DbSession>(COLLECTIONS.sessions).insertOne(toInsertDoc(data), { session: this.txSession });
-      return { ...data, id: result.insertedId.toString() } as DbSession;
-    },
-    findUnique: async (where: { token?: string; id?: string }, includeUser?: boolean): Promise<DbSession | SessionWithUser | null> => {
-      const query = cleanWhere(where);
-      if (query.id && typeof query.id === 'string') { query._id = toObjectId(query.id); delete query.id; }
-      const doc = await this.getDb().collection<DbSession>(COLLECTIONS.sessions).findOne(query, { session: this.txSession });
-      if (!doc || !includeUser) return stripId(doc) as DbSession | null;
-      const user = await this.getDb().collection<DbUser>(COLLECTIONS.users).findOne({ _id: toObjectId(doc.userId) }, { session: this.txSession });
-      if (!user) throw new Error('Session references deleted user');
-      return { ...stripId(doc), user: stripId(user) } as SessionWithUser;
-    },
-    update: async (where: { id: string }, data: Partial<DbSession>): Promise<DbSession> => {
-      const result = await this.getDb().collection<DbSession>(COLLECTIONS.sessions).findOneAndUpdate(
-        { _id: toObjectId(where.id) }, { $set: data }, { returnDocument: 'after', session: this.txSession }
-      );
-      if (!result) throw new Error('Session not found');
-      return stripId(result) as DbSession;
-    },
-    deleteMany: async (where: Record<string, unknown>): Promise<number> => {
-      const result = await this.getDb().collection<DbSession>(COLLECTIONS.sessions).deleteMany(cleanWhere(where), { session: this.txSession });
-      return result.deletedCount;
-    },
-  };
-
-  like = {
-    ...Object.assign({}, MongoDBAdapter.prototype.like),
-    create: async (data: Partial<DbLike>): Promise<DbLike> => {
-      const result = await this.getDb().collection<DbLike>(COLLECTIONS.likes).insertOne(toInsertDoc(data), { session: this.txSession });
-      return { ...data, id: result.insertedId.toString() } as DbLike;
-    },
-    findUnique: async (where: { fromUserId?: string; toUserId?: string; id?: string }): Promise<DbLike | null> => {
-      const query = cleanWhere(where);
-      if (query.id && typeof query.id === 'string') { query._id = toObjectId(query.id); delete query.id; }
-      const doc = await this.getDb().collection<DbLike>(COLLECTIONS.likes).findOne(query, { session: this.txSession });
-      return stripId(doc) as DbLike | null;
-    },
-    deleteMany: async (where: Record<string, unknown>): Promise<number> => {
-      const result = await this.getDb().collection<DbLike>(COLLECTIONS.likes).deleteMany(cleanWhere(where), { session: this.txSession });
-      return result.deletedCount;
-    },
-  };
-
-  match = {
-    ...Object.assign({}, MongoDBAdapter.prototype.match),
-    create: async (data: Partial<DbMatch>): Promise<DbMatch> => {
-      const result = await this.getDb().collection<DbMatch>(COLLECTIONS.matches).insertOne(toInsertDoc(data), { session: this.txSession });
-      return { ...data, id: result.insertedId.toString() } as DbMatch;
-    },
-    findFirst: async (where?: Record<string, unknown>): Promise<DbMatch | null> => {
-      const doc = await this.getDb().collection<DbMatch>(COLLECTIONS.matches).findOne(cleanWhere(where || {}), { session: this.txSession });
-      return stripId(doc) as DbMatch | null;
-    },
-  };
-
-  rateLimit = {
-    ...Object.assign({}, MongoDBAdapter.prototype.rateLimit),
-    findUnique: async (where: { key: string }): Promise<DbRateLimit | null> => {
-      const doc = await this.getDb().collection<DbRateLimit>(COLLECTIONS.rateLimits).findOne({ key: where.key }, { session: this.txSession });
-      return stripId(doc) as DbRateLimit | null;
-    },
-    create: async (data: Partial<DbRateLimit>): Promise<DbRateLimit> => {
-      const result = await this.getDb().collection<DbRateLimit>(COLLECTIONS.rateLimits).insertOne(toInsertDoc(data), { session: this.txSession });
-      return { ...data, id: result.insertedId.toString() } as DbRateLimit;
-    },
-    update: async (where: { key: string }, data: Partial<DbRateLimit>): Promise<DbRateLimit> => {
-      const result = await this.getDb().collection<DbRateLimit>(COLLECTIONS.rateLimits).findOneAndUpdate(
-        { key: where.key }, { $set: data }, { returnDocument: 'after', session: this.txSession }
-      );
-      if (!result) throw new Error('RateLimit not found');
-      return stripId(result) as DbRateLimit;
-    },
-  };
-
-  moment = {
-    ...Object.assign({}, MongoDBAdapter.prototype.moment),
-    update: async (where: { id: string }, data: Partial<DbMoment> | Record<string, unknown>): Promise<DbMoment> => {
-      const { $set, $inc } = parseAtomicOp(data as Record<string, unknown>);
-      const updateDoc: Record<string, unknown> = {};
-      if (Object.keys($set).length > 0) updateDoc.$set = $set;
-      if (Object.keys($inc).length > 0) updateDoc.$inc = $inc;
-      const result = await this.getDb().collection<DbMoment>(COLLECTIONS.moments).findOneAndUpdate(
-        { _id: toObjectId(where.id) }, updateDoc, { returnDocument: 'after', session: this.txSession }
-      );
-      if (!result) throw new Error('Moment not found');
-      return stripId(result) as DbMoment;
-    },
-  };
-
-  momentReaction = {
-    ...Object.assign({}, MongoDBAdapter.prototype.momentReaction),
-    create: async (data: Partial<DbMomentReaction>): Promise<DbMomentReaction> => {
-      const result = await this.getDb().collection<DbMomentReaction>(COLLECTIONS.momentReactions).insertOne(toInsertDoc(data), { session: this.txSession });
-      return { ...data, id: result.insertedId.toString() } as DbMomentReaction;
-    },
-    findUnique: async (where: { momentId?: string; userId?: string; emoji?: string }): Promise<DbMomentReaction | null> => {
-      const query = cleanWhere(where);
-      if (Object.keys(query).length === 0) return null;
-      const doc = await this.getDb().collection<DbMomentReaction>(COLLECTIONS.momentReactions).findOne(query, { session: this.txSession });
-      return stripId(doc) as DbMomentReaction | null;
-    },
-    delete: async (where: { id: string }): Promise<void> => {
-      await this.getDb().collection<DbMomentReaction>(COLLECTIONS.momentReactions).deleteOne({ _id: toObjectId(where.id) }, { session: this.txSession });
-    },
-  };
-
-  momentLike = {
-    ...Object.assign({}, MongoDBAdapter.prototype.momentLike),
-    create: async (data: Partial<DbMomentLike>): Promise<DbMomentLike> => {
-      const result = await this.getDb().collection<DbMomentLike>(COLLECTIONS.momentLikes).insertOne(toInsertDoc(data), { session: this.txSession });
-      return { ...data, id: result.insertedId.toString() } as DbMomentLike;
-    },
-    findUnique: async (where: { momentId?: string; userId?: string }): Promise<DbMomentLike | null> => {
-      const query = cleanWhere(where);
-      if (Object.keys(query).length === 0) return null;
-      const doc = await this.getDb().collection<DbMomentLike>(COLLECTIONS.momentLikes).findOne(query, { session: this.txSession });
-      return stripId(doc) as DbMomentLike | null;
-    },
-    delete: async (where: { id: string }): Promise<void> => {
-      await this.getDb().collection<DbMomentLike>(COLLECTIONS.momentLikes).deleteOne({ _id: toObjectId(where.id) }, { session: this.txSession });
-    },
-  };
-
-  message = {
-    ...Object.assign({}, MongoDBAdapter.prototype.message),
-    create: async (data: Partial<DbMessage>): Promise<DbMessage> => {
-      const result = await this.getDb().collection<DbMessage>(COLLECTIONS.messages).insertOne(toInsertDoc(data), { session: this.txSession });
-      return { ...data, id: result.insertedId.toString() } as DbMessage;
-    },
-  };
-
-  block = {
-    ...Object.assign({}, MongoDBAdapter.prototype.block),
-    create: async (data: Partial<DbBlock>): Promise<DbBlock> => {
-      const result = await this.getDb().collection<DbBlock>(COLLECTIONS.blocks).insertOne(toInsertDoc(data), { session: this.txSession });
-      return { ...data, id: result.insertedId.toString() } as DbBlock;
-    },
-  };
-
-  report = {
-    ...Object.assign({}, MongoDBAdapter.prototype.report),
-    create: async (data: Partial<DbReport>): Promise<DbReport> => {
-      const result = await this.getDb().collection<DbReport>(COLLECTIONS.reports).insertOne(toInsertDoc(data), { session: this.txSession });
-      return { ...data, id: result.insertedId.toString() } as DbReport;
-    },
-  };
-
-  momentComment = {
-    ...Object.assign({}, MongoDBAdapter.prototype.momentComment),
-    create: async (data: Partial<DbMomentComment>): Promise<DbMomentComment> => {
-      const result = await this.getDb().collection<DbMomentComment>(COLLECTIONS.momentComments).insertOne(toInsertDoc(data), { session: this.txSession });
-      return { ...data, id: result.insertedId.toString() } as DbMomentComment;
-    },
-  };
-
-  userAchievement = {
-    ...Object.assign({}, MongoDBAdapter.prototype.userAchievement),
-    create: async (data: Partial<DbUserAchievement>): Promise<DbUserAchievement> => {
-      const result = await this.getDb().collection<DbUserAchievement>(COLLECTIONS.userAchievements).insertOne(toInsertDoc(data), { session: this.txSession });
-      return { ...data, id: result.insertedId.toString() } as DbUserAchievement;
-    },
-    findUnique: async (where: { userId?: string; achievementId?: string }): Promise<DbUserAchievement | null> => {
-      const query = cleanWhere(where);
-      if (Object.keys(query).length === 0) return null;
-      const doc = await this.getDb().collection<DbUserAchievement>(COLLECTIONS.userAchievements).findOne(query, { session: this.txSession });
-      return stripId(doc) as DbUserAchievement | null;
-    },
-  };
-
-  dislike = {
-    ...Object.assign({}, MongoDBAdapter.prototype.dislike),
-  };
 }

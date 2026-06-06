@@ -23,6 +23,7 @@ model User {
   emailVerified          Boolean   @default(false)
   emailVerificationToken String?   @unique
   emailVerificationExpiry DateTime?
+  lastEmailVerificationSentAt DateTime?
   passwordResetToken     String?   @unique
   passwordResetExpiry    DateTime?
   totpSecret             String?
@@ -62,6 +63,8 @@ model User {
 
   @@index([role])
   @@index([lastSeenAt])
+  @@index([emailVerified])
+  @@index([profileVisible])
 }
 
 model Like {
@@ -107,6 +110,7 @@ model Message {
   @@index([matchId])
   @@index([senderId])
   @@index([createdAt])
+  @@index([matchId, read])
 }
 
 model Block {

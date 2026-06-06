@@ -16,6 +16,7 @@ export interface DbUser {
   emailVerified: boolean;
   emailVerificationToken: string | null;
   emailVerificationExpiry: Date | null;
+  lastEmailVerificationSentAt: Date | null;
   passwordResetToken: string | null;
   passwordResetExpiry: Date | null;
   totpSecret: string | null;
@@ -222,6 +223,7 @@ export interface DatabaseAdapter {
   block: {
     create(data: Partial<DbBlock>): Promise<DbBlock>;
     findUnique(where: { blockerId?: string; blockedId?: string }): Promise<DbBlock | null>;
+    findFirst(where?: Record<string, unknown>): Promise<DbBlock | null>;
     findMany(where?: Record<string, unknown>): Promise<DbBlock[]>;
     deleteMany(where: Record<string, unknown>): Promise<number>;
     count(where?: Record<string, unknown>): Promise<number>;

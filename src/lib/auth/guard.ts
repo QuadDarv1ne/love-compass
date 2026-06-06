@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getUserFromRequest } from './session-server';
 import { validateCSRFToken } from './csrf';
+import { db } from '@/lib/db';
 import type { DbUser } from '@/lib/db';
 
 /**
@@ -17,6 +18,9 @@ export async function requireAuth(): Promise<{ user: DbUser } | NextResponse> {
   if (!user) {
     return NextResponse.json({ error: 'Необходима авторизация' }, { status: 401 });
   }
+
+  // Update lastSeenAt for online status tracking (fire-and-forget)
+  db.user.update({ id: user.id }, { lastSeenAt: new Date() }).catch(() => {});
 
   return { user };
 }

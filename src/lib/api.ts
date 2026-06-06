@@ -249,7 +249,7 @@ export async function hydrateAppData(user?: User) {
         const likedYouRes = await fetchWithTimeout('/api/likes/received');
         if (likedYouRes.ok) {
           const likedYouBody = await likedYouRes.json();
-          const likedYouUsers: User[] = Array.isArray(likedYouBody) ? likedYouBody : [];
+          const likedYouUsers: User[] = Array.isArray(likedYouBody?.data) ? likedYouBody.data : [];
           if (hydrateGeneration === generation) store.setLikedYouProfiles(likedYouUsers);
         } else {
           errors.push('likedYou');
@@ -267,7 +267,7 @@ export async function hydrateAppData(user?: User) {
         const likeSentRes = await fetchWithTimeout('/api/likes/sent');
         if (likeSentRes.ok) {
           const likeSentBody = await likeSentRes.json();
-          const likes: { toUserId: string }[] = Array.isArray(likeSentBody) ? likeSentBody : [];
+          const likes: { toUserId: string }[] = Array.isArray(likeSentBody?.data) ? likeSentBody.data : [];
           for (const like of likes) {
             if (hydrateGeneration === generation && like.toUserId) store.addLikedUserId(like.toUserId);
           }

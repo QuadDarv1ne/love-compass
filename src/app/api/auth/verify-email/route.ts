@@ -116,12 +116,12 @@ export async function POST(request: Request) {
     }
 
     // Server-side cooldown: prevent resend if last request was within cooldown window
-    if (user.emailVerificationExpiry) {
-      const cooldownMs = TIME.RESEND_COOLDOWN_SECONDS * TIME.RESEND_COOLDOWN_INTERVAL_MS;
-      const cooldownExpiry = new Date(user.emailVerificationExpiry.getTime() + cooldownMs);
-      if (new Date() < cooldownExpiry) {
+    const cooldownMs = TIME.RESEND_COOLDOWN_SECONDS * TIME.RESEND_COOLDOWN_INTERVAL_MS;
+    if (user.lastEmailVerificationSentAt) {
+      const nextAllowedAt = new Date(user.lastEmailVerificationSentAt.getTime() + cooldownMs);
+      if (new Date() < nextAllowedAt) {
         return NextResponse.json(
-          { error: `Повторная отправка доступна через ${Math.ceil((cooldownExpiry.getTime() - Date.now()) / 1000)} сек` },
+          { error: `Повторная отправка доступна через ${Math.ceil((nextAllowedAt.getTime() - Date.now()) / 1000)} сек` },
           { status: 429 }
         );
       }
@@ -136,6 +136,7 @@ export async function POST(request: Request) {
       {
         emailVerificationToken: hashedNewToken,
         emailVerificationExpiry: expiry,
+        lastEmailVerificationSentAt: new Date(),
       },
     );
 

@@ -144,6 +144,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ u
     if (!user) {
       return NextResponse.json({ error: 'Пользователь не найден' }, { status: 404 });
     }
+
     // Delete all related data in a transaction to avoid FK constraint violations
     await db.transaction(async (tx) => {
       // Messages in user's matches (bulk delete using match IDs)
@@ -196,12 +197,13 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ u
       // Finally delete the user
       await tx.user.delete({ id: userId });
     });
+
+    return NextResponse.json({ success: true });
   } catch (error) {
     if (error instanceof Error && error.message.includes('Record to delete')) {
       return NextResponse.json({ error: 'Не удалось удалить пользователя: существуют связанные данные' }, { status: 409 });
     }
+    logger.error('/api/admin/users/[userId]', 'Failed to delete user', error);
     return NextResponse.json({ error: 'Ошибка сервера при удалении пользователя' }, { status: 500 });
   }
-
-  return NextResponse.json({ success: true });
 }

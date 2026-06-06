@@ -298,6 +298,9 @@ export class PrismaAdapter implements DatabaseAdapter {
       return Promise.resolve(null);
     },
 
+    findFirst: (where?: Record<string, unknown>) =>
+      prisma.block.findFirst({ where: where as Prisma.BlockWhereInput }).then((r) => (r ? toDbBlock(r) : null)),
+
     findMany: (where?: Record<string, unknown>) =>
       prisma.block.findMany({ where: where as Prisma.BlockWhereInput }).then((arr) => arr.map(toDbBlock)),
 
@@ -548,6 +551,7 @@ export class PrismaAdapter implements DatabaseAdapter {
             }
             return Promise.resolve(null);
           },
+          findFirst: (where) => tx.block.findFirst({ where: where as Prisma.BlockWhereInput }).then((r) => (r ? toDbBlock(r) : null)),
           findMany: (where) => tx.block.findMany({ where: where as Prisma.BlockWhereInput }).then((arr) => arr.map(toDbBlock)),
           deleteMany: (where) => tx.block.deleteMany({ where: where as Prisma.BlockWhereInput }).then((r) => r.count),
           count: (where) => tx.block.count({ where: where as Prisma.BlockWhereInput }),
