@@ -107,27 +107,11 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Security: Add security headers to all responses
-  const response = NextResponse.next();
-
-  // Content-Security-Policy: restrict resource loading to same origin
-  response.headers.set(
-    'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
-  );
-
-  // Prevent MIME-type sniffing
-  response.headers.set('X-Content-Type-Options', 'nosniff');
-
-  // Prevent clickjacking
-  response.headers.set('X-Frame-Options', 'DENY');
-
-  // Enable strict transport security in production
-  if (process.env.NODE_ENV === 'production') {
-    response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
-  }
-
-  return response;
+  // Security headers are already set globally via next.config.ts headers()
+  // (CSP, HSTS, X-Frame-Options, X-Content-Type-Options, etc.)
+  // Do NOT duplicate them here — two CSP headers with different values cause
+  // the browser to enforce the intersection, blocking DiceBear avatars and fonts.
+  return NextResponse.next();
 }
 
 export const config = {
