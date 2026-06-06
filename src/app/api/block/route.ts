@@ -68,7 +68,7 @@ export async function GET() {
       { blockerId: user.id }
     );
 
-    return NextResponse.json({ blocks });
+    return NextResponse.json({ data: blocks });
   } catch (error) {
     logger.error('/api/block', 'Failed to fetch blocked users', error);
     return NextResponse.json({ error: 'Failed to fetch blocked users' }, { status: 500 });

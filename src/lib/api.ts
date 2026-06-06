@@ -287,7 +287,7 @@ export async function hydrateAppData(user?: User) {
         const blockedRes = await fetchWithTimeout('/api/block');
         if (blockedRes.ok) {
           const blockedBody = await blockedRes.json();
-          const blocks: { blockedId: string }[] = Array.isArray(blockedBody?.blocks) ? blockedBody.blocks : [];
+          const blocks: { blockedId: string }[] = Array.isArray(blockedBody?.data) ? blockedBody.data : [];
           const blockedIds: string[] = blocks.map((b) => b.blockedId).filter(Boolean);
           if (hydrateGeneration === generation) useAppStore.setState({ blockedUserIds: blockedIds });
         } else {

@@ -66,7 +66,7 @@ export async function middleware(request: NextRequest) {
 
   if ((isProtectedPath || isAdminPath) && !sessionCookie) {
     return NextResponse.json(
-      { error: 'Необходима авторизация' },
+      { error: 'Authentication required' },
       { status: 401 }
     );
   }

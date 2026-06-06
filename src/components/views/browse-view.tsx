@@ -15,6 +15,7 @@ import { Card } from '@/components/ui/card';
 import { useAppStore, type User } from '@/lib/store';
 import { SUPER_LIKE_DAILY_LIMIT, SWIPE, MATCH_ANIMATION_DELAY, FILTER, SPRING, SWIPE_EXT } from '@/lib/constants';
 import { FilterPanel } from './shared';
+import { useTranslation } from '@/hooks/useTranslation';
 
 // ─── Profile Detail Modal ────────────────────────────────────────────────────
 function ProfileDetailModal({
@@ -25,6 +26,7 @@ function ProfileDetailModal({
   onSuperLike,
   onBlock,
   onReport,
+  t,
 }: {
   profile: User;
   onClose: () => void;
@@ -33,6 +35,7 @@ function ProfileDetailModal({
   onSuperLike: () => void;
   onBlock: () => void;
   onReport: () => void;
+  t: (key: string, params?: Record<string, string | number>) => string;
 }) {
   return (
     <motion.div
@@ -79,14 +82,14 @@ function ProfileDetailModal({
           {/* Looking for */}
           {profile.lookingFor && (
             <Badge variant="secondary" className="bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800">
-              Ищу: {profile.lookingFor === 'all' ? 'Всех' : profile.lookingFor === 'male' ? 'Мужчин' : 'Женщин'}
+              {t('browse.lookingFor')} {profile.lookingFor === 'all' ? t('browse.lookingForAll') : profile.lookingFor === 'male' ? t('browse.lookingForMale') : t('browse.lookingForFemale')}
             </Badge>
           )}
 
           {/* Bio */}
           {profile.bio && (
             <div>
-              <h3 className="text-sm font-semibold text-rose-600 dark:text-rose-400 mb-1">О себе</h3>
+              <h3 className="text-sm font-semibold text-rose-600 dark:text-rose-400 mb-1">{t('browse.detailBio')}</h3>
               <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{profile.bio}</p>
             </div>
           )}
@@ -94,7 +97,7 @@ function ProfileDetailModal({
           {/* Interests */}
           {profile.interests && (
             <div>
-              <h3 className="text-sm font-semibold text-rose-600 dark:text-rose-400 mb-2">Интересы</h3>
+              <h3 className="text-sm font-semibold text-rose-600 dark:text-rose-400 mb-2">{t('browse.detailInterests')}</h3>
               <div className="flex flex-wrap gap-2">
                 {profile.interests.split(',').map((interest) => (
                   <Badge key={interest.trim()} variant="secondary" className="bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800">
@@ -133,7 +136,7 @@ function ProfileDetailModal({
             className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-red-500 transition-colors"
           >
             <ShieldAlert className="w-3.5 h-3.5" />
-            Заблокировать
+            {t('browse.block')}
           </button>
           <button
             type="button"
@@ -141,7 +144,7 @@ function ProfileDetailModal({
             className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-amber-500 transition-colors"
           >
             <Flag className="w-3.5 h-3.5" />
-            Пожаловаться
+            {t('browse.report')}
           </button>
         </div>
       </motion.div>
@@ -158,6 +161,7 @@ export function BrowseView() {
     filterGender, filterAgeMin, filterAgeMax, filterCity,
     searchQuery, sortBy, blockedUserIds, dislikedUserIds,
   } = useAppStore();
+  const { t } = useTranslation();
   const [swipeDir, setSwipeDir] = useState<'left' | 'right' | null>(null);
   const [showHeartBurst, setShowHeartBurst] = useState(false);
   const [showX, setShowX] = useState(false);
@@ -255,8 +259,8 @@ export function BrowseView() {
       if (!res.ok) throw new Error('Like failed');
       const data = await res.json();
       if (data.isMutual) {
-        toast.success(`Новый мэтч с ${profile.name}!`, {
-          description: 'Вы понравились друг другу',
+        toast.success(t('matches.newWithName', { name: profile.name }), {
+          description: t('browse.mutualLike'),
           className: 'toast-match',
         });
         setMatchAnimationPartner(profile);
@@ -272,10 +276,10 @@ export function BrowseView() {
       }));
       setLastSwipedProfile(null);
       setLastSwipeAction(null);
-      toast.error('Не удалось отправить лайк', { description: 'Попробуйте ещё раз' });
+      toast.error(t('browse.likeError'), { description: t('common.retry') });
       appLogger.error('browse-view.like', 'Like failed', error);
     }
-  }, [currentUser, addLikedUserId, setMatchAnimationPartner, setShowMatchAnimation, removeProfile]);
+  }, [currentUser, addLikedUserId, setMatchAnimationPartner, setShowMatchAnimation, removeProfile, t]);
 
   const handleDislike = useCallback(async (profile: User) => {
     if (!currentUser) return;
@@ -299,10 +303,10 @@ export function BrowseView() {
       }));
       setLastSwipedProfile(null);
       setLastSwipeAction(null);
-      toast.error('Не удалось отправить дизлайк', { description: 'Попробуйте ещё раз' });
+      toast.error(t('browse.dislikeError'), { description: t('common.retry') });
       appLogger.error('browse-view.dislike', 'Dislike failed', error);
     }
-  }, [currentUser, addDislikedUserId, removeProfile]);
+  }, [currentUser, addDislikedUserId, removeProfile, t]);
 
   const handleSuperLike = useCallback(async (profile: User) => {
     if (!currentUser) return;
@@ -318,8 +322,8 @@ export function BrowseView() {
       if (!res.ok) {
         const errorData = await res.json();
         if (res.status === 429) {
-          toast.error('Дневной лимит супер-лайков достигнут', {
-            description: `Осталось ${errorData.remaining || 0} из ${errorData.limit || SUPER_LIKE_DAILY_LIMIT}`,
+          toast.error(t('browse.superLikeLimitReached'), {
+            description: t('browse.superLikeRemaining', { remaining: errorData.remaining || 0, limit: errorData.limit || SUPER_LIKE_DAILY_LIMIT }),
           });
           setSuperLikeRemaining(errorData.remaining || 0);
         }
@@ -328,8 +332,8 @@ export function BrowseView() {
       setSuperLikeRemaining((prev) => Math.max(0, prev - 1));
       const data = await res.json();
       if (data.isMutual) {
-        toast.success(`Новый мэтч с ${profile.name}!`, {
-          description: 'Вы понравились друг другу',
+        toast.success(t('matches.newWithName', { name: profile.name }), {
+          description: t('browse.mutualLike'),
           className: 'toast-match',
         });
         setMatchAnimationPartner(profile);
@@ -346,10 +350,10 @@ export function BrowseView() {
       }));
       setLastSwipedProfile(null);
       setLastSwipeAction(null);
-      toast.error('Не удалось отправить супер-лайк', { description: 'Попробуйте ещё раз' });
+      toast.error(t('browse.superLikeError'), { description: t('common.retry') });
       appLogger.error('browse-view.superLike', 'Super Like failed', error);
     }
-  }, [currentUser, addSuperLikedUserId, addLikedUserId, setMatchAnimationPartner, setShowMatchAnimation, removeProfile]);
+  }, [currentUser, addSuperLikedUserId, addLikedUserId, setMatchAnimationPartner, setShowMatchAnimation, removeProfile, t]);
 
   const handleUndo = useCallback(async () => {
     if (!lastSwipedProfile || !lastSwipeAction) return;
@@ -370,7 +374,7 @@ export function BrowseView() {
           setSuperLikeRemaining((prev) => Math.min(SUPER_LIKE_DAILY_LIMIT, prev + 1));
         }
       } catch (error) {
-        toast.error('Не удалось отменить лайк', { description: 'Попробуйте ещё раз' });
+        toast.error(t('browse.undoLikeError'), { description: t('common.retry') });
         appLogger.error('browse-view.undo', 'Undo like failed', error);
         // Don't re-add profile to list if API failed - keep it removed
         setLastSwipedProfile(null);
@@ -384,7 +388,7 @@ export function BrowseView() {
       try {
         await deleteWithCSRF(`/api/dislike?toUserId=${lastSwipedProfile.id}`, {});
       } catch (error) {
-        toast.error('Не удалось отменить дизлайк', { description: 'Попробуйте ещё раз' });
+        toast.error(t('browse.undoDislikeError'), { description: t('common.retry') });
         appLogger.error('browse-view.undo', 'Undo dislike failed', error);
         // Don't re-add profile to list if API failed - keep it removed
         setLastSwipedProfile(null);
@@ -423,7 +427,7 @@ export function BrowseView() {
     });
     setLastSwipedProfile(null);
     setLastSwipeAction(null);
-  }, [lastSwipedProfile, lastSwipeAction]);
+  }, [lastSwipedProfile, lastSwipeAction, t]);
 
   // Drag handlers for touch swipe
   const handleDragStart = () => {
@@ -462,14 +466,14 @@ export function BrowseView() {
       <div className="flex-1 flex flex-col items-center justify-center px-4 py-12">
         <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="text-center">
           <Heart className="w-20 h-20 text-rose-200 dark:text-rose-800 mx-auto mb-6" />
-          <h2 className="text-2xl font-bold text-rose-400 mb-2">Анкеты закончились</h2>
-          <p className="text-muted-foreground">Заходите позже — появляются новые люди!</p>
+          <h2 className="text-2xl font-bold text-rose-400 mb-2">{t('browse.noMoreProfiles')}</h2>
+          <p className="text-muted-foreground">{t('browse.checkBack')}</p>
           {canUndo && (
             <Button
               onClick={handleUndo}
               className="mt-4 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-200 dark:hover:bg-amber-900/50 border border-amber-200 dark:border-amber-800"
             >
-              <Undo2 className="w-4 h-4 mr-2" />Вернуть последнюю анкету
+              <Undo2 className="w-4 h-4 mr-2" />{t('browse.undoLast')}
             </Button>
           )}
         </motion.div>
@@ -481,7 +485,7 @@ export function BrowseView() {
     <div className="flex-1 flex flex-col items-center px-4 py-4 md:py-8 relative overflow-y-auto">
       {/* Filter toggle + title + Undo */}
       <div className="flex items-center justify-between w-full max-w-md mb-4">
-        <h2 className="text-lg font-bold text-rose-700 dark:text-rose-300">Анкеты</h2>
+        <h2 className="text-lg font-bold text-rose-700 dark:text-rose-300">{t('nav.browse')}</h2>
         <div className="flex items-center gap-2">
           {canUndo && (
             <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring' }}>
@@ -490,7 +494,7 @@ export function BrowseView() {
                 size="icon"
                 onClick={handleUndo}
                 className="text-amber-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/30"
-                title="Вернуть"
+                title={t('browse.undo')}
               >
                 <Undo2 className="w-5 h-5" />
               </Button>
@@ -566,16 +570,16 @@ export function BrowseView() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
               {/* Swipe labels during drag */}
               {dragX > SWIPE.LABEL_THRESHOLD && (
-                <div className="absolute top-8 left-6 bg-green-500/90 text-white px-4 py-2 rounded-lg text-xl font-bold transform -rotate-12 border-[3px] border-green-400 shadow-lg pointer-events-none transition-opacity" style={{ opacity: Math.min((dragX - SWIPE.LABEL_THRESHOLD) / (SWIPE.THRESHOLD - SWIPE.LABEL_THRESHOLD), 1) }}>НРАВИТСЯ</div>
+                <div className="absolute top-8 left-6 bg-green-500/90 text-white px-4 py-2 rounded-lg text-xl font-bold transform -rotate-12 border-[3px] border-green-400 shadow-lg pointer-events-none transition-opacity" style={{ opacity: Math.min((dragX - SWIPE.LABEL_THRESHOLD) / (SWIPE.THRESHOLD - SWIPE.LABEL_THRESHOLD), 1) }}>{t('browse.swipeLike')}</div>
               )}
               {dragX < -SWIPE.LABEL_THRESHOLD && (
-                <div className="absolute top-8 right-6 bg-red-500/90 text-white px-4 py-2 rounded-lg text-xl font-bold transform rotate-12 border-[3px] border-red-400 shadow-lg pointer-events-none transition-opacity" style={{ opacity: Math.min((Math.abs(dragX) - SWIPE.LABEL_THRESHOLD) / (SWIPE.THRESHOLD - SWIPE.LABEL_THRESHOLD), 1) }}>НЕТ</div>
+                <div className="absolute top-8 right-6 bg-red-500/90 text-white px-4 py-2 rounded-lg text-xl font-bold transform rotate-12 border-[3px] border-red-400 shadow-lg pointer-events-none transition-opacity" style={{ opacity: Math.min((Math.abs(dragX) - SWIPE.LABEL_THRESHOLD) / (SWIPE.THRESHOLD - SWIPE.LABEL_THRESHOLD), 1) }}>{t('browse.swipeNope')}</div>
               )}
               {swipeDir === 'right' && (
-                <div className="absolute top-8 left-6 bg-green-500 text-white px-4 py-2 rounded-lg text-xl font-bold transform -rotate-12 border-[3px] border-green-400 shadow-lg pointer-events-none">НРАВИТСЯ</div>
+                <div className="absolute top-8 left-6 bg-green-500 text-white px-4 py-2 rounded-lg text-xl font-bold transform -rotate-12 border-[3px] border-green-400 shadow-lg pointer-events-none">{t('browse.swipeLike')}</div>
               )}
               {swipeDir === 'left' && (
-                <div className="absolute top-8 right-6 bg-red-500 text-white px-4 py-2 rounded-lg text-xl font-bold transform rotate-12 border-[3px] border-red-400 shadow-lg pointer-events-none">НЕТ</div>
+                <div className="absolute top-8 right-6 bg-red-500 text-white px-4 py-2 rounded-lg text-xl font-bold transform rotate-12 border-[3px] border-red-400 shadow-lg pointer-events-none">{t('browse.swipeNope')}</div>
               )}
               <div className="absolute bottom-0 left-0 right-0 p-6">
                 <div className="flex items-end justify-between">
@@ -590,7 +594,7 @@ export function BrowseView() {
                   </div>
                   {currentProfile.lookingFor && (
                     <Badge className="bg-white/20 text-white border-0 text-xs backdrop-blur-sm flex-shrink-0 ml-2">
-                      {currentProfile.lookingFor === 'all' ? 'Всех' : currentProfile.lookingFor === 'male' ? 'Мужчин' : 'Женщин'}
+                      {currentProfile.lookingFor === 'all' ? t('browse.lookingForAll') : currentProfile.lookingFor === 'male' ? t('browse.lookingForMale') : t('browse.lookingForFemale')}
                     </Badge>
                   )}
                 </div>
@@ -641,6 +645,7 @@ export function BrowseView() {
       <AnimatePresence>
         {detailProfile && (
           <ProfileDetailModal
+            t={t}
             profile={detailProfile}
             onClose={() => setDetailProfile(null)}
             onLike={() => handleLike(detailProfile)}
@@ -654,10 +659,10 @@ export function BrowseView() {
                 });
                 // Only update UI after API succeeds
                 useAppStore.getState().blockUser(detailProfile.id);
-                toast.success(`${detailProfile.name} заблокирован(а)`, { description: 'Вы больше не увидите этого пользователя' });
+                toast.success(t('browse.blockedUser', { name: detailProfile.name }), { description: t('browse.blockedDescription') });
               } catch (error) {
                 appLogger.error('browse-view.block', 'Failed to block user via API', error);
-                toast.error('Не удалось заблокировать пользователя', { description: 'Попробуйте ещё раз' });
+                toast.error(t('browse.blockError'), { description: t('common.retry') });
               }
             }}
             onReport={async () => {
@@ -667,10 +672,10 @@ export function BrowseView() {
                   reason: 'Inappropriate behavior',
                 });
                 // Only show success after API succeeds
-                toast.info(`Жалоба на ${detailProfile.name} отправлена`, { description: 'Мы рассмотрим вашу жалобу' });
+                toast.info(t('browse.reportSent', { name: detailProfile.name }), { description: t('browse.reportSentDesc') });
               } catch (error) {
                 appLogger.error('browse-view.report', 'Failed to submit report via API', error);
-                toast.error('Не удалось отправить жалобу', { description: 'Попробуйте ещё раз' });
+                toast.error(t('browse.reportError'), { description: t('common.retry') });
               }
             }}
           />
