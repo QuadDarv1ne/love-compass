@@ -12,6 +12,7 @@ import { OnlineIndicator, TypingIndicator } from './shared';
 import { fetchWithCSRF, fetchWithTimeout } from '@/lib/api';
 import { appLogger } from '@/lib/logger';
 import { AUTO_REPLY, EMOJI, ANIMATION } from '@/lib/constants';
+import { useTranslation } from '@/hooks/useTranslation';
 
 // ─── Popular Emojis ──────────────────────────────────────────────────────────
 const POPULAR_EMOJIS = [
@@ -74,6 +75,7 @@ function EmojiPicker({ onSelect }: { onSelect: (emoji: string) => void }) {
 
 // ─── Chat View ──────────────────────────────────────────────────────────────
 export function ChatView() {
+  const { t } = useTranslation();
   const { selectedMatch, currentUser, messages, setMessages, addMessage, navigateTo, onlineUserIds, markMessagesAsRead } = useAppStore();
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
@@ -148,7 +150,7 @@ export function ChatView() {
               markMessagesAsRead(unreadIds);
             } catch (error) {
               appLogger.error('chat-view.markRead', 'Failed to mark messages as read', error);
-              toast.error('Не удалось отметить сообщения как прочитанные');
+              toast.error(t('chat.markReadError'));
             }
           }
         }
@@ -277,7 +279,7 @@ export function ChatView() {
       if (msg.id) addMessage(msg);
     } catch (error) {
       appLogger.error('chat-view.sendMessage', 'Failed to send message', error);
-      toast.error('Не удалось отправить сообщение', { description: 'Попробуйте ещё раз' });
+      toast.error(t('chat.sendError'), { description: t('chat.sendRetry') });
       setNewMessage(content);
     }
     setSending(false);
@@ -295,17 +297,19 @@ export function ChatView() {
 
   const formatTime = (dateStr: string) => {
     const date = new Date(dateStr);
-    return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+    const lang = useAppStore.getState().language || 'ru';
+    return date.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' });
   };
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
+    const lang = useAppStore.getState().language || 'ru';
     const today = new Date();
-    if (date.toDateString() === today.toDateString()) return 'Сегодня';
+    if (date.toDateString() === today.toDateString()) return t('chat.today');
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
-    if (date.toDateString() === yesterday.toDateString()) return 'Вчера';
-    return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+    if (date.toDateString() === yesterday.toDateString()) return t('chat.yesterday');
+    return date.toLocaleDateString(lang, { day: 'numeric', month: 'long' });
   };
 
   // Group messages by date
@@ -335,8 +339,8 @@ export function ChatView() {
     return (
       <div className="flex-1 flex flex-col items-center justify-center px-4">
         <MessageCircle className="w-16 h-16 text-rose-200 dark:text-rose-800 mb-4" />
-        <p className="text-muted-foreground">Выберите мэтч для начала чата</p>
-        <Button onClick={() => navigateTo('matches')} variant="outline" className="mt-4 border-rose-200 dark:border-rose-800 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20">К мэтчам</Button>
+        <p className="text-muted-foreground">{t('chat.selectMatch')}</p>
+        <Button onClick={() => navigateTo('matches')} variant="outline" className="mt-4 border-rose-200 dark:border-rose-800 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20">{t('chat.goToMatches')}</Button>
       </div>
     );
   }
@@ -371,10 +375,10 @@ export function ChatView() {
             )}
           </div>
           <p className="text-xs text-muted-foreground">{partnerTyping ? (
-            <span className="text-rose-500 font-medium">печатает...</span>
+            <span className="text-rose-500 font-medium">{t('chat.typing')}</span>
           ) : isPartnerOnline ? (
-            <span className="text-green-500">Онлайн</span>
-          ) : (partner.city || 'Оффлайн')}</p>
+            <span className="text-green-500">{t('chat.online')}</span>
+          ) : (partner.city || t('chat.offline'))}</p>
         </div>
         <Button variant="ghost" size="icon" onClick={() => navigateTo('matches')} className="text-rose-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/30 hidden md:flex">
           <ChevronLeft className="w-5 h-5" />
@@ -386,21 +390,21 @@ export function ChatView() {
         {/* Match notification */}
         <div className="flex justify-center">
           <div className="bg-card rounded-full px-4 py-1.5 shadow-sm text-xs text-muted-foreground border border-rose-100 dark:border-rose-900/50">
-            💕 Вы понравились друг другу
+            {t('chat.matchNotification')}
           </div>
         </div>
 
         {messages.length === 0 && !isLoadingMessages && (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <Sparkles className="w-10 h-10 text-rose-300 mb-3" />
-            <p className="text-muted-foreground text-sm">Начните разговор! Скажите что-нибудь приятное 💬</p>
+            <p className="text-muted-foreground text-sm">{t('chat.startConversation')}</p>
           </div>
         )}
 
         {isLoadingMessages && (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 1.2, repeat: Infinity }} className="text-muted-foreground text-sm">
-              Загрузка сообщений...
+              {t('chat.loading')}
             </motion.div>
           </div>
         )}
@@ -474,7 +478,7 @@ export function ChatView() {
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Напишите сообщение..."
+            placeholder={t('chat.placeholder')}
             className="flex-1 border-rose-200 dark:border-rose-800 focus:border-rose-400 rounded-full px-4 py-5 bg-rose-50/50 dark:bg-rose-900/20"
           />
           <EmojiPicker onSelect={handleEmojiSelect} />

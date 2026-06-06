@@ -24,8 +24,10 @@ import {
 } from '@/components/ui/select';
 import { useAppStore } from '@/lib/store';
 import { appLogger } from '@/lib/logger';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export function ProfileView() {
+  const { t } = useTranslation();
   const { currentUser, setCurrentUser, logout, likedUserIds, dislikedUserIds, superLikedUserIds, matches } = useAppStore();
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -75,23 +77,23 @@ export function ProfileView() {
 
     // Client-side validation
     if (!name.trim()) {
-      toast.error('Имя не может быть пустым');
+      toast.error(t('profile.nameRequired'));
       return;
     }
     if (name.trim().length > 100) {
-      toast.error('Имя слишком длинное (максимум 100 символов)');
+      toast.error(t('profile.nameTooLong'));
       return;
     }
     if (bio.length > 500) {
-      toast.error('Раздел "О себе" слишком длинный (максимум 500 символов)');
+      toast.error(t('profile.bioTooLong'));
       return;
     }
     if (city.length > 100) {
-      toast.error('Город слишком длинный (максимум 100 символов)');
+      toast.error(t('profile.cityTooLong'));
       return;
     }
     if (interests.length > 500) {
-      toast.error('Раздел "Интересы" слишком длинный (максимум 500 символов)');
+      toast.error(t('profile.interestsTooLong'));
       return;
     }
 
@@ -105,8 +107,8 @@ export function ProfileView() {
         const updatedUser = await res.json();
         setCurrentUser(updatedUser);
         setEditing(false);
-        toast.success('Профиль сохранён!', {
-          description: 'Изменения успешно применены',
+        toast.success(t('profile.saved'), {
+          description: t('profile.savedDesc'),
         });
       } else {
         const data = await res.json();
@@ -116,7 +118,7 @@ export function ProfileView() {
             ? data.details.map((d: { message: string }) => d.message).join(', ')
             : data.details
           : undefined;
-        toast.error(data.error || 'Не удалось сохранить профиль', { description });
+        toast.error(data.error || t('profile.saveError'), { description });
         // Rollback form state to previous currentUser values
         if (currentUser) {
           setName(currentUser.name);
@@ -128,7 +130,7 @@ export function ProfileView() {
       }
     } catch (error) {
       appLogger.error('profile-view.update', 'Failed to update profile', error);
-      toast.error('Ошибка при сохранении профиля');
+      toast.error(t('profile.saveErrorGeneric'));
       // Rollback form state
       setName(prevFormState.name);
       setBio(prevFormState.bio);
@@ -150,13 +152,13 @@ export function ProfileView() {
     // Validate file type
     const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
     if (!validTypes.includes(file.type)) {
-      toast.error('Неподдерживаемый формат файла', { description: 'Используйте JPEG, PNG или WebP' });
+      toast.error(t('profile.invalidFormat'), { description: t('profile.allowedFormats') });
       return;
     }
 
     // Validate file size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('Файл слишком большой', { description: 'Максимальный размер 5 МБ' });
+      toast.error(t('profile.fileTooLarge'), { description: t('profile.maxFileSize') });
       return;
     }
 
@@ -179,10 +181,10 @@ export function ProfileView() {
       if (currentUser) {
         setCurrentUser({ ...currentUser, avatar: data.avatar });
       }
-      toast.success('Аватар обновлён!', { description: 'Новое фото профиля сохранено' });
+      toast.success(t('profile.avatarUpdated'), { description: t('profile.avatarUpdatedDesc') });
     } catch (error) {
       appLogger.error('profile-view.avatar', 'Failed to upload avatar', error);
-      toast.error('Не удалось загрузить аватар', { description: 'Попробуйте ещё раз' });
+      toast.error(t('profile.avatarUploadError'), { description: t('common.retry') });
       // Rollback avatar
       if (currentUser) {
         setCurrentUser({ ...currentUser, avatar: prevAvatar });
@@ -209,10 +211,10 @@ export function ProfileView() {
       if (currentUser) {
         setCurrentUser({ ...currentUser, avatar: '' });
       }
-      toast.success('Аватар удалён', { description: 'Фото профиля удалено' });
+      toast.success(t('profile.avatarDeleted'), { description: t('profile.avatarDeletedDesc') });
     } catch (error) {
       appLogger.error('profile-view.avatar', 'Failed to delete avatar', error);
-      toast.error('Не удалось удалить аватар', { description: 'Попробуйте ещё раз' });
+      toast.error(t('profile.avatarDeleteError'), { description: t('common.retry') });
       // Rollback avatar
       if (currentUser) {
         setCurrentUser({ ...currentUser, avatar: prevAvatar });
@@ -227,7 +229,7 @@ export function ProfileView() {
   return (
     <div className="flex-1 px-4 py-4 md:py-6 overflow-y-auto custom-scrollbar">
       <div className="max-w-md mx-auto">
-        <h2 className="text-xl font-bold text-rose-700 dark:text-rose-300 mb-6 md:mb-8">Мой профиль</h2>
+        <h2 className="text-xl font-bold text-rose-700 dark:text-rose-300 mb-6 md:mb-8">{t('profile.title')}</h2>
         <Card className="border-rose-100 dark:border-rose-900/50 shadow-lg overflow-hidden rounded-2xl mb-6 bg-card">
           <div className="relative h-48 md:h-56">
             <SafeImage src={currentUser.avatar || 'https://api.dicebear.com/9.x/notionists/svg?seed=Default'} alt={currentUser.name} fill className="object-cover" />
@@ -249,7 +251,7 @@ export function ProfileView() {
                   variant="ghost"
                   size="icon"
                   className="bg-white/20 backdrop-blur-sm hover:bg-red-500/40 text-white rounded-full disabled:opacity-50"
-                  title="Удалить аватар"
+                  title={t('profile.deleteAvatar')}
                 >
                   <Trash2 className="w-5 h-5" />
                 </Button>
@@ -260,7 +262,7 @@ export function ProfileView() {
                 variant="ghost"
                 size="icon"
                 className="bg-white/20 backdrop-blur-sm hover:bg-white/40 text-white rounded-full disabled:opacity-50"
-                title="Загрузить фото"
+                title={t('profile.uploadPhoto')}
               >
                 {uploading ? (
                   <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
@@ -288,13 +290,13 @@ export function ProfileView() {
             <CardContent className="p-5 space-y-4">
               {currentUser.bio && (
                 <div>
-                  <h4 className="text-sm font-semibold text-rose-600 dark:text-rose-400 mb-1">О себе</h4>
+                  <h4 className="text-sm font-semibold text-rose-600 dark:text-rose-400 mb-1">{t('browse.detailBio')}</h4>
                   <p className="text-sm text-gray-700 dark:text-gray-300">{currentUser.bio}</p>
                 </div>
               )}
               {currentUser.interests && (
                 <div>
-                  <h4 className="text-sm font-semibold text-rose-600 dark:text-rose-400 mb-2">Интересы</h4>
+                  <h4 className="text-sm font-semibold text-rose-600 dark:text-rose-400 mb-2">{t('browse.detailInterests')}</h4>
                   <div className="flex flex-wrap gap-2">
                     {currentUser.interests.split(',').map((interest) => (
                       <Badge key={interest.trim()} variant="secondary" className="bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800">{interest.trim()}</Badge>
@@ -304,81 +306,81 @@ export function ProfileView() {
               )}
               <Separator className="bg-rose-100 dark:bg-rose-900/50" />
               <div className="flex items-center justify-between text-sm text-muted-foreground">
-                <span>{currentUser.gender === 'male' ? 'Мужчина' : 'Женщина'}</span>
-                <span>Ищу: {currentUser.lookingFor === 'all' ? 'Всех' : currentUser.lookingFor === 'male' ? 'Мужчин' : 'Женщин'}</span>
+                <span>{currentUser.gender === 'male' ? t('auth.male') : t('auth.female')}</span>
+                <span>{t('browse.lookingFor')} {currentUser.lookingFor === 'all' ? t('browse.lookingForAll') : currentUser.lookingFor === 'male' ? t('browse.lookingForMale') : t('browse.lookingForFemale')}</span>
               </div>
             </CardContent>
           ) : (
             <CardContent className="p-5 space-y-4">
               <div className="space-y-2">
-                <Label className="text-rose-600 dark:text-rose-400">Имя</Label>
+                <Label className="text-rose-600 dark:text-rose-400">{t('auth.name')}</Label>
                 <Input value={name} onChange={(e) => setName(e.target.value)} className="border-rose-200 dark:border-rose-800" />
               </div>
               <div className="space-y-2">
-                <Label className="text-rose-600 dark:text-rose-400">Город</Label>
-                <Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="Город" className="border-rose-200 dark:border-rose-800" />
+                <Label className="text-rose-600 dark:text-rose-400">{t('auth.city')}</Label>
+                <Input value={city} onChange={(e) => setCity(e.target.value)} placeholder={t('auth.city')} className="border-rose-200 dark:border-rose-800" />
               </div>
               <div className="space-y-2">
-                <Label className="text-rose-600 dark:text-rose-400">О себе</Label>
+                <Label className="text-rose-600 dark:text-rose-400">{t('browse.detailBio')}</Label>
                 <Textarea value={bio} onChange={(e) => setBio(e.target.value)} className="border-rose-200 dark:border-rose-800 min-h-[80px]" />
               </div>
               <div className="space-y-2">
-                <Label className="text-rose-600 dark:text-rose-400">Интересы</Label>
-                <Input value={interests} onChange={(e) => setInterests(e.target.value)} placeholder="через запятую" className="border-rose-200 dark:border-rose-800" />
+                <Label className="text-rose-600 dark:text-rose-400">{t('browse.detailInterests')}</Label>
+                <Input value={interests} onChange={(e) => setInterests(e.target.value)} placeholder={t('profile.interestsPlaceholder')} className="border-rose-200 dark:border-rose-800" />
               </div>
               <div className="space-y-2">
-                <Label className="text-rose-600 dark:text-rose-400">Ищу</Label>
+                <Label className="text-rose-600 dark:text-rose-400">{t('profile.lookingFor')}</Label>
                 <Select value={lookingFor} onValueChange={setLookingFor}>
                   <SelectTrigger className="border-rose-200 dark:border-rose-800"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Всех</SelectItem>
-                    <SelectItem value="male">Мужчин</SelectItem>
-                    <SelectItem value="female">Женщин</SelectItem>
+                    <SelectItem value="all">{t('browse.lookingForAll')}</SelectItem>
+                    <SelectItem value="male">{t('browse.lookingForMale')}</SelectItem>
+                    <SelectItem value="female">{t('browse.lookingForFemale')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="flex gap-3">
-                <Button onClick={stopEditing} variant="outline" className="flex-1 border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-300">Отмена</Button>
+                <Button onClick={stopEditing} variant="outline" className="flex-1 border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-300">{t('profile.cancel')}</Button>
                 <Button onClick={handleSave} disabled={saving} className="flex-1 bg-gradient-to-r from-rose-500 to-pink-500 text-white">
-                  {saving ? 'Сохранение...' : 'Сохранить'}
+                  {saving ? t('profile.saving') : t('profile.save')}
                 </Button>
               </div>
             </CardContent>
           )}
         </Card>
         <Button onClick={logout} variant="outline" className="w-full border-rose-200 dark:border-rose-800 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 hover:text-rose-600 py-5 rounded-xl">
-          <LogOut className="w-4 h-4 mr-2" />Выйти из аккаунта
+          <LogOut className="w-4 h-4 mr-2" />{t('profile.logoutButton')}
         </Button>
 
         {/* Activity Statistics */}
         <Card className="border-rose-100 dark:border-rose-900/50 shadow-md rounded-2xl bg-card mt-6">
           <CardContent className="p-5">
             <h3 className="text-sm font-bold text-rose-600 dark:text-rose-400 mb-4 flex items-center gap-2">
-              <Zap className="w-4 h-4" />Статистика активности
+              <Zap className="w-4 h-4" />{t('profile.statsTitle')}
             </h3>
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-rose-50 dark:bg-rose-900/20 rounded-xl p-3 text-center">
                 <div className="text-2xl font-bold gradient-text">{likedUserIds.length}</div>
                 <div className="text-[10px] text-muted-foreground flex items-center justify-center gap-1 mt-1">
-                  <Heart className="w-3 h-3 text-rose-400" />Лайков
+                  <Heart className="w-3 h-3 text-rose-400" />{t('profile.statsLikes')}
                 </div>
               </div>
               <div className="bg-rose-50 dark:bg-rose-900/20 rounded-xl p-3 text-center">
                 <div className="text-2xl font-bold gradient-text">{matches.length}</div>
                 <div className="text-[10px] text-muted-foreground flex items-center justify-center gap-1 mt-1">
-                  <MessageSquare className="w-3 h-3 text-rose-400" />Мэтчей
+                  <MessageSquare className="w-3 h-3 text-rose-400" />{t('profile.statsMatches')}
                 </div>
               </div>
               <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-3 text-center">
                 <div className="text-2xl font-bold text-blue-500">{superLikedUserIds.length}</div>
                 <div className="text-[10px] text-muted-foreground flex items-center justify-center gap-1 mt-1">
-                  <Star className="w-3 h-3 text-blue-400" />Суперлайков
+                  <Star className="w-3 h-3 text-blue-400" />{t('profile.statsSuperLikes')}
                 </div>
               </div>
               <div className="bg-gray-50 dark:bg-gray-900/20 rounded-xl p-3 text-center">
                 <div className="text-2xl font-bold text-gray-500">{dislikedUserIds.length}</div>
                 <div className="text-[10px] text-muted-foreground flex items-center justify-center gap-1 mt-1">
-                  <X className="w-3 h-3 text-gray-400" />Просмотрено
+                  <X className="w-3 h-3 text-gray-400" />{t('profile.statsViewed')}
                 </div>
               </div>
             </div>
