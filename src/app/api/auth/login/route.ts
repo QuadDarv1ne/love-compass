@@ -27,7 +27,7 @@ export async function POST(request: Request) {
 
     if (!result.success) {
       return NextResponse.json(
-        { error: 'Неверный email или пароль' },
+        { error: 'Invalid email or password' },
         { status: 400 }
       );
     }
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
     );
     if (!rateLimit.allowed) {
       return NextResponse.json(
-        { error: 'Слишком много попыток. Попробуйте позже' },
+        { error: 'Too many attempts. Please try again later' },
         { status: 429 }
       );
     }
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
 
     if (!user || !user.passwordHash) {
       return NextResponse.json(
-        { error: 'Неверный email или пароль' },
+        { error: 'Invalid email or password' },
         { status: 401 }
       );
     }
@@ -60,7 +60,7 @@ export async function POST(request: Request) {
     // Check if account is locked
     if (user.lockedUntil && user.lockedUntil > new Date()) {
       return NextResponse.json(
-        { error: 'Аккаунт заблокирован. Попробуйте позже' },
+        { error: 'Account locked. Please try again later' },
         { status: 423 }
       );
     }
@@ -84,7 +84,7 @@ export async function POST(request: Request) {
       );
 
       return NextResponse.json(
-        { error: 'Неверный email или пароль' },
+        { error: 'Invalid email or password' },
         { status: 401 }
       );
     }
@@ -126,7 +126,7 @@ export async function POST(request: Request) {
   } catch (error) {
     logger.error('/api/auth/login', 'Login error', error);
     return NextResponse.json(
-      { error: 'Ошибка сервера' },
+      { error: 'Server error' },
       { status: 500 }
     );
   }

@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     // Rate limit dislikes to prevent spam
     const rateLimit = await checkRateLimit(`dislike:${user.id}`, RATE_LIMITS.DISLIKE.MAX, RATE_LIMITS.DISLIKE.WINDOW);
     if (!rateLimit.allowed) {
-      return NextResponse.json({ error: 'Слишком много действий, попробуйте позже' }, { status: 429 });
+      return NextResponse.json({ error: 'Too many actions, try again later' }, { status: 429 });
     }
 
     if (user.id === toUserId) {

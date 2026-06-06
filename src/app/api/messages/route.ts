@@ -72,7 +72,7 @@ export async function POST(request: Request) {
     // Rate limit message sending
     const rateLimit = await checkRateLimit(`msg:${user.id}`, RATE_LIMITS.MESSAGE.MAX, RATE_LIMITS.MESSAGE.WINDOW);
     if (!rateLimit.allowed) {
-      return NextResponse.json({ error: 'Слишком много сообщений' }, { status: 429 });
+      return NextResponse.json({ error: 'Too many messages, try again later' }, { status: 429 });
     }
 
     // Verify user is a participant in this match

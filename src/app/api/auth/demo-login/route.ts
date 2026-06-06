@@ -50,7 +50,7 @@ export async function POST(request: Request) {
     );
     if (!rateLimit.allowed) {
       return NextResponse.json(
-        { error: 'Слишком много попыток. Попробуйте позже' },
+        { error: 'Too many attempts. Please try again later' },
         { status: 429 }
       );
     }
@@ -95,7 +95,7 @@ export async function POST(request: Request) {
   } catch (error) {
     logger.error('/api/auth/demo-login', 'Demo login error', error);
     return NextResponse.json(
-      { error: 'Ошибка сервера' },
+      { error: 'Server error' },
       { status: 500 }
     );
   }

@@ -23,7 +23,7 @@ export async function POST(request: Request) {
   } catch (error) {
     logger.error('/api/auth/logout', 'Logout error', error);
     return NextResponse.json(
-      { error: 'Ошибка сервера' },
+      { error: 'Server error' },
       { status: 500 }
     );
   }

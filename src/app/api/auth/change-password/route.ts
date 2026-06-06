@@ -10,7 +10,7 @@ import { RATE_LIMITS } from '@/lib/constants';
 
 const changePasswordSchema = z.object({
   currentPassword: z.string().min(1),
-  newPassword: z.string().min(8, 'Минимум 8 символов'),
+  newPassword: z.string().min(8, 'Minimum 8 characters'),
 });
 
 export async function POST(request: Request) {
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
 
     if (!result.success) {
       return NextResponse.json(
-        { error: 'Ошибка валидации' },
+        { error: 'Validation error' },
         { status: 400 }
       );
     }
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
     const rateLimit = await checkRateLimit(`change-password:${user.id}`, RATE_LIMITS.CHANGE_PASSWORD.MAX, RATE_LIMITS.CHANGE_PASSWORD.WINDOW);
     if (!rateLimit.allowed) {
       return NextResponse.json(
-        { error: 'Слишком много попыток. Попробуйте позже' },
+        { error: 'Too many attempts. Please try again later' },
         { status: 429 }
       );
     }
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
     // Verify current password - users without password (e.g. OAuth) must use password reset flow
     if (!user.passwordHash) {
       return NextResponse.json(
-        { error: 'Для смены пароля используйте функцию сброса пароля' },
+        { error: 'Use the password reset feature to change your password' },
         { status: 400 }
       );
     }
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
     const validCurrent = await verifyPassword(currentPassword, user.passwordHash);
     if (!validCurrent) {
       return NextResponse.json(
-        { error: 'Неверный текущий пароль' },
+        { error: 'Invalid current password' },
         { status: 400 }
       );
     }
@@ -61,7 +61,7 @@ export async function POST(request: Request) {
     const strength = validatePasswordStrength(newPassword);
     if (!strength.valid) {
       return NextResponse.json(
-        { error: 'Пароль не соответствует требованиям', details: strength.errors },
+        { error: 'Password does not meet requirements', details: strength.errors },
         { status: 400 }
       );
     }
@@ -80,7 +80,7 @@ export async function POST(request: Request) {
   } catch (error) {
     logger.error('/api/auth/change-password', 'Change password error', error);
     return NextResponse.json(
-      { error: 'Ошибка сервера' },
+      { error: 'Server error' },
       { status: 500 }
     );
   }

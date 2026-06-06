@@ -9,8 +9,8 @@ import { logger } from '@/lib/logger';
 import { REGISTRATION_LIMITS, VALIDATION, TOKEN } from '@/lib/constants';
 
 const registerSchema = z.object({
-  email: z.string().email('Неверный формат email'),
-  password: z.string().min(8, 'Минимум 8 символов'),
+  email: z.string().email('Invalid email format'),
+  password: z.string().min(8, 'Minimum 8 characters'),
   name: z.string().min(1).max(VALIDATION.NAME_MAX_LENGTH),
   age: z.coerce.number().min(VALIDATION.AGE_MIN).max(VALIDATION.AGE_MAX),
   gender: z.enum(['male', 'female', 'other']),
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
     const rateLimit = await checkRateLimit(`register:${ip}`, REGISTRATION_LIMITS.MAX_PER_HOUR, REGISTRATION_LIMITS.WINDOW_SECONDS);
     if (!rateLimit.allowed) {
       return NextResponse.json(
-        { error: 'Слишком много попыток. Попробуйте позже' },
+        { error: 'Too many attempts. Please try again later' },
         { status: 429 }
       );
     }
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
 
     if (!result.success) {
       return NextResponse.json(
-        { error: 'Ошибка валидации', details: result.error.issues },
+        { error: 'Validation error', details: result.error.issues },
         { status: 400 }
       );
     }
@@ -49,7 +49,7 @@ export async function POST(request: Request) {
     const strength = validatePasswordStrength(password);
     if (!strength.valid) {
       return NextResponse.json(
-        { error: 'Пароль не соответствует требованиям', details: strength.errors },
+        { error: 'Password does not meet requirements', details: strength.errors },
         { status: 400 }
       );
     }
@@ -62,7 +62,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           success: true,
-          message: 'Проверьте вашу почту для подтверждения email',
+          message: 'Check your email to verify your address',
         },
         { status: 200 }
       );
@@ -105,14 +105,14 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           success: true,
-          message: 'Проверьте вашу почту для подтверждения email',
+          message: 'Check your email to verify your address',
         },
         { status: 200 }
       );
     }
     logger.error('/api/auth/register', 'Registration error', error);
     return NextResponse.json(
-      { error: 'Ошибка сервера' },
+      { error: 'Server error' },
       { status: 500 }
     );
   }

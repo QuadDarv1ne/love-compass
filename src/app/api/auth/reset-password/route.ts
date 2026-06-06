@@ -20,7 +20,7 @@ export async function POST(request: Request) {
 
     if (!result.success) {
       return NextResponse.json(
-        { error: 'Ошибка валидации' },
+        { error: 'Validation error' },
         { status: 400 }
       );
     }
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
     );
     if (!rateLimit.allowed) {
       return NextResponse.json(
-        { error: 'Слишком много попыток. Попробуйте позже' },
+        { error: 'Too many attempts. Please try again later' },
         { status: 429 }
       );
     }
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
     const strength = validatePasswordStrength(newPassword);
     if (!strength.valid) {
       return NextResponse.json(
-        { error: 'Пароль не соответствует требованиям', details: strength.errors },
+        { error: 'Password does not meet requirements', details: strength.errors },
         { status: 400 }
       );
     }
@@ -81,7 +81,7 @@ export async function POST(request: Request) {
 
     if (!resetResult) {
       return NextResponse.json(
-        { error: 'Неверный или истёкший токен' },
+        { error: 'Invalid or expired token' },
         { status: 400 }
       );
     }
@@ -92,7 +92,7 @@ export async function POST(request: Request) {
   } catch (error) {
     logger.error('/api/auth/reset-password', 'Reset password error', error);
     return NextResponse.json(
-      { error: 'Ошибка сервера' },
+      { error: 'Server error' },
       { status: 500 }
     );
   }

@@ -12,30 +12,15 @@ import { useAppStore, type User } from '@/lib/store';
 import { appLogger } from '@/lib/logger';
 import { PAGINATION } from '@/lib/constants';
 import { FloatingHearts } from './shared';
+import { useTranslation } from '@/hooks/useTranslation';
 import Link from 'next/link';
 
 // ─── Features data ──────────────────────────────────────────────────────────
 const FEATURES = [
-  {
-    icon: Compass,
-    title: 'Умные рекомендации',
-    description: 'Наш алгоритм подбирает идеальных кандидатов',
-  },
-  {
-    icon: Heart,
-    title: 'Мэтчи',
-    description: 'Двусторонний лайк создает мэтч мгновенно',
-  },
-  {
-    icon: MessageCircle,
-    title: 'Чат',
-    description: 'Общайтесь в реальном времени с собеседником',
-  },
-  {
-    icon: Shield,
-    title: 'Безопасность',
-    description: 'Ваши данные под надёжной защитой',
-  },
+  { icon: Compass, titleKey: 'landing.smartMatching', descKey: 'landing.smartMatchingDesc' },
+  { icon: Heart, titleKey: 'landing.matches', descKey: 'landing.matchesDesc' },
+  { icon: MessageCircle, titleKey: 'landing.chat', descKey: 'landing.chatDesc' },
+  { icon: Shield, titleKey: 'landing.security', descKey: 'landing.securityDesc' },
 ];
 
 // ─── Demo users (only in dev mode) ──────────────────────────────────────────
@@ -65,6 +50,7 @@ const DEMO_USERS = [
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
 
 export function LandingView() {
+  const { t } = useTranslation();
   const [loading, setLoading] = React.useState(false);
 
   const quickLogin = async (avatarIndex: number) => {
@@ -116,9 +102,9 @@ export function LandingView() {
           <Compass className="w-16 h-16 md:w-20 md:h-20 text-rose-500 mx-auto" strokeWidth={1.5} />
         </motion.div>
         <h1 className="text-5xl md:text-7xl font-bold gradient-text mb-4">Love Compass</h1>
-        <p className="text-lg md:text-xl text-rose-400 font-medium mb-2">Твой компас к любви</p>
+        <p className="text-lg md:text-xl text-rose-400 font-medium mb-2">{t('app.tagline')}</p>
         <p className="text-sm md:text-base text-muted-foreground max-w-md mx-auto">
-          Знакомься с людьми со всего мира. Сотни тысяч уже нашли друг друга!
+          {t('landing.subtitle')}
         </p>
       </motion.div>
 
@@ -131,12 +117,12 @@ export function LandingView() {
       >
         <Link href="/login" className="block">
           <Button className="w-full bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white py-6 text-lg font-semibold rounded-xl">
-            Войти
+            {t('auth.login')}
           </Button>
         </Link>
         <Link href="/register" className="block">
           <Button variant="outline" className="w-full py-6 text-lg font-semibold rounded-xl border-rose-300 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20">
-            Зарегистрироваться
+            {t('auth.register')}
           </Button>
         </Link>
       </motion.div>
@@ -151,8 +137,8 @@ export function LandingView() {
         >
           <Card className="border-rose-200 dark:border-rose-900/50 bg-card/80 backdrop-blur-sm shadow-xl">
             <CardContent className="p-6">
-              <h3 className="text-center font-semibold text-rose-700 dark:text-rose-300 mb-1">Войти как пользователь (демо)</h3>
-              <p className="text-center text-xs text-muted-foreground mb-4">20 профилей из разных стран мира</p>
+              <h3 className="text-center font-semibold text-rose-700 dark:text-rose-300 mb-1">{t('landing.demoLogin')}</h3>
+              <p className="text-center text-xs text-muted-foreground mb-4">{t('landing.demoProfiles')}</p>
               <div className="grid grid-cols-5 gap-2 md:gap-3">
                 {DEMO_USERS.map((user, idx) => (
                   <motion.button
@@ -183,11 +169,11 @@ export function LandingView() {
         transition={{ duration: 0.7, delay: 0.2 }}
         className="w-full max-w-3xl z-10 mt-16 mb-12"
       >
-        <h2 className="text-2xl md:text-3xl font-bold text-center gradient-text mb-8">Почему Love Compass?</h2>
+        <h2 className="text-2xl md:text-3xl font-bold text-center gradient-text mb-8">{t('landing.whyLoveCompass')}</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {FEATURES.map((feature, idx) => (
             <motion.div
-              key={feature.title}
+              key={feature.titleKey}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -198,8 +184,8 @@ export function LandingView() {
                   <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-100 to-pink-100 dark:from-rose-900/40 dark:to-pink-900/40 flex items-center justify-center">
                     <feature.icon className="w-6 h-6 text-rose-500" />
                   </div>
-                  <h3 className="text-sm font-bold text-rose-700 dark:text-rose-300">{feature.title}</h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{feature.description}</p>
+                  <h3 className="text-sm font-bold text-rose-700 dark:text-rose-300">{t(feature.titleKey)}</h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{t(feature.descKey)}</p>
                 </CardContent>
               </Card>
             </motion.div>
@@ -210,13 +196,13 @@ export function LandingView() {
       {/* Footer stats */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }} className="flex gap-8 mt-8 mb-12 z-10 text-center">
         {[
-          { num: '10K+', label: 'Пользователей' },
-          { num: '5K+', label: 'Мэтчей' },
-          { num: '98%', label: 'Довольны' },
+          { num: '10K+', labelKey: 'landing.usersStat' },
+          { num: '5K+', labelKey: 'landing.matchesStat' },
+          { num: '98%', labelKey: 'landing.satisfiedStat' },
         ].map((stat) => (
-          <div key={stat.label}>
+          <div key={stat.labelKey}>
             <div className="text-2xl font-bold gradient-text">{stat.num}</div>
-            <div className="text-xs text-muted-foreground">{stat.label}</div>
+            <div className="text-xs text-muted-foreground">{t(stat.labelKey)}</div>
           </div>
         ))}
       </motion.div>
@@ -229,10 +215,10 @@ export function LandingView() {
         className="mt-auto pt-8 pb-4 text-center z-10"
       >
         <p className="text-xs text-muted-foreground">
-          © 2026 Love Compass. Все права защищены.
+          {t('footer.copyright')}
         </p>
         <p className="text-xs text-muted-foreground mt-1">
-          Автор: Дуплей Максим Игоревич
+          {t('footer.author')}
         </p>
       </motion.footer>
     </div>

@@ -34,7 +34,7 @@ export async function GET(request: Request) {
     );
     if (!rateLimit.allowed) {
       return NextResponse.json(
-        { error: 'Слишком много запросов, попробуйте позже' },
+        { error: 'Too many requests, try again later' },
         { status: 429 }
       );
     }

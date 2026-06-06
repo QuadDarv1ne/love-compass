@@ -56,6 +56,7 @@ const ru: Dict = {
 
   // Footer
   'footer.copyright': '© 2026 Love Compass. Все права защищены',
+  'footer.author': 'Автор: Дуплей Максим Игоревич',
 
   // Auth
   'auth.login': 'Войти',
@@ -85,7 +86,7 @@ const ru: Dict = {
 
   // Landing
   'landing.title': 'Найди свою любовь',
-  'landing.subtitle': 'Знакомься с людьми со всего мира',
+  'landing.subtitle': 'Знакомься с людьми со всего мира. Сотни тысяч уже нашли друг друга!',
   'landing.start': 'Начать',
   'landing.demo': 'Демо',
   'landing.features': 'Возможности',
@@ -95,6 +96,16 @@ const ru: Dict = {
   'landing.momentsDesc': 'Делитесь эмоциями и реакциями в реальном времени',
   'landing.security': 'Безопасность',
   'landing.securityDesc': 'Двухфакторная аутентификация и защита данных',
+  'landing.matches': 'Мэтчи',
+  'landing.matchesDesc': 'Двусторонний лайк создает мэтч мгновенно',
+  'landing.chat': 'Чат',
+  'landing.chatDesc': 'Общайтесь в реальном времени с собеседником',
+  'landing.demoLogin': 'Войти как пользователь (демо)',
+  'landing.demoProfiles': '20 профилей из разных стран мира',
+  'landing.whyLoveCompass': 'Почему Love Compass?',
+  'landing.usersStat': 'Пользователей',
+  'landing.matchesStat': 'Мэтчей',
+  'landing.satisfiedStat': 'Довольны',
 
   // Browse / Profiles
   'browse.noProfiles': 'Нет профилей для показа',
@@ -360,6 +371,7 @@ const en: Dict = {
 
   // Footer
   'footer.copyright': '© 2026 Love Compass. All rights reserved',
+  'footer.author': 'Author: Dupley Maxim Igorevich',
 
   'auth.login': 'Log in',
   'auth.register': 'Sign up',
@@ -387,7 +399,7 @@ const en: Dict = {
   'auth.enter2FA': 'Enter 6-digit code',
 
   'landing.title': 'Find your love',
-  'landing.subtitle': 'Meet people from all over the world',
+  'landing.subtitle': 'Meet people from all over the world. Hundreds of thousands have already found each other!',
   'landing.start': 'Get Started',
   'landing.demo': 'Demo',
   'landing.features': 'Features',
@@ -397,6 +409,16 @@ const en: Dict = {
   'landing.momentsDesc': 'Share emotions and reactions in real time',
   'landing.security': 'Security',
   'landing.securityDesc': 'Two-factor authentication and data protection',
+  'landing.matches': 'Matches',
+  'landing.matchesDesc': 'Mutual like creates a match instantly',
+  'landing.chat': 'Chat',
+  'landing.chatDesc': 'Chat in real time with your match',
+  'landing.demoLogin': 'Log in as user (demo)',
+  'landing.demoProfiles': '20 profiles from around the world',
+  'landing.whyLoveCompass': 'Why Love Compass?',
+  'landing.usersStat': 'Users',
+  'landing.matchesStat': 'Matches',
+  'landing.satisfiedStat': 'Satisfied',
 
   'browse.noProfiles': 'No profiles to show',
   'browse.checkBack': 'Check back later — new people join every day!',
@@ -650,6 +672,7 @@ const zh: Dict = {
 
   // Footer
   'footer.copyright': '© 2026 Love Compass. 版权所有',
+  'footer.author': '作者：杜普雷·马克西姆·伊戈列维奇',
 
   'auth.login': '登录',
   'auth.register': '注册',
@@ -677,7 +700,7 @@ const zh: Dict = {
   'auth.enter2FA': '请输入6位验证码',
 
   'landing.title': '找到你的爱情',
-  'landing.subtitle': '与来自世界各地的人相识',
+  'landing.subtitle': '与来自世界各地的人相识。成千上万的人已经找到了彼此！',
   'landing.start': '开始',
   'landing.demo': '演示',
   'landing.features': '功能',
@@ -687,6 +710,16 @@ const zh: Dict = {
   'landing.momentsDesc': '实时分享情感和互动',
   'landing.security': '安全',
   'landing.securityDesc': '双重认证和数据保护',
+  'landing.matches': '匹配',
+  'landing.matchesDesc': '互相喜欢立即匹配',
+  'landing.chat': '聊天',
+  'landing.chatDesc': '与匹配对象实时聊天',
+  'landing.demoLogin': '以用户身份登录（演示）',
+  'landing.demoProfiles': '来自世界各地的20个个人资料',
+  'landing.whyLoveCompass': '为什么选择 Love Compass？',
+  'landing.usersStat': '用户',
+  'landing.matchesStat': '匹配',
+  'landing.satisfiedStat': '满意',
 
   'browse.noProfiles': '没有可显示的个人资料',
   'browse.checkBack': '请稍后再来看看——每天都有新用户加入！',

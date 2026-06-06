@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     // Prevent 2FA setup if already enabled
     if (user.totpEnabled) {
       return NextResponse.json(
-        { error: '2FA уже включён. Отключите его перед повторной настройкой' },
+        { error: '2FA is already enabled. Disable it before reconfiguring' },
         { status: 409 },
       );
     }
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     );
     if (!rateLimit.allowed) {
       return NextResponse.json(
-        { error: 'Слишком много попыток настройки 2FA. Попробуйте позже' },
+        { error: 'Too many 2FA setup attempts. Try again later' },
         { status: 429 },
       );
     }
@@ -61,7 +61,7 @@ export async function POST(request: Request) {
   } catch (error) {
     logger.error('/api/auth/2fa/setup', '2FA setup error', error);
     return NextResponse.json(
-      { error: 'Ошибка сервера' },
+      { error: 'Server error' },
       { status: 500 }
     );
   }

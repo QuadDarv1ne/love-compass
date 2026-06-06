@@ -141,7 +141,7 @@ export async function POST(request: Request) {
     // Rate limit moment creation
     const rateLimit = await checkRateLimit(`moment:${user.id}`, RATE_LIMITS.MOMENT.MAX, RATE_LIMITS.MOMENT.WINDOW);
     if (!rateLimit.allowed) {
-      return NextResponse.json({ error: 'Слишком много публикаций, попробуйте позже' }, { status: 429 });
+      return NextResponse.json({ error: 'Too many posts, try again later' }, { status: 429 });
     }
 
     const moment = await db.moment.create({

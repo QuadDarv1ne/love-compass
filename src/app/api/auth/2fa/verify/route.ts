@@ -35,7 +35,7 @@ export async function POST(request: Request) {
 
     if (!result.success) {
       return NextResponse.json(
-        { error: 'Ошибка валидации' },
+        { error: 'Validation error' },
         { status: 400 }
       );
     }
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
     const rateLimit = await checkRateLimit(`2fa:${tempToken.slice(0, 10)}`, RATE_LIMITS.TOTP_VERIFY.MAX, RATE_LIMITS.TOTP_VERIFY.WINDOW);
     if (!rateLimit.allowed) {
       return NextResponse.json(
-        { error: 'Слишком много попыток' },
+        { error: 'Too many attempts' },
         { status: 429 }
       );
     }
@@ -55,7 +55,7 @@ export async function POST(request: Request) {
     const payload = await verifyTempToken(tempToken);
     if (!payload || !payload.userId) {
       return NextResponse.json(
-        { error: 'Сессия истекла. Войдите заново' },
+        { error: 'Session expired. Please sign in again' },
         { status: 400 }
       );
     }
@@ -64,7 +64,7 @@ export async function POST(request: Request) {
 
     if (!user || !user.totpSecret) {
       return NextResponse.json(
-        { error: '2FA не настроен' },
+        { error: '2FA is not set up' },
         { status: 400 }
       );
     }
@@ -98,7 +98,7 @@ export async function POST(request: Request) {
 
     if (!valid) {
       return NextResponse.json(
-        { error: 'Неверный код' },
+        { error: 'Invalid code' },
         { status: 400 }
       );
     }
@@ -120,7 +120,7 @@ export async function POST(request: Request) {
   } catch (error) {
     logger.error('/api/auth/2fa/verify', '2FA verify error', error);
     return NextResponse.json(
-      { error: 'Ошибка сервера' },
+      { error: 'Server error' },
       { status: 500 }
     );
   }

@@ -108,7 +108,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ us
 
     const existingUser = await db.user.findUnique({ id: userId });
     if (!existingUser) {
-      return NextResponse.json({ error: 'Пользователь не найден' }, { status: 404 });
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     const updated = await db.user.update({ id: userId }, parsed.data);
@@ -122,7 +122,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ us
     if (isZodError(error)) {
       return NextResponse.json({ error: 'Invalid request body', details: error.issues }, { status: 400 });
     }
-    return NextResponse.json({ error: 'Не удалось обновить пользователя' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
   }
 }
 
@@ -136,13 +136,13 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ u
     // Prevent self-deletion
     const adminUser = (auth as { user: { id: string } }).user;
     if (userId === adminUser.id) {
-      return NextResponse.json({ error: 'Нельзя удалить свой аккаунт' }, { status: 400 });
+      return NextResponse.json({ error: 'Cannot delete your own account' }, { status: 400 });
     }
 
     // Verify user exists
     const user = await db.user.findUnique({ id: userId });
     if (!user) {
-      return NextResponse.json({ error: 'Пользователь не найден' }, { status: 404 });
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     // Delete all related data in a transaction to avoid FK constraint violations
@@ -201,9 +201,9 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ u
     return NextResponse.json({ success: true });
   } catch (error) {
     if (error instanceof Error && error.message.includes('Record to delete')) {
-      return NextResponse.json({ error: 'Не удалось удалить пользователя: существуют связанные данные' }, { status: 409 });
+      return NextResponse.json({ error: 'Failed to delete user: related data exists' }, { status: 409 });
     }
     logger.error('/api/admin/users/[userId]', 'Failed to delete user', error);
-    return NextResponse.json({ error: 'Ошибка сервера при удалении пользователя' }, { status: 500 });
+    return NextResponse.json({ error: 'Server error while deleting user' }, { status: 500 });
   }
 }

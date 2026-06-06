@@ -13,7 +13,7 @@ import { logger } from '@/lib/logger';
 import { RATE_LIMITS, TIME, TOKEN } from '@/lib/constants';
 
 const resendEmailSchema = z.object({
-  email: z.string().email('Неверный формат email'),
+  email: z.string().email('Invalid email format'),
 });
 
 export async function GET(request: Request) {
@@ -23,7 +23,7 @@ export async function GET(request: Request) {
 
     if (!token) {
       return NextResponse.json(
-        { error: 'Отсутствует токен' },
+        { error: 'Missing token' },
         { status: 400 }
       );
     }
@@ -71,15 +71,15 @@ export async function GET(request: Request) {
   } catch (error) {
     if (error instanceof Error) {
       if (error.message === 'INVALID_TOKEN') {
-        return NextResponse.json({ error: 'Неверный токен' }, { status: 400 });
+        return NextResponse.json({ error: 'Invalid token' }, { status: 400 });
       }
       if (error.message === 'TOKEN_EXPIRED') {
-        return NextResponse.json({ error: 'Токен истёк' }, { status: 400 });
+        return NextResponse.json({ error: 'Token expired' }, { status: 400 });
       }
     }
     logger.error('/api/auth/verify-email', 'Email verification error', error);
     return NextResponse.json(
-      { error: 'Ошибка сервера' },
+      { error: 'Server error' },
       { status: 500 }
     );
   }
@@ -92,7 +92,7 @@ export async function POST(request: Request) {
 
     if (!result.success) {
       return NextResponse.json(
-        { error: 'Укажите корректный email' },
+        { error: 'Please provide a valid email' },
         { status: 400 }
       );
     }
@@ -103,7 +103,7 @@ export async function POST(request: Request) {
     const rateLimit = await checkRateLimit(`verify:${emailLower}`, RATE_LIMITS.VERIFY_EMAIL.MAX, RATE_LIMITS.VERIFY_EMAIL.WINDOW);
     if (!rateLimit.allowed) {
       return NextResponse.json(
-        { error: 'Слишком много попыток. Попробуйте позже' },
+        { error: 'Too many attempts. Please try again later' },
         { status: 429 }
       );
     }
@@ -121,7 +121,7 @@ export async function POST(request: Request) {
       const nextAllowedAt = new Date(user.lastEmailVerificationSentAt.getTime() + cooldownMs);
       if (new Date() < nextAllowedAt) {
         return NextResponse.json(
-          { error: `Повторная отправка доступна через ${Math.ceil((nextAllowedAt.getTime() - Date.now()) / 1000)} сек` },
+          { error: `Resend available in ${Math.ceil((nextAllowedAt.getTime() - Date.now()) / 1000)} seconds` },
           { status: 429 }
         );
       }
@@ -146,7 +146,7 @@ export async function POST(request: Request) {
   } catch (error) {
     logger.error('/api/auth/verify-email', 'Resend verification error', error);
     return NextResponse.json(
-      { error: 'Ошибка сервера' },
+      { error: 'Server error' },
       { status: 500 }
     );
   }

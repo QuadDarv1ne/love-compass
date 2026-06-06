@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     // Rate limit blocks to prevent abuse
     const rateLimit = await checkRateLimit(`block:${blockerId}`, RATE_LIMITS.BLOCK.MAX, RATE_LIMITS.BLOCK.WINDOW);
     if (!rateLimit.allowed) {
-      return NextResponse.json({ error: 'Слишком много действий, попробуйте позже' }, { status: 429 });
+      return NextResponse.json({ error: 'Too many actions, try again later' }, { status: 429 });
     }
 
     if (blockerId === blockedId) {
