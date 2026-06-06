@@ -8,8 +8,10 @@ import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAppStore, type User, type MatchWithUsers } from '@/lib/store';
 import { OnlineIndicator } from './shared';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export function MatchesView() {
+  const { t } = useTranslation();
   const { matches, currentUser, navigateTo, setSelectedMatch, setChatListMatchId, unreadMatchIds, setUnreadMatchIds } = useAppStore();
   const [localLoading, setLocalLoading] = useState(() => matches.length === 0);
 
@@ -42,9 +44,9 @@ export function MatchesView() {
     if (match.messages && match.messages.length > 0) {
       const lastMsg = match.messages[match.messages.length - 1];
       const isMine = lastMsg.senderId === currentUser?.id;
-      return isMine ? `Вы: ${lastMsg.content}` : lastMsg.content;
+      return isMine ? `${t('matches.youPrefix')}${lastMsg.content}` : lastMsg.content;
     }
-    return 'Начните общение!';
+    return t('matches.startChat');
   };
 
   const openChat = (match: MatchWithUsers) => {
@@ -71,8 +73,8 @@ export function MatchesView() {
       <div className="flex-1 flex flex-col items-center justify-center px-4 py-12">
         <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="text-center">
           <Heart className="w-16 h-16 text-rose-200 dark:text-rose-800 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-rose-400 mb-2">Пока нет мэтчей</h2>
-          <p className="text-muted-foreground text-sm">Просмотрите анкеты и нажмите ❤️</p>
+          <h2 className="text-xl font-bold text-rose-400 mb-2">{t('matches.empty')}</h2>
+          <p className="text-muted-foreground text-sm">{t('matches.explorePrompt')}</p>
         </motion.div>
       </div>
     );
@@ -81,7 +83,7 @@ export function MatchesView() {
 
   return (
     <div className="flex-1 px-4 py-4 md:py-6 overflow-y-auto custom-scrollbar pb-4">
-      <h2 className="text-xl font-bold text-rose-700 dark:text-rose-300 mb-4 md:mb-6">Ваши мэтчи</h2>
+      <h2 className="text-xl font-bold text-rose-700 dark:text-rose-300 mb-4 md:mb-6">{t('matches.yourMatches')}</h2>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
         <AnimatePresence>
           {validMatches.map((match, idx) => {
@@ -120,6 +122,7 @@ export function MatchesView() {
 
 // ─── Chat List (for desktop sidebar) ────────────────────────────────────────
 export function ChatListView() {
+  const { t } = useTranslation();
   const { matches, currentUser, setSelectedMatch, chatListMatchId, setChatListMatchId } = useAppStore();
 
   const getPartner = (match: MatchWithUsers): User | null => {
@@ -131,9 +134,9 @@ export function ChatListView() {
     if (match.messages && match.messages.length > 0) {
       const lastMsg = match.messages[match.messages.length - 1];
       const isMine = lastMsg.senderId === currentUser?.id;
-      return isMine ? `Вы: ${lastMsg.content}` : lastMsg.content;
+      return isMine ? `${t('matches.youPrefix')}${lastMsg.content}` : lastMsg.content;
     }
-    return 'Начните общение!';
+    return t('matches.startChat');
   };
 
   const openChat = (match: MatchWithUsers) => {
@@ -145,7 +148,7 @@ export function ChatListView() {
   const validMatches = matches.filter((m) => m.user1 && m.user2);
 
   if (validMatches.length === 0) {
-    return <div className="p-4 text-center text-muted-foreground text-sm">Нет мэтчей</div>;
+    return <div className="p-4 text-center text-muted-foreground text-sm">{t('matches.empty')}</div>;
   }
 
   return (
@@ -175,7 +178,7 @@ export function ChatListView() {
                 <h4 className="font-semibold text-sm text-rose-800 dark:text-rose-200 truncate">{partner.name}</h4>
                 <span className="text-[10px] text-muted-foreground flex-shrink-0">
                   {match.messages?.[match.messages.length - 1]?.createdAt
-                    ? new Date(match.messages[match.messages.length - 1].createdAt).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
+                    ? new Date(match.messages[match.messages.length - 1].createdAt).toLocaleDateString(useAppStore.getState().language || 'ru', { day: 'numeric', month: 'short' })
                     : ''}
                 </span>
               </div>

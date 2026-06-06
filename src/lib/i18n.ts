@@ -133,6 +133,8 @@ const ru: Dict = {
   'browse.reportError': 'Не удалось отправить жалобу',
   'matches.newWithName': 'Новый мэтч с {name}!',
   'common.retry': 'Попробуйте ещё раз',
+  'common.someDataNotLoaded': 'Некоторые данные не загрузились',
+  'common.failedToLoadWithRetry': 'Не удалось загрузить: {errors}. Попробуйте обновить страницу.',
 
   // Matches
   'matches.empty': 'Пока нет мэтчей',
@@ -140,6 +142,10 @@ const ru: Dict = {
   'matches.new': 'Новый мэтч!',
   'matches.message': 'Написать',
   'matches.keepSwiping': 'Продолжайте искать',
+  'matches.startChat': 'Начните общение!',
+  'matches.yourMatches': 'Ваши мэтчи',
+  'matches.explorePrompt': 'Просмотрите анкеты и нажмите ❤️',
+  'matches.youPrefix': 'Вы: ',
 
   // Chat
   'chat.selectMatch': 'Выберите мэтч для начала чата',
@@ -395,12 +401,18 @@ const en: Dict = {
   'browse.reportError': 'Failed to send report',
   'matches.newWithName': 'New match with {name}!',
   'common.retry': 'Please try again',
+  'common.someDataNotLoaded': 'Some data was not loaded',
+  'common.failedToLoadWithRetry': 'Failed to load: {errors}. Try refreshing the page.',
 
   'matches.empty': 'No matches yet',
   'matches.emptyDesc': 'When someone reciprocates your interest, they will appear here',
   'matches.new': 'New match!',
   'matches.message': 'Message',
   'matches.keepSwiping': 'Keep swiping',
+  'matches.startChat': 'Start chatting!',
+  'matches.yourMatches': 'Your matches',
+  'matches.explorePrompt': 'Browse profiles and tap ❤️',
+  'matches.youPrefix': 'You: ',
 
   'chat.selectMatch': 'Select a match to start chatting',
   'chat.goToMatches': 'Go to matches',
@@ -646,12 +658,18 @@ const zh: Dict = {
   'browse.reportError': '发送举报失败',
   'matches.newWithName': '与 {name} 的新匹配！',
   'common.retry': '请重试',
+  'common.someDataNotLoaded': '部分数据加载失败',
+  'common.failedToLoadWithRetry': '加载失败：{errors}。请尝试刷新页面。',
 
   'matches.empty': '暂无匹配',
   'matches.emptyDesc': '当有人与您相互喜欢时，会出现在这里',
   'matches.new': '新匹配！',
   'matches.message': '发消息',
   'matches.keepSwiping': '继续探索',
+  'matches.startChat': '开始聊天！',
+  'matches.yourMatches': '你的匹配',
+  'matches.explorePrompt': '浏览资料并点击❤️',
+  'matches.youPrefix': '你：',
 
   'chat.selectMatch': '选择一个匹配开始聊天',
   'chat.goToMatches': '前往匹配',
