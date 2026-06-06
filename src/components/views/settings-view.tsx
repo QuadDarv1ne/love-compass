@@ -109,6 +109,7 @@ function TwoFASetupDialog({
   onOpenChange: (v: boolean) => void;
   onEnabled: () => void;
 }) {
+  const { t } = useTranslation();
   const [step, setStep] = useState<'setup' | 'verify'>('setup');
   const [secret, setSecret] = useState('');
   const [uri, setUri] = useState('');
@@ -137,13 +138,13 @@ function TwoFASetupDialog({
           setBackupCodes(data.backupCodes);
           setStep('verify');
         } catch {
-          toast.error('Ошибка сервера');
+          toast.error(t('error.server'));
         } finally {
           setLoading(false);
         }
       })();
     }
-  }, [open]);
+  }, [open, t]);
 
   const handleVerify = async () => {
     setLoading(true);
@@ -154,13 +155,13 @@ function TwoFASetupDialog({
         toast.error(data.error);
         return;
       }
-      toast.success('2FA включён!');
+      toast.success(t('settings.2faEnabledToast'));
       onEnabled();
       onOpenChange(false);
       setStep('setup');
       setCode('');
     } catch {
-      toast.error('Ошибка сервера');
+      toast.error(t('error.server'));
     } finally {
       setLoading(false);
     }
@@ -171,12 +172,12 @@ function TwoFASetupDialog({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>
-            {step === 'setup' ? 'Настройка 2FA' : 'Подтверждение 2FA'}
+            {step === 'setup' ? t('settings.2faSetupTitle') : t('settings.2faVerifyTitle')}
           </DialogTitle>
           <DialogDescription>
             {step === 'setup'
-              ? 'Отсканируйте QR-код в приложении-аутентификаторе'
-              : 'Введите 6-значный код из приложения'}
+              ? t('settings.2faSetupDesc')
+              : t('settings.2faVerifyDesc', { length: TOTP.TOKEN_LENGTH })}
           </DialogDescription>
         </DialogHeader>
 
@@ -192,13 +193,13 @@ function TwoFASetupDialog({
                   {uri && <QRCodeCanvas value={uri} size={200} />}
                 </div>
                 <div className="text-xs text-muted-foreground text-center">
-                  Или введите секрет вручную:
+                  {t('settings.2faManualEntry')}
                 </div>
                 <code className="block text-center text-sm bg-gray-100 dark:bg-gray-800 p-2 rounded">
                   {secret}
                 </code>
                 <Button onClick={() => setStep('verify')} className="w-full" disabled={!uri}>
-                  Далее
+                  {t('settings.2faNext')}
                 </Button>
               </>
             )}
@@ -207,7 +208,7 @@ function TwoFASetupDialog({
           <div className="space-y-4">
             {/* Backup codes display */}
             <div>
-              <Label className="text-sm font-medium">Резервные коды</Label>
+              <Label className="text-sm font-medium">{t('settings.2faBackupCodes')}</Label>
               <div className="grid grid-cols-2 gap-1 mt-2">
                 {backupCodes.map((c) => (
                   <code key={c} className="text-xs bg-gray-100 dark:bg-gray-800 p-1.5 rounded text-center">
@@ -215,13 +216,13 @@ function TwoFASetupDialog({
                   </code>
                 ))}
               </div>
-              <p className="text-xs text-rose-500 mt-1">Сохраните эти коды! Они показываются один раз.</p>
+              <p className="text-xs text-rose-500 mt-1">{t('settings.2faBackupWarning')}</p>
             </div>
 
             <Separator />
 
             <div>
-              <Label htmlFor="totp-code">{TOTP.TOKEN_LENGTH}-значный код</Label>
+              <Label htmlFor="totp-code">{t('settings.2faVerifyDesc', { length: TOTP.TOKEN_LENGTH })}</Label>
               <Input
                 id="totp-code"
                 value={code}
@@ -233,7 +234,7 @@ function TwoFASetupDialog({
             </div>
 
             <Button onClick={handleVerify} className="w-full" disabled={code.length !== TOTP.TOKEN_LENGTH || loading}>
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Включить 2FA'}
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : t('settings.2faEnableButton')}
             </Button>
           </div>
         )}
@@ -286,7 +287,7 @@ export function SettingsView() {
   /* helpers */
   const handleDisable2FA = async () => {
     if (disable2FACode.length !== TOTP.TOKEN_LENGTH) {
-      toast.error(`Введите ${TOTP.TOKEN_LENGTH}-значный код`);
+      toast.error(t('settings.2faEnterCode', { length: TOTP.TOKEN_LENGTH }));
       return;
     }
     setDisabling2FA(true);
@@ -297,12 +298,12 @@ export function SettingsView() {
         toast.error(data.error);
         return;
       }
-      toast.success('2FA отключён');
+      toast.success(t('settings.2faDisabledToast'));
       setDisable2FACode('');
       // Refresh user state to update 2FA status without losing client data
       refreshUser();
     } catch {
-      toast.error('Ошибка сервера');
+      toast.error(t('error.server'));
     } finally {
       setDisabling2FA(false);
     }
@@ -310,11 +311,11 @@ export function SettingsView() {
 
   const handleChangePassword = async () => {
     if (newPassword.length < 8) {
-      toast.error('Пароль должен содержать минимум 8 символов');
+      toast.error(t('error.passwordMin'));
       return;
     }
     if (newPassword !== confirmNewPassword) {
-      toast.error('Пароли не совпадают');
+      toast.error(t('error.passwordMismatch'));
       return;
     }
     setChangingPassword(true);
@@ -326,12 +327,12 @@ export function SettingsView() {
         toast.error(data.error, { description });
         return;
       }
-      toast.success('Пароль изменён');
+      toast.success(t('error.passwordChanged'));
       setCurrentPassword('');
       setNewPassword('');
       setConfirmNewPassword('');
     } catch {
-      toast.error('Ошибка сервера');
+      toast.error(t('error.server'));
     } finally {
       setChangingPassword(false);
     }
@@ -340,7 +341,7 @@ export function SettingsView() {
   const formatCreatedDate = (dateStr?: string) => {
     if (!dateStr) return '—';
     try {
-      return new Intl.DateTimeFormat('ru-RU', {
+      return new Intl.DateTimeFormat(language === 'zh' ? 'zh-CN' : language === 'en' ? 'en-US' : 'ru-RU', {
         day: 'numeric',
         month: 'long',
         year: 'numeric',
@@ -364,10 +365,10 @@ export function SettingsView() {
 
   const themeLabel =
     currentTheme === 'dark'
-      ? 'Тёмная'
+      ? t('settings.themeDark')
       : currentTheme === 'light'
-        ? 'Светлая'
-        : 'Системная';
+        ? t('settings.themeLight')
+        : t('settings.themeSystem');
 
   return (
     <div className="flex-1 px-4 py-4 md:py-6 overflow-y-auto custom-scrollbar">
