@@ -214,9 +214,17 @@ const ru: Dict = {
   'profile.lookingFor': 'Ищу',
 
   // Liked You
-  'likedYou.empty': 'Пока никто не лайкнул вас',
+  'likedYou.empty': 'Пока никто не лайкнул',
   'likedYou.emptyDesc': 'Когда кто-то проявит интерес, вы увидите это здесь',
-  'likedYou.title': 'Кто лайкнул вас',
+  'likedYou.emptySuggestDesc': 'Добавьте фото и заполните профиль!',
+  'likedYou.emptyAction': 'К анкетам',
+  'likedYou.title': 'Кто вас лайкнул',
+  'likedYou.likeBack': 'Лайкнуть в ответ',
+  'likedYou.matchToast': 'Новый мэтч с {name}!',
+  'likedYou.likeBackToast': '{name} оценил(а) вашу анкету!',
+  'likedYou.likeBackToastDesc': 'Вы лайкнули в ответ',
+  'likedYou.likeBackError': 'Не удалось ответить на лайк',
+  'likedYou.likeBackErrorDesc': 'Попробуйте ещё раз',
 
   // Moments
   'moments.title': 'Моменты',
@@ -524,7 +532,15 @@ const en: Dict = {
 
   'likedYou.empty': 'No one has liked you yet',
   'likedYou.emptyDesc': 'When someone shows interest, you will see it here',
+  'likedYou.emptySuggestDesc': 'Add photos and complete your profile!',
+  'likedYou.emptyAction': 'Browse profiles',
   'likedYou.title': 'Who liked you',
+  'likedYou.likeBack': 'Like back',
+  'likedYou.matchToast': 'New match with {name}!',
+  'likedYou.likeBackToast': '{name} liked your profile!',
+  'likedYou.likeBackToastDesc': 'You liked back',
+  'likedYou.likeBackError': 'Failed to reply to like',
+  'likedYou.likeBackErrorDesc': 'Please try again',
 
   'moments.title': 'Moments',
   'moments.placeholder': 'Share something interesting...',
@@ -825,7 +841,15 @@ const zh: Dict = {
 
   'likedYou.empty': '还没有人喜欢您',
   'likedYou.emptyDesc': '当有人对您表示兴趣时，您会在这里看到',
+  'likedYou.emptySuggestDesc': '添加照片并完善您的个人资料！',
+  'likedYou.emptyAction': '浏览资料',
   'likedYou.title': '谁喜欢了您',
+  'likedYou.likeBack': '回赞',
+  'likedYou.matchToast': '与 {name} 的新匹配！',
+  'likedYou.likeBackToast': '{name} 喜欢了您的资料！',
+  'likedYou.likeBackToastDesc': '您已回赞',
+  'likedYou.likeBackError': '回复喜欢失败',
+  'likedYou.likeBackErrorDesc': '请再试一次',
 
   'moments.title': '动态',
   'moments.placeholder': '分享一些有趣的事情...',
