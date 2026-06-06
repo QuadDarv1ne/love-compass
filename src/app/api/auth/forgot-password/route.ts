@@ -18,7 +18,7 @@ export async function POST(request: Request) {
 
     if (!result.success) {
       return NextResponse.json(
-        { error: 'Неверный формат email' },
+        { error: 'Invalid email format' },
         { status: 400 }
       );
     }
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
     const rateLimit = await checkRateLimit(`reset:${emailLower}`, RATE_LIMITS.FORGOT_PASSWORD.MAX, RATE_LIMITS.FORGOT_PASSWORD.WINDOW);
     if (!rateLimit.allowed) {
       return NextResponse.json(
-        { error: 'Слишком много попыток. Попробуйте позже' },
+        { error: 'Too many attempts. Please try again later' },
         { status: 429 }
       );
     }
@@ -59,7 +59,7 @@ export async function POST(request: Request) {
   } catch (error) {
     logger.error('/api/auth/forgot-password', 'Forgot password error', error);
     return NextResponse.json(
-      { error: 'Ошибка сервера' },
+      { error: 'Server error' },
       { status: 500 }
     );
   }

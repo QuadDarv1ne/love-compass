@@ -35,7 +35,7 @@ export async function sendVerificationEmail(
 ): Promise<void> {
   const verificationUrl = `${appUrl}/verify-email?token=${token}`;
 
-  if (!resend) {
+  if (isDev || !resend) {
     if (isDev) {
       logger.warn('[EMAIL]', `Verification link for ${email}: ${verificationUrl}`);
     }
@@ -69,7 +69,7 @@ export async function sendPasswordResetEmail(
 ): Promise<void> {
   const resetUrl = `${appUrl}/reset-password?token=${token}`;
 
-  if (!resend) {
+  if (isDev || !resend) {
     if (isDev) {
       logger.warn('[EMAIL]', `Password reset link for ${email}: ${resetUrl}`);
     }
@@ -101,7 +101,7 @@ export async function sendWelcomeEmail(
   email: string,
   name: string
 ): Promise<void> {
-  if (!resend) {
+  if (isDev || !resend) {
     if (isDev) {
       logger.warn('[EMAIL]', `Welcome email for ${name} (${email})`);
     }
