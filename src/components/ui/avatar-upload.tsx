@@ -4,7 +4,7 @@ import { useState, useRef } from 'react';
 import { Camera, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { fetchWithCSRF, deleteWithCSRF } from '@/lib/api';
+import { postWithCSRFFormData, deleteWithCSRF } from '@/lib/api';
 import { useAppStore } from '@/lib/store';
 import { UPLOAD } from '@/lib/constants';
 
@@ -42,7 +42,7 @@ export function AvatarUpload({ currentAvatar, userId: _userId, userName }: Avata
       const formData = new FormData();
       formData.append('avatar', file);
 
-      const res = await fetchWithCSRF('/api/profile/avatar', formData);
+      const res = await postWithCSRFFormData('/api/profile/avatar', formData);
       const data = await res.json();
 
       if (!res.ok) {
