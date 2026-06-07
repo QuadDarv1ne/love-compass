@@ -32,18 +32,29 @@ export async function POST(request: Request) {
     // Use transaction to prevent race conditions and handle cleanup
     await db.transaction(async (tx) => {
       // Check if dislike already exists
-      const existingDislike = await tx.dislike.findFirst({
-        where: { fromUserId: user.id, toUserId },
-      });
+      const existingDislike = await tx.dislike.findFirst(
+        { fromUserId: user.id, toUserId }
+      );
 
       if (existingDislike) {
         return; // Already disliked, no-op
       }
 
       // Remove any existing like from this user to the target
-      await tx.like.deleteMany({
-        where: { fromUserId: user.id, toUserId },
+      await tx.like.deleteMany(
+        { AND: [{ fromUserId: user.id }, { toUserId }] }
+      );
+
+      // If a match exists, delete it — removing a like breaks mutual interest
+      const match = await tx.match.findFirst({
+        OR: [
+          { user1Id: user.id, user2Id: toUserId },
+          { user1Id: toUserId, user2Id: user.id },
+        ],
       });
+      if (match) {
+        await tx.match.delete({ id: match.id });
+      }
 
       // Create the dislike
       await tx.dislike.create({ fromUserId: user.id, toUserId });
