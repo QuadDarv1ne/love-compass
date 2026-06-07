@@ -2,6 +2,8 @@
 
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { appLogger } from '@/lib/logger';
+import { useAppStore } from '@/lib/store';
+import { createTranslatorForLanguage } from '@/lib/i18n';
 
 interface Props {
   children: ReactNode;
@@ -33,17 +35,20 @@ export class ErrorBoundary extends Component<Props, State> {
         return this.props.fallback;
       }
 
+      const lang = useAppStore.getState().language || 'ru';
+      const t = createTranslatorForLanguage(lang);
+
       return (
         <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-8">
-          <h1 className="text-2xl font-bold text-destructive">Что-то пошло не так</h1>
+          <h1 className="text-2xl font-bold text-destructive">{t('error.server')}</h1>
           <p className="text-muted-foreground text-center max-w-md">
-            Произошла непредвиденная ошибка. Пожалуйста, попробуйте обновить страницу.
+            {t('common.someDataNotLoaded')}
           </p>
           <button
             className="rounded-md bg-primary px-4 py-2 text-primary-foreground hover:bg-primary/90"
             onClick={() => window.location.reload()}
           >
-            Обновить страницу
+            {t('common.retry')}
           </button>
         </div>
       );

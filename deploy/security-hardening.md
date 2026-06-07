@@ -8,7 +8,7 @@
 echo ".env*" >> .gitignore
 
 # Generate strong secrets
-openssl rand -base64 32  # for NEXTAUTH_SECRET
+openssl rand -base64 32  # for JWT_SECRET
 ```
 
 ### Next.js Security Headers

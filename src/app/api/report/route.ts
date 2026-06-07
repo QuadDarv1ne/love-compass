@@ -30,7 +30,7 @@ export async function POST(request: Request) {
     const rateLimit = await checkRateLimit(`report:${reporterId}`, REPORT_LIMITS.MAX_PER_HOUR, REPORT_LIMITS.WINDOW_SECONDS);
     if (!rateLimit.allowed) {
       return NextResponse.json(
-        { error: 'Слишком много жалоб. Попробуйте позже' },
+        { error: 'Too many reports. Please try again later' },
         { status: 429 }
       );
     }

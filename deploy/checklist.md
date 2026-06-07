@@ -13,7 +13,7 @@
 ### Security
 - [ ] No secrets in code (use .env)
 - [ ] `.env` in `.gitignore`
-- [ ] NEXTAUTH_SECRET generated (32+ chars)
+- [ ] JWT_SECRET generated (32+ chars)
 - [ ] CORS configured correctly
 - [ ] Rate limiting on sensitive endpoints
 - [ ] HTTPS enforced

@@ -16,7 +16,7 @@ export async function requireAuth(): Promise<{ user: DbUser } | NextResponse> {
   const user = await getUserFromRequest();
 
   if (!user) {
-    return NextResponse.json({ error: 'Необходима авторизация' }, { status: 401 });
+    return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
   }
 
   // Update lastSeenAt for online status tracking (fire-and-forget)
@@ -45,7 +45,7 @@ export async function requireVerifiedEmail(): Promise<{ user: DbUser } | NextRes
 
   if (!auth.user.emailVerified) {
     return NextResponse.json(
-      { error: 'Подтвердите email', needsEmailVerification: true },
+      { error: 'Verify your email', needsEmailVerification: true },
       { status: 403 }
     );
   }
@@ -58,7 +58,7 @@ export async function requireAdmin(): Promise<{ user: DbUser } | NextResponse> {
   if (auth instanceof NextResponse) return auth;
 
   if (auth.user.role !== 'admin') {
-    return NextResponse.json({ error: 'Доступ запрещён' }, { status: 403 });
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
   return auth;

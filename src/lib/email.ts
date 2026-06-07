@@ -45,18 +45,18 @@ export async function sendVerificationEmail(
   await resend.emails.send({
     from: `Love Compass <${fromEmail}>`,
     to: email,
-    subject: 'Подтвердите ваш email — Love Compass',
+    subject: 'Verify your email — Love Compass',
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h1 style="color: #e11d48;">Добро пожаловать в Love Compass!</h1>
-        <p>Для завершения регистрации подтвердите ваш email, перейдя по ссылке:</p>
+        <h1 style="color: #e11d48;">Welcome to Love Compass!</h1>
+        <p>To complete registration, please verify your email by clicking the link below:</p>
         <a href="${escapeUrl(verificationUrl)}"
            style="display: inline-block; padding: 12px 24px; background-color: #e11d48; color: white;
                   text-decoration: none; border-radius: 8px; margin: 16px 0;">
-          Подтвердить email
+          Verify email
         </a>
         <p style="color: #666; font-size: 14px;">
-          Если вы не регистрировались, просто проигнорируйте это письмо.
+          If you did not register, please ignore this email.
         </p>
       </div>
     `,
@@ -79,18 +79,18 @@ export async function sendPasswordResetEmail(
   await resend.emails.send({
     from: `Love Compass <${fromEmail}>`,
     to: email,
-    subject: 'Сброс пароля — Love Compass',
+    subject: 'Reset your password — Love Compass',
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h1 style="color: #e11d48;">Сброс пароля</h1>
-        <p>Вы запросили сброс пароля. Перейдите по ссылке для установки нового пароля:</p>
+        <h1 style="color: #e11d48;">Reset Password</h1>
+        <p>You requested a password reset. Click the link below to set a new password:</p>
         <a href="${escapeUrl(resetUrl)}"
            style="display: inline-block; padding: 12px 24px; background-color: #e11d48; color: white;
                   text-decoration: none; border-radius: 8px; margin: 16px 0;">
-          Сбросить пароль
+          Reset password
         </a>
         <p style="color: #666; font-size: 14px;">
-          Ссылка действительна 1 час. Если вы не запрашивали сброс, проигнорируйте это письмо.
+          This link is valid for 1 hour. If you did not request a reset, please ignore this email.
         </p>
       </div>
     `,
@@ -111,12 +111,12 @@ export async function sendWelcomeEmail(
   await resend.emails.send({
     from: `Love Compass <${fromEmail}>`,
     to: email,
-    subject: 'Добро пожаловать! — Love Compass',
+    subject: 'Welcome! — Love Compass',
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h1 style="color: #e11d48;">Привет, ${escapeHtml(name)}!</h1>
-        <p>Ваш email подтверждён. Добро пожаловать в Love Compass!</p>
-        <p>Теперь вы можете искать свою вторую половинку. Удачи!</p>
+        <h1 style="color: #e11d48;">Hi, ${escapeHtml(name)}!</h1>
+        <p>Your email has been verified. Welcome to Love Compass!</p>
+        <p>Now you can start finding your perfect match. Good luck!</p>
       </div>
     `,
   });

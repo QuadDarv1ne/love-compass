@@ -77,7 +77,7 @@ vercel --env DATABASE_URL="postgresql://..." --env NODE_ENV=production
 3. Добавьте Environment Variables:
    - `DATABASE_URL` — строка подключения Supabase
    - `NODE_ENV` = `production`
-   - `NEXTAUTH_SECRET` — сгенерируйте: `openssl rand -base64 32`
+   - `JWT_SECRET` — сгенерируйте: `openssl rand -base64 32`
 4. Нажмите Deploy
 
 **Вариант C — автоматически при push:**
@@ -109,7 +109,7 @@ vercel link
 ```
 DATABASE_URL=file:/app/db/custom.db
 NODE_ENV=production
-NEXTAUTH_SECRET=<сгенерируйте 32+ символа>
+JWT_SECRET=<сгенерируйте 32+ символа>
 ```
 
 ### Шаг 3: Настройте volume для SQLite
@@ -212,7 +212,7 @@ nano .env
 ```
 DATABASE_URL=file:/app/db/custom.db
 NODE_ENV=production
-NEXTAUTH_SECRET=<openssl rand -base64 32>
+JWT_SECRET=<openssl rand -base64 32>
 PORT=3000
 ```
 
@@ -324,7 +324,7 @@ Site settings → Environment variables:
 ```
 DATABASE_URL=postgresql://...  # Supabase или другой PostgreSQL
 NODE_ENV=production
-NEXTAUTH_SECRET=<32+ символа>
+JWT_SECRET=<32+ символа>
 ```
 
 ### Шаг 3: Деплой
@@ -369,7 +369,7 @@ chmod +x deploy/yandex-cloud.sh
 |---|---|---|
 | `DATABASE_URL` | Строка подключения к БД | `file:/app/db/custom.db` или `postgresql://...` |
 | `NODE_ENV` | Окружение | `production` |
-| `NEXTAUTH_SECRET` | Секрет для сессий (32+ символа) | `openssl rand -base64 32` |
+| `JWT_SECRET` | Секрет для сессий (32+ символа) | `openssl rand -base64 32` |
 
 ### Опциональные
 
@@ -538,7 +538,7 @@ Workflow автоматически:
 - [ ] `bun tsc --noEmit` — без ошибок
 - [ ] `bun run build` — успешно
 - [ ] `.env` в `.gitignore`
-- [ ] `NEXTAUTH_SECRET` сгенерирован (32+ символа)
+- [ ] `JWT_SECRET` сгенерирован (32+ символа)
 - [ ] CORS настроен
 - [ ] Rate limiting включён
 

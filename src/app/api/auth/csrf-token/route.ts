@@ -9,7 +9,7 @@ export async function GET() {
   } catch (error) {
     logger.error('/api/auth/csrf-token', 'CSRF token error', error);
     return NextResponse.json(
-      { error: 'Ошибка сервера' },
+      { error: 'Server error' },
       { status: 500 }
     );
   }

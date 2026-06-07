@@ -92,7 +92,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         success: true,
-        message: 'Проверьте вашу почту для подтверждения email',
+        message: 'Check your email to verify your address',
       },
       { status: 201 }
     );

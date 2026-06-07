@@ -19,7 +19,7 @@ export async function POST(request: Request) {
 
     if (!user.totpEnabled || !user.totpSecret) {
       return NextResponse.json(
-        { error: '2FA не включён' },
+        { error: '2FA is not enabled' },
         { status: 400 }
       );
     }
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
 
     if (!result.success) {
       return NextResponse.json(
-        { error: 'Укажите 6-значный код' },
+        { error: 'Enter a 6-digit code' },
         { status: 400 }
       );
     }
@@ -39,7 +39,7 @@ export async function POST(request: Request) {
 
     if (!valid) {
       return NextResponse.json(
-        { error: 'Неверный код' },
+        { error: 'Invalid code' },
         { status: 400 }
       );
     }
@@ -57,7 +57,7 @@ export async function POST(request: Request) {
   } catch (error) {
     logger.error('/api/auth/2fa/disable', '2FA disable error', error);
     return NextResponse.json(
-      { error: 'Ошибка сервера' },
+      { error: 'Server error' },
       { status: 500 }
     );
   }
