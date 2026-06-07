@@ -51,12 +51,14 @@ export async function GET(request: Request) {
     const userIds = [...new Set(moments.map((m) => m.userId))];
     const momentIds = moments.map((m) => m.id);
 
-    const [users, comments, reactions, totalMoments] = await Promise.all([
+    const [users, comments, reactions, totalMoments, userLikes] = await Promise.all([
       db.user.findMany({ id: { in: userIds } }),
       db.momentComment.findMany({ momentId: { in: momentIds } }, { orderBy: { createdAt: 'asc' } }),
       db.momentReaction.findMany({ momentId: { in: momentIds } }),
       db.moment.count({}),
+      db.momentLike.findMany({ userId: auth.user.id }),
     ]);
+    const likedMomentIds = new Set(userLikes.map((l) => l.momentId));
 
     // Fetch comment users
     const commentUserIds = [...new Set(comments.map((c) => c.userId))];
@@ -76,12 +78,21 @@ export async function GET(request: Request) {
     }
 
     const reactionsByMoment = new Map<string, typeof reactions>();
+    const userReactionsByMoment = new Map<string, Set<string>>();
     for (const r of reactions) {
       const arr = reactionsByMoment.get(r.momentId);
       if (arr) {
         arr.push(r);
       } else {
         reactionsByMoment.set(r.momentId, [r]);
+      }
+      if (r.userId === auth.user.id) {
+        let set = userReactionsByMoment.get(r.momentId);
+        if (!set) {
+          set = new Set();
+          userReactionsByMoment.set(r.momentId, set);
+        }
+        set.add(r.emoji);
       }
     }
 
@@ -99,6 +110,8 @@ export async function GET(request: Request) {
         gradient: moment.gradient,
         createdAt: moment.createdAt.toISOString(),
         likes: moment.likes,
+        userLiked: likedMomentIds.has(moment.id),
+        userReactions: Array.from(userReactionsByMoment.get(moment.id) ?? []),
         comments: momentComments.map((c) => {
           const cu = commentUserMap.get(c.userId);
           return {

@@ -696,6 +696,11 @@ export class MongoDBAdapter implements DatabaseAdapter {
       return { ...data, id: result.insertedId.toString() } as DbMomentLike;
     },
 
+    findMany: async (where?: Record<string, unknown>): Promise<DbMomentLike[]> => {
+      const docs = await this.db.collection<DbMomentLike>(COLLECTIONS.momentLikes).find(cleanWhere(where ?? {})).toArray();
+      return docs.map((d) => stripId(d)) as DbMomentLike[];
+    },
+
     findUnique: async (where: { momentId?: string; userId?: string }): Promise<DbMomentLike | null> => {
       const query = cleanWhere(where);
       if (Object.keys(query).length === 0) return null;
@@ -919,6 +924,10 @@ class MongoDBAdapterForTransaction extends MongoDBAdapter {
       create: async (data: Partial<DbMomentLike>): Promise<DbMomentLike> => {
         const result = await this._db.collection<DbMomentLike>(COLLECTIONS.momentLikes).insertOne(toInsertDoc(data), { session: this.txSession });
         return { ...data, id: result.insertedId.toString() } as DbMomentLike;
+      },
+      findMany: async (where?: Record<string, unknown>): Promise<DbMomentLike[]> => {
+        const docs = await this._db.collection<DbMomentLike>(COLLECTIONS.momentLikes).find(cleanWhere(where ?? {})).toArray();
+        return docs.map((d) => stripId(d)) as DbMomentLike[];
       },
       findUnique: async (where: { momentId?: string; userId?: string }): Promise<DbMomentLike | null> => {
         const query = cleanWhere(where as Record<string, unknown>);

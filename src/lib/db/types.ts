@@ -270,6 +270,7 @@ export interface DatabaseAdapter {
 
   momentLike: {
     create(data: Partial<DbMomentLike>): Promise<DbMomentLike>;
+    findMany(where?: Record<string, unknown>): Promise<DbMomentLike[]>;
     findUnique(where: { momentId?: string; userId?: string }): Promise<DbMomentLike | null>;
     delete(where: { id: string }): Promise<void>;
     deleteMany(where: Record<string, unknown>): Promise<number>;

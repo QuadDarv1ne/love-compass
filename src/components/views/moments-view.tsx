@@ -23,6 +23,7 @@ import { useAppStore, type Moment, type MomentComment } from '@/lib/store';
 import { OnlineIndicator } from './shared';
 import { appLogger } from '@/lib/logger';
 import { MOMENTS as MOMENTS_CONST, ANIMATION, TIME } from '@/lib/constants';
+import { useTranslation } from '@/hooks/useTranslation';
 
 // ─── Gradient Presets ────────────────────────────────────────────────────────
 const GRADIENT_PRESETS = [
@@ -50,17 +51,17 @@ const RING_GRADIENTS = [
 const REACTION_EMOJIS = ['❤️', '🔥', '😂', '😍'];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
-function timeAgo(dateStr: string): string {
+function timeAgo(dateStr: string, t: (key: string) => string): string {
   const now = Date.now();
   const then = new Date(dateStr).getTime();
   const diffMs = now - then;
   const diffMin = Math.floor(diffMs / TIME.MS_PER_MINUTE);
-  if (diffMin < 1) return 'только что';
-  if (diffMin < TIME.MINUTES_PER_HOUR) return `${diffMin} мин`;
+  if (diffMin < 1) return t('moments.justNow');
+  if (diffMin < TIME.MINUTES_PER_HOUR) return `${diffMin} ${t('moments.minShort')}`;
   const diffH = Math.floor(diffMin / TIME.MINUTES_PER_HOUR);
-  if (diffH < TIME.HOURS_PER_DAY) return `${diffH} ч`;
+  if (diffH < TIME.HOURS_PER_DAY) return `${diffH} ${t('moments.hourShort')}`;
   const diffD = Math.floor(diffH / TIME.HOURS_PER_DAY);
-  return `${diffD} д`;
+  return `${diffD} ${t('moments.dayShort')}`;
 }
 
 function getUniqueUsersFromMoments(moments: Moment[]) {
@@ -92,6 +93,7 @@ function StoryViewer({
   const onCloseRef = useRef(onClose);
   const containerRef = useRef<HTMLDivElement>(null);
   const dragStartY = useRef(0);
+  const { t } = useTranslation();
 
   // Sync onCloseRef with latest onClose prop
   useEffect(() => {
@@ -158,7 +160,7 @@ function StoryViewer({
     }
   };
 
-  const toggleLike = () => {
+  const toggleLike = async () => {
     const wasLiked = likedMoments.has(currentMoment.id);
     setLikedMoments((prev) => {
       const next = new Set(prev);
@@ -169,8 +171,25 @@ function StoryViewer({
       }
       return next;
     });
-    // Sync with server
-    patchWithCSRF('/api/moments', { id: currentMoment.id, action: 'like' }).catch(() => {
+    try {
+      const res = await patchWithCSRF('/api/moments', { id: currentMoment.id, action: 'like' });
+      if (res.ok) {
+        const body = await res.json();
+        const serverLiked = body?.data?.liked === true;
+        setLikedMoments((prev) => {
+          const next = new Set(prev);
+          if (serverLiked) next.add(currentMoment.id);
+          else next.delete(currentMoment.id);
+          return next;
+        });
+        setLocalMoments((prev) =>
+          prev.map((m) => {
+            if (m.id !== currentMoment.id) return m;
+            return { ...m, likes: body.data.likes };
+          })
+        );
+      }
+    } catch {
       // Rollback on failure
       setLikedMoments((prev) => {
         const next = new Set(prev);
@@ -178,10 +197,10 @@ function StoryViewer({
         else next.delete(currentMoment.id);
         return next;
       });
-    });
+    }
   };
 
-  const handleReaction = (emoji: string) => {
+  const handleReaction = async (emoji: string) => {
     setLocalMoments((prev) =>
       prev.map((m) => {
         if (m.id !== currentMoment.id) return m;
@@ -194,11 +213,33 @@ function StoryViewer({
         };
       })
     );
-    toast.success(`Реакция ${emoji} добавлена!`);
-    // Sync with server
-    patchWithCSRF('/api/moments', { id: currentMoment.id, action: 'react', emoji }).catch((error) => {
+    try {
+      const res = await patchWithCSRF('/api/moments', { id: currentMoment.id, action: 'react', emoji });
+      if (res.ok) {
+        const body = await res.json();
+        const wasRemoved = body?.data?.removed === true;
+        if (wasRemoved) {
+          // Server removed the reaction — undo the optimistic increment
+          setLocalMoments((prev) =>
+            prev.map((m) => {
+              if (m.id !== currentMoment.id) return m;
+              return {
+                ...m,
+                reactions: {
+                  ...m.reactions,
+                  [emoji]: Math.max((m.reactions[emoji] || 0) - 1, 0),
+                },
+              };
+            })
+          );
+          toast.success(t('moments.reactionRemoved', { emoji }));
+        } else {
+          toast.success(t('moments.reactionAdded', { emoji }));
+        }
+      }
+    } catch (error) {
       appLogger.error('moments-view.syncReaction', 'Failed to sync reaction', error);
-      toast.error('Не удалось добавить реакцию');
+      toast.error(t('moments.reactionError'));
       // Rollback: decrement the optimistically added reaction
       setLocalMoments((prev) =>
         prev.map((m) => {
@@ -212,7 +253,7 @@ function StoryViewer({
           };
         })
       );
-    });
+    }
   };
 
   const handleComment = () => {
@@ -221,7 +262,7 @@ function StoryViewer({
     const newComment: MomentComment = {
       id: `new-c-${Date.now()}`,
       userId: 'current-user',
-      userName: 'Вы',
+      userName: t('moments.you'),
       content,
       createdAt: new Date().toISOString(),
     };
@@ -234,12 +275,12 @@ function StoryViewer({
       })
     );
     setCommentText('');
-    toast.success('Комментарий добавлен!');
+    toast.success(t('moments.commentAdded'));
 
     // Sync with server with rollback on failure
     patchWithCSRF('/api/moments', { id: currentMoment.id, action: 'comment', content }).catch((error) => {
       appLogger.error('moments-view.syncComment', 'Failed to sync comment', error);
-      toast.error('Не удалось добавить комментарий');
+      toast.error(t('moments.commentError'));
 
       // Rollback: remove the optimistically added comment
       setLocalMoments((prev) =>
@@ -303,13 +344,13 @@ function StoryViewer({
             </div>
             <div>
               <p className="text-white font-semibold text-sm drop-shadow-md">{currentMoment.userName}</p>
-              <p className="text-white/70 text-xs">{timeAgo(currentMoment.createdAt)}</p>
+              <p className="text-white/70 text-xs">{timeAgo(currentMoment.createdAt, t)}</p>
             </div>
           </div>
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={onClose}
-            aria-label="Закрыть историю"
+            aria-label={t('moments.closeStory')}
             className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/30 transition-colors"
           >
             <X className="w-5 h-5" />
@@ -338,7 +379,7 @@ function StoryViewer({
             transition={{ delay: ANIMATION.STORY_HINT_DELAY, duration: ANIMATION.STORY_HINT_DURATION }}
             className="text-center text-white/50 text-xs mb-3"
           >
-            Проведите вниз или нажмите X, чтобы закрыть
+            {t('moments.swipeHint')}
           </motion.p>
 
           {/* Like + Reactions */}
@@ -358,7 +399,7 @@ function StoryViewer({
                   }`}
                 />
                 <span className="text-white font-semibold text-sm drop-shadow-md">
-                  {currentMoment.likes + (likedMoments.has(currentMoment.id) ? 1 : 0)}
+                  {currentMoment.likes}
                 </span>
               </motion.button>
 
@@ -402,7 +443,7 @@ function StoryViewer({
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleComment()}
-                placeholder="Написать комментарий..."
+                placeholder={t('moments.writeComment')}
                 className="h-10 bg-black/20 border-white/30 text-white placeholder:text-white/50 rounded-full pr-10 focus-visible:ring-white/40"
               />
               {commentText && (
@@ -437,6 +478,7 @@ function CreateMomentDialog({
   const [text, setText] = useState('');
   const [selectedGradient, setSelectedGradient] = useState(GRADIENT_PRESETS[0]);
   const remaining = MOMENTS_CONST.CHARACTER_LIMIT - text.length;
+  const { t } = useTranslation();
 
   const handleSubmit = () => {
     if (!text.trim()) return;
@@ -455,7 +497,7 @@ function CreateMomentDialog({
       <DialogContent className="sm:max-w-md border-rose-100 dark:border-rose-900/50 bg-card rounded-2xl">
         <DialogHeader>
           <DialogTitle className="text-rose-700 dark:text-rose-300">
-            Новый момент
+            {t('moments.newMoment')}
           </DialogTitle>
         </DialogHeader>
 
@@ -466,7 +508,7 @@ function CreateMomentDialog({
             <div className="absolute inset-0 bg-black/10" />
             <div className="absolute inset-0 flex items-center justify-center p-6">
               <p className="text-white text-center font-bold text-lg drop-shadow-lg">
-                {text || 'Ваш текст появится здесь...'}
+                {text || t('moments.textPreview')}
               </p>
             </div>
           </div>
@@ -480,7 +522,7 @@ function CreateMomentDialog({
                   setText(e.target.value);
                 }
               }}
-              placeholder="Поделитесь своими мыслями..."
+              placeholder={t('moments.shareThoughts')}
               className="min-h-[100px] resize-none border-rose-200 dark:border-rose-800 focus-visible:ring-rose-300 dark:focus-visible:ring-rose-700 rounded-xl text-sm"
             />
             <p className={`text-xs text-right ${remaining < MOMENTS_CONST.CHARACTER_WARN_THRESHOLD ? 'text-red-500' : 'text-muted-foreground'}`}>
@@ -490,7 +532,7 @@ function CreateMomentDialog({
 
           {/* Gradient presets */}
           <div className="space-y-2">
-            <p className="text-sm font-medium text-rose-600 dark:text-rose-400">Выберите фон</p>
+            <p className="text-sm font-medium text-rose-600 dark:text-rose-400">{t('moments.chooseBackground')}</p>
             <div className="flex items-center gap-2 flex-wrap">
               {GRADIENT_PRESETS.map((gradient) => (
                 <motion.button
@@ -513,7 +555,7 @@ function CreateMomentDialog({
             disabled={!text.trim()}
             className="w-full bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-xl h-11 font-semibold disabled:opacity-50"
           >
-            Опубликовать
+            {t('moments.post')}
           </Button>
         </div>
       </DialogContent>
@@ -535,6 +577,8 @@ function MomentFeedCard({
   liked: boolean;
   likeCount: number;
 }) {
+  const { t } = useTranslation();
+
   return (
     <Card className="overflow-hidden border-rose-100 dark:border-rose-900/50 bg-card rounded-2xl shadow-md hover:shadow-lg transition-shadow">
       {/* User info */}
@@ -552,7 +596,7 @@ function MomentFeedCard({
           <p className="font-semibold text-sm text-rose-800 dark:text-rose-200 truncate">{moment.userName}</p>
           <div className="flex items-center gap-1 text-muted-foreground">
             <Clock className="w-3 h-3" />
-            <span className="text-xs">{timeAgo(moment.createdAt)}</span>
+            <span className="text-xs">{timeAgo(moment.createdAt, t)}</span>
           </div>
         </div>
       </div>
@@ -625,7 +669,7 @@ function MomentFeedCard({
             ))}
             {moment.comments.length > MOMENTS_CONST.PREVIEW_COMMENTS && (
               <p className="text-xs text-rose-500 font-medium cursor-pointer hover:underline">
-                Посмотреть все комментарии ({moment.comments.length})
+                {t('moments.viewAllComments', { count: moment.comments.length })}
               </p>
             )}
           </div>
@@ -638,6 +682,7 @@ function MomentFeedCard({
 // ─── Moments View ────────────────────────────────────────────────────────────
 export function MomentsView() {
   const { currentUser, moments: storeMoments, setMoments: setStoreMoments, addMoment: addStoreMoment } = useAppStore();
+  const { t } = useTranslation();
   const [moments, setMoments] = useState<Moment[]>([]);
   const [showStoryViewer, setShowStoryViewer] = useState(false);
   const [selectedStoryUserId, setSelectedStoryUserId] = useState<string | null>(null);
@@ -657,9 +702,22 @@ export function MomentsView() {
       try {
         const r = await fetch('/api/moments');
         const { data } = await r.json();
-        if (!cancelled) {
-          setMoments(data ?? []);
-          setStoreMoments(data ?? []);
+        if (!cancelled && data) {
+          setMoments(data);
+          setStoreMoments(data);
+          // Initialize reaction/like state from server
+          const liked = new Set<string>();
+          const reacted = new Set<string>();
+          for (const m of data as Array<Moment & { userLiked?: boolean; userReactions?: string[] }>) {
+            if (m.userLiked) liked.add(m.id);
+            if (m.userReactions) {
+              for (const emoji of m.userReactions) {
+                reacted.add(`${m.id}:${emoji}`);
+              }
+            }
+          }
+          setLikedMomentIds(liked);
+          setMyReactions(reacted);
         }
       } catch (error) {
         appLogger.error('moments-view.fetch', 'Failed to fetch moments', error);
@@ -701,14 +759,16 @@ export function MomentsView() {
           likes: data.likes,
           comments: [],
           reactions: {},
+          userLiked: false,
+          userReactions: [],
         };
         setMoments((prev) => [newMoment, ...prev]);
         addStoreMoment(newMoment);
-        toast.success('Момент опубликован!');
+        toast.success(t('moments.published'));
       }
     } catch (error) {
       appLogger.error('moments-view.create', 'Failed to create moment', error);
-      toast.error('Не удалось опубликовать момент');
+      toast.error(t('moments.publishError'));
     }
   };
 
@@ -728,7 +788,23 @@ export function MomentsView() {
       })
     );
     try {
-      await patchWithCSRF('/api/moments', { id: momentId, action: 'like' });
+      const res = await patchWithCSRF('/api/moments', { id: momentId, action: 'like' });
+      if (res.ok) {
+        const body = await res.json();
+        const serverLiked = body?.data?.liked === true;
+        setLikedMomentIds((prev) => {
+          const next = new Set(prev);
+          if (serverLiked) next.add(momentId);
+          else next.delete(momentId);
+          return next;
+        });
+        setMoments((prev) =>
+          prev.map((m) => {
+            if (m.id !== momentId) return m;
+            return { ...m, likes: body.data.likes };
+          })
+        );
+      }
     } catch (error) {
       appLogger.error('moments-view.toggleLike', 'Failed to toggle like on moment', error);
       setLikedMomentIds((prev) => {
@@ -770,7 +846,33 @@ export function MomentsView() {
       })
     );
     try {
-      await patchWithCSRF('/api/moments', { id: momentId, action: 'react', emoji });
+      const res = await patchWithCSRF('/api/moments', { id: momentId, action: 'react', emoji });
+      if (res.ok) {
+        const body = await res.json();
+        const wasRemoved = body?.data?.removed === true;
+        if (wasRemoved !== wasAdding) {
+          // Server toggled the opposite direction — reconcile
+          setMyReactions((prev) => {
+            const next = new Set(prev);
+            if (wasRemoved) next.delete(key);
+            else next.add(key);
+            return next;
+          });
+          setMoments((prev) =>
+            prev.map((m) => {
+              if (m.id !== momentId) return m;
+              const currentCount = m.reactions[emoji] || 0;
+              return {
+                ...m,
+                reactions: {
+                  ...m.reactions,
+                  [emoji]: currentCount + (wasRemoved ? -1 : 1),
+                },
+              };
+            })
+          );
+        }
+      }
     } catch (error) {
       appLogger.error('moments-view.feedReaction', 'Failed to sync feed reaction', error);
       setMyReactions((prev) => {
@@ -805,16 +907,16 @@ export function MomentsView() {
           className="text-center"
         >
           <Heart className="w-16 h-16 text-rose-200 dark:text-rose-800 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-rose-400 mb-2">Пока нет моментов</h2>
+          <h2 className="text-xl font-bold text-rose-400 mb-2">{t('moments.emptyTitle')}</h2>
           <p className="text-muted-foreground text-sm mb-4">
-            Будьте первым, кто поделится своим моментом!
+            {t('moments.emptyDesc')}
           </p>
           <Button
             onClick={openCreateDialog}
             className="bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-xl"
           >
             <Plus className="w-4 h-4 mr-2" />
-            Создать момент
+            {t('moments.createMoment')}
           </Button>
         </motion.div>
 
@@ -833,8 +935,8 @@ export function MomentsView() {
     <div className="flex-1 overflow-y-auto custom-scrollbar pb-4">
       {/* Header */}
       <div className="px-4 pt-4 pb-2 md:pt-6 md:pb-3">
-        <h2 className="text-xl font-bold text-rose-700 dark:text-rose-300">Моменты</h2>
-        <p className="text-sm text-muted-foreground mt-0.5">Истории и впечатления пользователей</p>
+        <h2 className="text-xl font-bold text-rose-700 dark:text-rose-300">{t('moments.title')}</h2>
+        <p className="text-sm text-muted-foreground mt-0.5">{t('moments.subtitle')}</p>
       </div>
 
       {/* Stories Row */}
@@ -851,7 +953,7 @@ export function MomentsView() {
               <Plus className="w-6 h-6 text-rose-400" />
             </div>
             <span className="text-[10px] md:text-xs text-rose-500 font-medium w-16 md:w-[68px] text-center truncate">
-              Создать
+              {t('moments.create')}
             </span>
           </motion.button>
 
@@ -900,7 +1002,7 @@ export function MomentsView() {
       <div className="px-4">
         <h3 className="text-sm font-semibold text-rose-600 dark:text-rose-400 mb-3 flex items-center gap-2">
           <Clock className="w-4 h-4" />
-          Лента моментов
+          {t('moments.feedTitle')}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <AnimatePresence mode="popLayout">
@@ -915,7 +1017,7 @@ export function MomentsView() {
                 <MomentFeedCard
                   moment={moment}
                   liked={likedMomentIds.has(moment.id)}
-                  likeCount={moment.likes + (likedMomentIds.has(moment.id) ? 1 : 0)}
+                  likeCount={moment.likes}
                   onLike={() => toggleFeedLike(moment.id)}
                   onReaction={(emoji) => handleFeedReaction(moment.id, emoji)}
                 />

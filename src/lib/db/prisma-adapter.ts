@@ -401,6 +401,9 @@ export class PrismaAdapter implements DatabaseAdapter {
     create: (data: Partial<DbMomentLike>) =>
       prisma.momentLike.create({ data: data as Prisma.MomentLikeCreateInput }).then(toDbMomentLike),
 
+    findMany: (where?: Record<string, unknown>) =>
+      prisma.momentLike.findMany({ where: where as Prisma.MomentLikeWhereInput }).then((arr) => arr.map(toDbMomentLike)),
+
     findUnique: (where: { momentId?: string; userId?: string }) => {
       if (where.momentId && where.userId) {
         return prisma.momentLike.findFirst({ where: { momentId: where.momentId, userId: where.userId } }).then((r) => (r ? toDbMomentLike(r) : null));
@@ -597,6 +600,7 @@ export class PrismaAdapter implements DatabaseAdapter {
         },
         momentLike: {
           create: (data) => tx.momentLike.create({ data: data as Prisma.MomentLikeCreateInput }).then(toDbMomentLike),
+          findMany: (where) => tx.momentLike.findMany({ where: where as Prisma.MomentLikeWhereInput }).then((arr) => arr.map(toDbMomentLike)),
           findUnique: (where) => {
             if (where.momentId && where.userId) {
               return tx.momentLike.findFirst({ where: { momentId: where.momentId, userId: where.userId } }).then((r) => (r ? toDbMomentLike(r) : null));

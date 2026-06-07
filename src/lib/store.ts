@@ -124,6 +124,8 @@ export interface Moment {
   likes: number;
   comments: MomentComment[];
   reactions: Record<string, number>;
+  userLiked?: boolean;
+  userReactions?: string[];
 }
 
 export interface MomentComment {
