@@ -12,6 +12,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useAppStore } from '@/lib/store';
+import { useTranslation } from '@/hooks/useTranslation';
 
 // ─── Achievement definitions ─────────────────────────────────────────────────
 
@@ -25,8 +26,8 @@ interface AchievementState {
 
 interface AchievementDef {
   id: string;
-  name: string;
-  description: string;
+  nameKey: string;
+  descKey: string;
   icon: React.ElementType;
   threshold: number;
   getValue: (state: AchievementState) => number;
@@ -34,11 +35,11 @@ interface AchievementDef {
 }
 
 const ACHIEVEMENTS: AchievementDef[] = [
-  // ── Знакомства (Dating) ──
+  // ── Dating ──
   {
     id: 'first_like',
-    name: 'Первый лайк',
-    description: 'Отправьте первый лайк',
+    nameKey: 'achievements.firstLike',
+    descKey: 'achievements.firstLikeDesc',
     icon: Heart,
     threshold: 1,
     getValue: (s) => s.likedUserIds.length,
@@ -46,8 +47,8 @@ const ACHIEVEMENTS: AchievementDef[] = [
   },
   {
     id: 'heart_hunter',
-    name: 'Сердцеед',
-    description: 'Лайкните 10 анкет',
+    nameKey: 'achievements.heartHunter',
+    descKey: 'achievements.heartHunterDesc',
     icon: Heart,
     threshold: 10,
     getValue: (s) => s.likedUserIds.length,
@@ -55,19 +56,19 @@ const ACHIEVEMENTS: AchievementDef[] = [
   },
   {
     id: 'super_star',
-    name: 'Суперзвезда',
-    description: 'Используйте 5 суперлайков',
+    nameKey: 'achievements.superStar',
+    descKey: 'achievements.superStarDesc',
     icon: Star,
     threshold: 5,
     getValue: (s) => s.superLikedUserIds.length,
     category: 'dating',
   },
 
-  // ── Общение (Communication) ──
+  // ── Communication ──
   {
     id: 'first_match',
-    name: 'Первый мэтч',
-    description: 'Получите первый мэтч',
+    nameKey: 'achievements.firstMatch',
+    descKey: 'achievements.firstMatchDesc',
     icon: MessageCircle,
     threshold: 1,
     getValue: (s) => s.matches.length,
@@ -75,8 +76,8 @@ const ACHIEVEMENTS: AchievementDef[] = [
   },
   {
     id: 'popular',
-    name: 'Популярный',
-    description: 'Получите 5 мэтчей',
+    nameKey: 'achievements.popular',
+    descKey: 'achievements.popularDesc',
     icon: Users,
     threshold: 5,
     getValue: (s) => s.matches.length,
@@ -84,19 +85,19 @@ const ACHIEVEMENTS: AchievementDef[] = [
   },
   {
     id: 'beloved',
-    name: 'Любимец',
-    description: 'Получите 10 мэтчей',
+    nameKey: 'achievements.beloved',
+    descKey: 'achievements.belovedDesc',
     icon: Crown,
     threshold: 10,
     getValue: (s) => s.matches.length,
     category: 'communication',
   },
 
-  // ── Исследователь (Explorer) ──
+  // ── Explorer ──
   {
     id: 'started',
-    name: 'Начало пути',
-    description: 'Войдите в приложение',
+    nameKey: 'achievements.started',
+    descKey: 'achievements.startedDesc',
     icon: Compass,
     threshold: 1,
     getValue: (s) => (s.currentUser ? 1 : 0),
@@ -104,19 +105,19 @@ const ACHIEVEMENTS: AchievementDef[] = [
   },
   {
     id: 'pro',
-    name: 'Профессионал',
-    description: 'Просмотрите 50 анкет',
+    nameKey: 'achievements.pro',
+    descKey: 'achievements.proDesc',
     icon: Award,
     threshold: 50,
     getValue: (s) => s.likedUserIds.length + s.dislikedUserIds.length,
     category: 'explorer',
   },
 
-  // ── Особенные (Special) ──
+  // ── Special ──
   {
     id: 'super_master',
-    name: 'Суперлайк мастер',
-    description: '3 суперлайка за сессию',
+    nameKey: 'achievements.superMaster',
+    descKey: 'achievements.superMasterDesc',
     icon: Zap,
     threshold: 3,
     getValue: (s) => s.superLikedUserIds.length,
@@ -124,8 +125,8 @@ const ACHIEVEMENTS: AchievementDef[] = [
   },
   {
     id: 'collector',
-    name: 'Коллекционер',
-    description: 'Лайкните 25 анкет',
+    nameKey: 'achievements.collector',
+    descKey: 'achievements.collectorDesc',
     icon: Gift,
     threshold: 25,
     getValue: (s) => s.likedUserIds.length,
@@ -135,11 +136,11 @@ const ACHIEVEMENTS: AchievementDef[] = [
 
 // ─── Category metadata ───────────────────────────────────────────────────────
 
-const CATEGORIES: { key: AchievementDef['category']; title: string; icon: React.ElementType }[] = [
-  { key: 'dating', title: 'Знакомства', icon: Heart },
-  { key: 'communication', title: 'Общение', icon: MessageCircle },
-  { key: 'explorer', title: 'Исследователь', icon: Compass },
-  { key: 'special', title: 'Особенные', icon: Zap },
+const CATEGORIES: { key: AchievementDef['category']; titleKey: string; icon: React.ElementType }[] = [
+  { key: 'dating', titleKey: 'achievements.catDating', icon: Heart },
+  { key: 'communication', titleKey: 'achievements.catCommunication', icon: MessageCircle },
+  { key: 'explorer', titleKey: 'achievements.catExplorer', icon: Compass },
+  { key: 'special', titleKey: 'achievements.catSpecial', icon: Zap },
 ];
 
 // ─── Animation variants ──────────────────────────────────────────────────────
@@ -174,6 +175,7 @@ export function AchievementsView() {
     unlockedAchievements,
     unlockAchievement,
   } = useAppStore();
+  const { t } = useTranslation();
 
   // Track which achievements were already unlocked when we first mounted,
   // so we only toast about *newly* unlocked ones.
@@ -198,14 +200,14 @@ export function AchievementsView() {
         unlockAchievement(a.id);
         // Only show toast for achievements that were NOT already unlocked at mount time
         if (!initialUnlockedRef.current.has(a.id)) {
-          toast.success(`Новое достижение: ${a.name}!`, {
-            description: a.description,
+          toast.success(t('achievements.newAchievement', { name: t(a.nameKey) }), {
+            description: t(a.descKey),
             icon: <Trophy className="w-5 h-5 text-rose-500" />,
           });
         }
       }
     }
-  }, [likedUserIds, matches, superLikedUserIds, dislikedUserIds, currentUser, unlockedAchievements, unlockAchievement]);
+  }, [likedUserIds, matches, superLikedUserIds, dislikedUserIds, currentUser, unlockedAchievements, unlockAchievement, t]);
 
   useEffect(() => {
     checkAndUnlock();
@@ -223,10 +225,10 @@ export function AchievementsView() {
 
   // ── Stats summary data ──
   const stats = [
-    { icon: Heart, value: totalLiked, label: 'Лайков', color: 'text-rose-500', bg: 'bg-rose-50 dark:bg-rose-900/20' },
-    { icon: MessageCircle, value: totalMatches, label: 'Мэтчей', color: 'text-pink-500', bg: 'bg-pink-50 dark:bg-pink-900/20' },
-    { icon: Star, value: totalSuperLikes, label: 'Суперлайков', color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-900/20' },
-    { icon: Eye, value: totalViewed, label: 'Просмотрено', color: 'text-violet-500', bg: 'bg-violet-50 dark:bg-violet-900/20' },
+    { icon: Heart, value: totalLiked, label: t('achievements.likes'), color: 'text-rose-500', bg: 'bg-rose-50 dark:bg-rose-900/20' },
+    { icon: MessageCircle, value: totalMatches, label: t('achievements.matchCount'), color: 'text-pink-500', bg: 'bg-pink-50 dark:bg-pink-900/20' },
+    { icon: Star, value: totalSuperLikes, label: t('achievements.superLikes'), color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-900/20' },
+    { icon: Eye, value: totalViewed, label: t('achievements.viewed'), color: 'text-violet-500', bg: 'bg-violet-50 dark:bg-violet-900/20' },
   ];
 
   return (
@@ -237,11 +239,11 @@ export function AchievementsView() {
           <div className="flex items-center justify-center gap-2">
             <Trophy className="w-6 h-6 text-rose-500" />
             <h2 className="text-xl font-bold text-rose-700 dark:text-rose-300">
-              Достижения
+              {t('achievements.title')}
             </h2>
           </div>
           <p className="text-sm text-muted-foreground">
-            {unlockedCount} из {totalAchievements} получено
+            {t('achievements.countOf', { unlocked: unlockedCount, total: totalAchievements })}
           </p>
           <div className="flex items-center gap-3 max-w-xs mx-auto">
             <Progress
@@ -266,7 +268,7 @@ export function AchievementsView() {
                 <div className="flex items-center gap-2 mb-3">
                   <TrendingUp className="w-4 h-4 text-rose-500" />
                   <h3 className="text-sm font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wide">
-                    Ваша статистика
+                    {t('achievements.yourStats')}
                   </h3>
                 </div>
                 <div className="grid grid-cols-4 gap-2">
@@ -313,7 +315,7 @@ export function AchievementsView() {
                     <div className="flex items-center gap-2">
                       <CatIcon className="w-4 h-4 text-rose-500" />
                       <h3 className="text-sm font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wide mb-0">
-                        {cat.title}
+                        {t(cat.titleKey)}
                       </h3>
                     </div>
                     <span className="text-xs text-muted-foreground tabular-nums">
@@ -395,12 +397,12 @@ export function AchievementsView() {
                                   }
                                 `}
                               >
-                                {ach.name}
+                                {t(ach.nameKey)}
                               </h4>
 
                               {/* Description */}
                               <p className="text-[11px] text-muted-foreground leading-snug">
-                                {ach.description}
+                                {t(ach.descKey)}
                               </p>
 
                               {/* Unlocked badge or progress */}
@@ -408,13 +410,13 @@ export function AchievementsView() {
                                 <Badge
                                   className="bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800 text-[10px] px-2 py-0"
                                 >
-                                  Получено!
+                                  {t('achievements.earned')}
                                 </Badge>
                               ) : (
                                 <div className="w-full space-y-1">
                                   <div className="flex items-center justify-between">
                                     <span className="text-[10px] text-muted-foreground">
-                                      Прогресс
+                                      {t('achievements.progress')}
                                     </span>
                                     <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 tabular-nums">
                                       {currentVal}/{ach.threshold}
@@ -458,10 +460,10 @@ export function AchievementsView() {
                 <CardContent className="bg-white dark:bg-gray-950 rounded-xl p-5 flex flex-col items-center text-center gap-2">
                   <Trophy className="w-10 h-10 text-amber-500" />
                   <h3 className="text-lg font-bold text-rose-700 dark:text-rose-300">
-                    Все достижения получены!
+                    {t('achievements.allEarned')}
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    Вы настоящий мастер знакомств. Продолжайте в том же духе!
+                    {t('achievements.allEarnedDesc')}
                   </p>
                 </CardContent>
               </div>
