@@ -12,6 +12,7 @@ import { useAppStore, type User } from '@/lib/store';
 import { OnlineIndicator } from './shared';
 import { appLogger } from '@/lib/logger';
 import { toast } from 'sonner';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface RankedUser extends User {
   popularityScore: number;
@@ -38,13 +39,13 @@ function sortUsers(ranked: RankedUser[], sortKey: SortKey): RankedUser[] {
   return sorted;
 }
 
-function getMotivationalText(rank: number, total: number): string {
-  if (rank === 1) return '🏆 Вы на вершине! Невероятно!';
-  if (rank <= 3) return '🔥 Впечатляющий результат! В тройке лидеров!';
-  if (rank <= 10) return '✨ Отличный рейтинг! Так держать!';
-  if (rank <= total * 0.25) return '😊 Хороший результат, вы в верхней четверти!';
-  if (rank <= total * 0.5) return '💪 Неплохо! Есть куда расти!';
-  return '🌱 Продолжайте проявлять активность!';
+function getMotivationalText(rank: number, total: number, t: (key: string) => string): string {
+  if (rank === 1) return `🏆 ${t('top.onTop')}`;
+  if (rank <= 3) return `🔥 ${t('top.topThree')}`;
+  if (rank <= 10) return `✨ ${t('top.topTen')}`;
+  if (rank <= total * 0.25) return `😊 ${t('top.topQuarter')}`;
+  if (rank <= total * 0.5) return `💪 ${t('top.topHalf')}`;
+  return `🌱 ${t('top.keepGoing')}`;
 }
 
 // ─── Podium Card ────────────────────────────────────────────────────────────
@@ -58,11 +59,12 @@ function PodiumCard({
   delay: number;
 }) {
   const isCurrent = useAppStore((s) => s.currentUser?.id === ranked.id);
+  const { t } = useTranslation();
 
   const medals: Record<1 | 2 | 3, { emoji: string; label: string }> = {
-    1: { emoji: '🥇', label: '1 место' },
-    2: { emoji: '🥈', label: '2 место' },
-    3: { emoji: '🥉', label: '3 место' },
+    1: { emoji: '🥇', label: t('top.place1') },
+    2: { emoji: '🥈', label: t('top.place2') },
+    3: { emoji: '🥉', label: t('top.place3') },
   };
 
   const gradients = {
@@ -138,10 +140,10 @@ function PodiumCard({
           </span>
         </div>
 
-        {/* "Вы" badge */}
+        {/* "You" badge */}
         {isCurrent && (
           <Badge className="mt-2 bg-rose-500 text-white text-[10px] px-2 py-0">
-            Вы
+            {t('top.you')}
           </Badge>
         )}
       </div>
@@ -163,17 +165,18 @@ function RankedListRow({
   ranked,
   rank,
   index,
-  scoreLabel,
+  sortKey,
   scoreValue,
 }: {
   ranked: RankedUser;
   rank: number;
   index: number;
-  scoreLabel: string;
+  sortKey: SortKey;
   scoreValue: number;
 }) {
   const currentUserId = useAppStore((s) => s.currentUser?.id);
   const isCurrent = currentUserId === ranked.id;
+  const { t } = useTranslation();
 
   return (
     <motion.div
@@ -217,7 +220,7 @@ function RankedListRow({
           <span className="text-xs text-muted-foreground">{ranked.age}</span>
           {isCurrent && (
             <Badge className="bg-rose-500 text-white text-[10px] px-1.5 py-0 h-4">
-              Вы
+              {t('top.you')}
             </Badge>
           )}
         </div>
@@ -231,9 +234,9 @@ function RankedListRow({
 
       {/* Score */}
       <div className="flex items-center gap-1 flex-shrink-0">
-        {scoreLabel === 'Лайки' ? (
+        {sortKey === 'popular' ? (
           <Heart className="w-3.5 h-3.5 text-rose-400 fill-rose-400" />
-        ) : scoreLabel === 'Активность' ? (
+        ) : sortKey === 'active' ? (
           <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
         ) : (
           <UserPlus className="w-3.5 h-3.5 text-blue-400" />
@@ -249,6 +252,7 @@ function RankedListRow({
 // ─── Main Component ─────────────────────────────────────────────────────────
 export function TopView() {
   const { currentUser } = useAppStore();
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<SortKey>('popular');
   const [leaderboardData, setLeaderboardData] = useState<RankedUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -286,13 +290,13 @@ export function TopView() {
           // Don't clear data - let user continue browsing
         } else if (errorMessage === 'RATE_LIMITED') {
           appLogger.warn('top-view.leaderboard', 'Rate limited on leaderboard');
-          toast.error('Слишком много запросов', {
-            description: 'Попробуйте через несколько секунд',
+          toast.error(t('top.rateLimited'), {
+            description: t('top.rateLimitedDesc'),
           });
         } else {
           appLogger.error('top-view.leaderboard', 'Failed to fetch leaderboard', err);
-          toast.error('Ошибка загрузки', {
-            description: 'Не удалось загрузить рейтинг. Попробуйте позже.',
+          toast.error(t('top.loadError'), {
+            description: t('top.loadErrorDesc'),
           });
         }
 
@@ -300,7 +304,7 @@ export function TopView() {
         setLoading(false);
       });
     return () => { cancelled = true; };
-  }, [activeTab]);
+  }, [activeTab, t]);
 
   const sortedUsers = useMemo(
     () => sortUsers(leaderboardData, activeTab),
@@ -324,30 +328,22 @@ export function TopView() {
 
   const tabConfig: {
     key: SortKey;
-    label: string;
     icon: React.ReactNode;
-    scoreLabel: string;
     scoreGetter: (r: RankedUser) => number;
   }[] = [
     {
       key: 'popular',
-      label: 'Популярные',
       icon: <Heart className="w-4 h-4" />,
-      scoreLabel: 'Лайки',
       scoreGetter: (r) => r.popularityScore,
     },
     {
       key: 'active',
-      label: 'Активные',
       icon: <TrendingUp className="w-4 h-4" />,
-      scoreLabel: 'Активность',
       scoreGetter: (r) => r.activityScore,
     },
     {
       key: 'new',
-      label: 'Новые лица',
       icon: <UserPlus className="w-4 h-4" />,
-      scoreLabel: 'На платформе',
       scoreGetter: (r) => Math.floor((Date.now() - new Date(r.createdAt).getTime()) / (1000 * 60 * 60 * 24)),
     },
   ];
@@ -379,10 +375,10 @@ export function TopView() {
         >
           <Sparkles className="w-16 h-16 text-rose-200 dark:text-rose-800 mx-auto mb-4" />
           <h2 className="text-xl font-bold text-rose-400 mb-2">
-            Рейтинг пока пуст
+            {t('top.emptyTitle')}
           </h2>
           <p className="text-muted-foreground text-sm">
-            Загрузите анкеты, чтобы увидеть лидеров
+            {t('top.emptyDesc')}
           </p>
         </motion.div>
       </div>
@@ -400,10 +396,10 @@ export function TopView() {
         >
           <h1 className="text-2xl md:text-3xl font-bold text-rose-700 dark:text-rose-300 flex items-center gap-2">
             <Sparkles className="w-6 h-6 md:w-7 md:h-7" />
-            Рейтинг
+            {t('top.title')}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Самые популярные пользователи
+            {t('top.subtitle')}
           </p>
         </motion.div>
       </div>
@@ -422,24 +418,24 @@ export function TopView() {
               className="flex-1 gap-1.5 rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-rose-800/50 data-[state=active]:shadow-sm data-[state=active]:text-rose-600 dark:data-[state=active]:text-rose-300 text-xs md:text-sm"
             >
               <Heart className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Популярные</span>
-              <span className="sm:hidden">Лайки</span>
+              <span className="hidden sm:inline">{t('top.popularTab')}</span>
+              <span className="sm:hidden">{t('top.likesTabShort')}</span>
             </TabsTrigger>
             <TabsTrigger
               value="active"
               className="flex-1 gap-1.5 rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-rose-800/50 data-[state=active]:shadow-sm data-[state=active]:text-rose-600 dark:data-[state=active]:text-rose-300 text-xs md:text-sm"
             >
               <TrendingUp className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Активные</span>
-              <span className="sm:hidden">Актив</span>
+              <span className="hidden sm:inline">{t('top.activeTab')}</span>
+              <span className="sm:hidden">{t('top.activeTabShort')}</span>
             </TabsTrigger>
             <TabsTrigger
               value="new"
               className="flex-1 gap-1.5 rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-rose-800/50 data-[state=active]:shadow-sm data-[state=active]:text-rose-600 dark:data-[state=active]:text-rose-300 text-xs md:text-sm"
             >
               <UserPlus className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Новые лица</span>
-              <span className="sm:hidden">Новые</span>
+              <span className="hidden sm:inline">{t('top.newTab')}</span>
+              <span className="sm:hidden">{t('top.newTabShort')}</span>
             </TabsTrigger>
           </TabsList>
 
@@ -448,7 +444,7 @@ export function TopView() {
             <LeaderboardContent
               top3={top3}
               rest={rest}
-              scoreLabel={currentTab.scoreLabel}
+              sortKey={activeTab}
               scoreGetter={currentTab.scoreGetter}
             />
           </TabsContent>
@@ -458,7 +454,7 @@ export function TopView() {
             <LeaderboardContent
               top3={top3}
               rest={rest}
-              scoreLabel={currentTab.scoreLabel}
+              sortKey={activeTab}
               scoreGetter={currentTab.scoreGetter}
             />
           </TabsContent>
@@ -468,7 +464,7 @@ export function TopView() {
             <LeaderboardContent
               top3={top3}
               rest={rest}
-              scoreLabel={currentTab.scoreLabel}
+              sortKey={activeTab}
               scoreGetter={currentTab.scoreGetter}
             />
           </TabsContent>
@@ -486,10 +482,10 @@ export function TopView() {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-semibold text-rose-700 dark:text-rose-300">
-                    Ваш рейтинг
+                    {t('top.yourRank')}
                   </span>
                   <span className="text-lg font-bold text-rose-600 dark:text-rose-400">
-                    #{currentUserRank.rank} из {currentUserRank.total}
+                    {t('top.rankOf', { rank: currentUserRank.rank, total: currentUserRank.total })}
                   </span>
                 </div>
 
@@ -508,7 +504,8 @@ export function TopView() {
                 <p className="text-xs text-muted-foreground">
                   {getMotivationalText(
                     currentUserRank.rank,
-                    currentUserRank.total
+                    currentUserRank.total,
+                    t
                   )}
                 </p>
               </CardContent>
@@ -527,14 +524,16 @@ export function TopView() {
 function LeaderboardContent({
   top3,
   rest,
-  scoreLabel,
+  sortKey,
   scoreGetter,
 }: {
   top3: RankedUser[];
   rest: RankedUser[];
-  scoreLabel: string;
+  sortKey: SortKey;
   scoreGetter: (r: RankedUser) => number;
 }) {
+  const { t } = useTranslation();
+
   // Ensure we have at least 3 entries in podium (pad with undefined if needed)
   const podiumEntries: (RankedUser | null)[] = [
     top3[0] ?? null,
@@ -551,7 +550,7 @@ function LeaderboardContent({
       <AnimatePresence mode="wait">
         {top3.length >= 3 && (
           <motion.div
-            key={scoreLabel}
+            key={sortKey}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -570,7 +569,7 @@ function LeaderboardContent({
               }
               return (
                 <PodiumCard
-                  key={`${scoreLabel}-${ranked.id}-${place}`}
+                  key={`${sortKey}-${ranked.id}-${place}`}
                   ranked={ranked}
                   place={place}
                   delay={0.1 + idx * 0.15}
@@ -585,7 +584,7 @@ function LeaderboardContent({
       {rest.length > 0 && (
         <div>
           <h3 className="text-sm font-semibold text-muted-foreground mb-2 px-1">
-            Остальные участники
+            {t('top.restOfUsers')}
           </h3>
           <Card className="border-rose-100 dark:border-rose-900/50 bg-card rounded-2xl overflow-hidden">
             <div className="max-h-96 overflow-y-auto custom-scrollbar">
@@ -593,11 +592,11 @@ function LeaderboardContent({
                 <AnimatePresence mode="popLayout">
                   {rest.map((ranked, idx) => (
                     <RankedListRow
-                      key={`${scoreLabel}-${ranked.id}`}
+                      key={`${sortKey}-${ranked.id}`}
                       ranked={ranked}
                       rank={idx + 4}
                       index={idx}
-                      scoreLabel={scoreLabel}
+                      sortKey={sortKey}
                       scoreValue={scoreGetter(ranked)}
                     />
                   ))}
@@ -611,7 +610,7 @@ function LeaderboardContent({
       {/* If fewer than 4 users total, show a message */}
       {top3.length > 0 && rest.length === 0 && (
         <p className="text-center text-sm text-muted-foreground py-4">
-          Пока слишком мало участников для полного рейтинга
+          {t('top.tooFewUsers')}
         </p>
       )}
     </div>
