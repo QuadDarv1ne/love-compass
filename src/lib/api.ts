@@ -5,6 +5,7 @@ import { detectBrowserLocale, SUPPORTED_LOCALES, createTranslatorForLanguage, ty
 
 let csrfToken: string | null = null;
 let csrfTokenFetchedAt: number | null = null;
+let csrfTokenPromise: Promise<string> | null = null;
 const CSRF_TOKEN_TTL = 5 * 60 * 1000; // 5 minutes
 const FETCH_TIMEOUT_MS = 15_000; // 15 seconds
 let hydrateGeneration = 0;
@@ -47,15 +48,26 @@ export async function getCSRFToken(): Promise<string> {
     return csrfToken;
   }
 
-  // Fetch a fresh token
-  const res = await fetchWithTimeout('/api/auth/csrf-token');
-  if (!res.ok) throw new Error('Failed to fetch CSRF token');
-  // Token is now set in the cookie by the server; read it from there
-  const freshToken = getCSRFTokenFromCookie();
-  if (!freshToken) throw new Error('CSRF token not set by server');
-  csrfToken = freshToken;
-  csrfTokenFetchedAt = now;
-  return csrfToken;
+  // Deduplicate concurrent fetches — join an in-flight request instead of racing
+  if (csrfTokenPromise) {
+    return csrfTokenPromise;
+  }
+
+  csrfTokenPromise = (async (): Promise<string> => {
+    const res = await fetchWithTimeout('/api/auth/csrf-token');
+    if (!res.ok) throw new Error('Failed to fetch CSRF token');
+    const freshToken = getCSRFTokenFromCookie();
+    if (!freshToken) throw new Error('CSRF token not set by server');
+    csrfToken = freshToken;
+    csrfTokenFetchedAt = Date.now();
+    return csrfToken;
+  })();
+
+  try {
+    return await csrfTokenPromise;
+  } finally {
+    csrfTokenPromise = null;
+  }
 }
 
 /**
