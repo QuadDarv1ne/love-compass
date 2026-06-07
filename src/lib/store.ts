@@ -145,6 +145,7 @@ interface AppState {
   selectedMatch: MatchWithUsers | null;
   selectedProfile: User | null;
   profiles: User[];
+  profilesCursor: string | null;
   matches: MatchWithUsers[];
   messages: Message[];
   showMatchAnimation: boolean;
@@ -228,6 +229,8 @@ interface AppState {
   addDislikedUserId: (userId: string) => void;
   addSuperLikedUserId: (userId: string) => void;
   removeProfile: (userId: string) => void;
+  addProfiles: (newProfiles: User[]) => void;
+  setProfilesCursor: (cursor: string | null) => void;
   setLikedYouCount: (count: number) => void;
   setIsLoading: (loading: boolean) => void;
   setChatListMatchId: (matchId: string | null) => void;
@@ -313,6 +316,7 @@ const clearState = {
   currentView: 'landing' as ViewType,
   previousView: null,
   profiles: [],
+  profilesCursor: null,
   matches: [],
   messages: [],
   selectedMatch: null,
@@ -490,6 +494,10 @@ export const useAppStore = create<AppState>((set, get) => ({
   removeProfile: (userId) => set((state) => ({
     profiles: state.profiles.filter((p) => p.id !== userId),
   })),
+  addProfiles: (newProfiles) => set((state) => ({
+    profiles: [...state.profiles, ...newProfiles],
+  })),
+  setProfilesCursor: (cursor) => set({ profilesCursor: cursor }),
   setIsLoading: (loading) => set({ isLoading: loading }),
   setChatListMatchId: (matchId) => set({ chatListMatchId: matchId }),
 

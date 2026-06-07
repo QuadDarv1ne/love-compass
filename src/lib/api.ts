@@ -205,7 +205,10 @@ export async function hydrateAppData(user?: User) {
         const profilesBody = await profilesRes.json();
         const allUsers: User[] = Array.isArray(profilesBody.data) ? profilesBody.data : [];
         const otherProfiles = currentUser ? allUsers.filter((u) => u.id !== currentUser.id) : allUsers;
-        if (hydrateGeneration === generation) store.setProfiles(otherProfiles);
+        if (hydrateGeneration === generation) {
+          store.setProfiles(otherProfiles);
+          store.setProfilesCursor(profilesBody.nextCursor ?? null);
+        }
 
         // Set online status based on actual activity (lastSeenAt within threshold)
         if (hydrateGeneration === generation) {

@@ -155,13 +155,15 @@ function ProfileDetailModal({
 // ─── Browse View ────────────────────────────────────────────────────────────
 export function BrowseView() {
   const {
-    profiles, currentUser,
-    removeProfile, addLikedUserId, addDislikedUserId, addSuperLikedUserId,
+    profiles, currentUser, profilesCursor,
+    removeProfile, addProfiles, setProfilesCursor,
+    addLikedUserId, addDislikedUserId, addSuperLikedUserId,
     setShowMatchAnimation, setMatchAnimationPartner, showFilters, setShowFilters,
     filterGender, filterAgeMin, filterAgeMax, filterCity,
     searchQuery, sortBy, blockedUserIds, dislikedUserIds,
   } = useAppStore();
   const { t } = useTranslation();
+  const [loadingMore, setLoadingMore] = useState(false);
   const [swipeDir, setSwipeDir] = useState<'left' | 'right' | null>(null);
   const [showHeartBurst, setShowHeartBurst] = useState(false);
   const [showX, setShowX] = useState(false);
@@ -236,6 +238,35 @@ export function BrowseView() {
 
     return result;
   }, [profiles, filterGender, filterAgeMin, filterAgeMax, filterCity, searchQuery, sortBy, blockedUserIds, dislikedUserIds, popularityMap]);
+
+  const loadMoreProfiles = useCallback(async () => {
+    if (!profilesCursor || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const res = await fetch(`/api/profiles?cursor=${encodeURIComponent(profilesCursor)}&limit=100`);
+      if (!res.ok) throw new Error('Failed to load more profiles');
+      const body = await res.json();
+      const newProfiles: User[] = Array.isArray(body.data) ? body.data : [];
+      if (newProfiles.length > 0) {
+        const filtered = currentUser
+          ? newProfiles.filter((p) => p.id !== currentUser.id && !dislikedUserIds.includes(p.id) && !blockedUserIds.includes(p.id))
+          : newProfiles;
+        addProfiles(filtered);
+      }
+      setProfilesCursor(body.nextCursor ?? null);
+    } catch (error) {
+      appLogger.error('browse-view.loadMore', 'Failed to load more profiles', error);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [profilesCursor, loadingMore, currentUser, dislikedUserIds, blockedUserIds, addProfiles, setProfilesCursor]);
+
+  // Auto-load more profiles when running low (less than 3 remaining)
+  useEffect(() => {
+    if (filteredProfiles.length < 3 && profilesCursor && !loadingMore) {
+      loadMoreProfiles();
+    }
+  }, [filteredProfiles.length, profilesCursor, loadingMore, loadMoreProfiles]);
 
   const currentProfile = filteredProfiles.length > 0 ? filteredProfiles[0] : null;
 
@@ -468,14 +499,25 @@ export function BrowseView() {
           <Heart className="w-20 h-20 text-rose-200 dark:text-rose-800 mx-auto mb-6" />
           <h2 className="text-2xl font-bold text-rose-400 mb-2">{t('browse.noMoreProfiles')}</h2>
           <p className="text-muted-foreground">{t('browse.checkBack')}</p>
-          {canUndo && (
-            <Button
-              onClick={handleUndo}
-              className="mt-4 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-200 dark:hover:bg-amber-900/50 border border-amber-200 dark:border-amber-800"
-            >
-              <Undo2 className="w-4 h-4 mr-2" />{t('browse.undoLast')}
-            </Button>
-          )}
+          <div className="flex flex-col items-center gap-2 mt-4">
+            {canUndo && (
+              <Button
+                onClick={handleUndo}
+                className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-200 dark:hover:bg-amber-900/50 border border-amber-200 dark:border-amber-800"
+              >
+                <Undo2 className="w-4 h-4 mr-2" />{t('browse.undoLast')}
+              </Button>
+            )}
+            {profilesCursor && (
+              <Button
+                onClick={loadMoreProfiles}
+                disabled={loadingMore}
+                className="bg-rose-500 hover:bg-rose-600 text-white"
+              >
+                {loadingMore ? t('profile.saving') : 'Load more'}
+              </Button>
+            )}
+          </div>
         </motion.div>
       </div>
     );
