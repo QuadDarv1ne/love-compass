@@ -21,12 +21,6 @@ export async function POST(request: Request) {
     const { toUserId, isSuperLike } = likeSchema.parse(body);
     const fromUserId = user.id;
 
-    // Rate limit likes to prevent spam
-    const rateLimit = await checkRateLimit(`like:${fromUserId}`, LIKE_RATE_LIMIT.MAX_LIKES, LIKE_RATE_LIMIT.WINDOW_SECONDS);
-    if (!rateLimit.allowed) {
-      return NextResponse.json({ error: 'Too many likes, try again later' }, { status: 429 });
-    }
-
     if (fromUserId === toUserId) {
       return NextResponse.json({ error: 'Cannot like yourself' }, { status: 400 });
     }
@@ -43,9 +37,34 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unable to interact with this user' }, { status: 403 });
     }
 
+    // Check super-like daily limit BEFORE rate-limit to avoid burning general slots
+    if (isSuperLike) {
+      const now = new Date();
+      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const endOfDay = new Date(startOfDay);
+      endOfDay.setDate(endOfDay.getDate() + 1);
+      const count = await db.like.count({
+        fromUserId,
+        isSuperLike: true,
+        createdAt: { gte: startOfDay, lt: endOfDay },
+      });
+      if (count >= SUPER_LIKE_DAILY_LIMIT) {
+        return NextResponse.json(
+          { error: 'Daily super like limit reached', limit: SUPER_LIKE_DAILY_LIMIT, current: count },
+          { status: 429 }
+        );
+      }
+    }
+
+    // Rate limit likes to prevent spam
+    const rateLimit = await checkRateLimit(`like:${fromUserId}`, LIKE_RATE_LIMIT.MAX_LIKES, LIKE_RATE_LIMIT.WINDOW_SECONDS);
+    if (!rateLimit.allowed) {
+      return NextResponse.json({ error: 'Too many likes, try again later' }, { status: 429 });
+    }
+
     // Execute all operations in a transaction to prevent race conditions
     const result = await db.transaction(async (tx) => {
-      // Check super like daily limit inside the transaction to prevent races
+      // Check super like daily limit inside the transaction (safety net)
       if (isSuperLike) {
         const now = new Date();
         const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -67,6 +86,39 @@ export async function POST(request: Request) {
       });
 
       if (existingLike) {
+        // If sending a super-like but only a regular like exists, upgrade it
+        if (isSuperLike && !existingLike.isSuperLike) {
+          await tx.like.deleteMany({ fromUserId, toUserId });
+          const like = await tx.like.create({ fromUserId, toUserId, isSuperLike: true });
+
+          // Continue to check for mutual match after upgrade
+          const reverseLike = await tx.like.findUnique({
+            fromUserId: toUserId, toUserId: fromUserId,
+          });
+
+          if (!reverseLike) {
+            return { like, match: null, isMutual: false };
+          }
+
+          const existingMatch = await tx.match.findFirst({
+            OR: [
+              { user1Id: fromUserId, user2Id: toUserId },
+              { user1Id: toUserId, user2Id: fromUserId },
+            ],
+          });
+
+          if (existingMatch) {
+            return { like, match: existingMatch, isMutual: false };
+          }
+
+          const match = await tx.match.create({
+            user1Id: fromUserId < toUserId ? fromUserId : toUserId,
+            user2Id: fromUserId < toUserId ? toUserId : fromUserId,
+          });
+
+          return { like, match, isMutual: true };
+        }
+
         return { like: existingLike, match: null, isMutual: false };
       }
 
