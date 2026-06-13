@@ -7,8 +7,10 @@ import { Heart, MessageCircle, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAppStore } from '@/lib/store';
 import { appLogger } from '@/lib/logger';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export function MatchAnimationOverlay() {
+  const { t } = useTranslation();
   const { showMatchAnimation, matchAnimationPartner, setShowMatchAnimation, navigateTo, setSelectedMatch, currentUser } = useAppStore();
 
   if (!showMatchAnimation || !matchAnimationPartner || !currentUser) return null;
@@ -84,8 +86,8 @@ export function MatchAnimationOverlay() {
           transition={{ delay: 0.3 }}
         >
           <Sparkles className="w-12 h-12 mx-auto mb-4 text-yellow-200" />
-          <h2 className="text-3xl md:text-4xl font-bold mb-2">Это мэтч!</h2>
-          <p className="text-white/90 mb-8 text-lg">Вы понравились друг другу</p>
+          <h2 className="text-3xl md:text-4xl font-bold mb-2">{t('matchAnimation.title')}</h2>
+          <p className="text-white/90 mb-8 text-lg">{t('matchAnimation.subtitle')}</p>
         </motion.div>
 
         <motion.div
@@ -113,10 +115,10 @@ export function MatchAnimationOverlay() {
         >
           <Button onClick={handleSendMessage} className="w-full bg-white text-rose-600 hover:bg-white/90 font-semibold text-lg py-6 rounded-xl">
             <MessageCircle className="w-5 h-5 mr-2" />
-            Написать сообщение
+            {t('matchAnimation.sendMessage')}
           </Button>
           <Button onClick={handleContinue} variant="outline" className="w-full border-white/50 text-white hover:bg-white/10 py-5 rounded-xl">
-            Продолжить
+            {t('matchAnimation.continue')}
           </Button>
         </motion.div>
       </motion.div>

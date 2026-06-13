@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/select';
 import { useAppStore } from '@/lib/store';
 import { FILTER } from '@/lib/constants';
+import { useTranslation } from '@/hooks/useTranslation';
 
 // ─── Avatar Options ──────────────────────────────────────────────────────────
 export const ALL_AVATARS = [
@@ -88,6 +89,7 @@ function useClientMounted() {
 export function DarkModeToggle() {
   const { setTheme, resolvedTheme, theme } = useTheme();
   const mounted = useClientMounted();
+  const { t } = useTranslation();
   if (!mounted) return <div className="w-9 h-9" />;
 
   // Cycle: light → dark → system → light
@@ -104,10 +106,10 @@ export function DarkModeToggle() {
   // Tooltip label based on current setting
   const current = theme ?? 'system';
   const tooltipLabel = current === 'system'
-    ? `Системная (${isDark ? 'тёмная' : 'светлая'})`
+    ? `${t('theme.system')} (${isDark ? t('theme.dark').toLowerCase() : t('theme.light').toLowerCase()})`
     : current === 'dark'
-      ? 'Тёмная'
-      : 'Светлая';
+      ? t('theme.dark')
+      : t('theme.light');
 
   return (
     <Button
@@ -174,9 +176,10 @@ export function FloatingHearts() {
 
 // ─── Avatar Picker ──────────────────────────────────────────────────────────
 export function AvatarPicker({ selected, onSelect }: { selected: string; onSelect: (avatar: string) => void }) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-2">
-      <Label className="text-rose-600">Аватар</Label>
+      <Label className="text-rose-600">{t('profile.avatarLabel')}</Label>
       <div className="grid grid-cols-5 gap-2">
         {ALL_AVATARS.map((avatar) => (
           <button
@@ -206,6 +209,7 @@ export function FilterPanel() {
     searchQuery, sortBy, filterGender, filterAgeMin, filterAgeMax, filterCity,
     setSearchQuery, setSortBy, setFilterGender, setFilterAgeMin, setFilterAgeMax, setFilterCity,
   } = useAppStore();
+  const { t } = useTranslation();
 
   const clearFilters = () => {
     setSearchQuery('');
@@ -229,30 +233,34 @@ export function FilterPanel() {
       <Card className="border-rose-100 dark:border-rose-900/50 bg-card/80 backdrop-blur-sm mb-4">
         <CardContent className="p-4 space-y-3">
           <div className="flex items-center justify-between">
-            <h4 className="text-sm font-semibold text-rose-600">Фильтры</h4>
+            <h4 className="text-sm font-semibold text-rose-600">{t('filter.title')}</h4>
             {hasActiveFilters && (
               <Button variant="ghost" size="sm" onClick={clearFilters} className="text-xs text-rose-400 hover:text-rose-600 h-auto p-0">
-                Сбросить
+                {t('filter.reset')}
               </Button>
             )}
           </div>
 
           {/* Search */}
           <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Поиск по имени</Label>
+            <Label className="text-xs text-muted-foreground">{t('filter.searchByName')}</Label>
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Введите имя..."
+              placeholder={t('filter.searchPlaceholder')}
               className="h-9 text-sm"
             />
           </div>
 
           {/* Sort */}
           <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Сортировка</Label>
+            <Label className="text-xs text-muted-foreground">{t('filter.sortBy')}</Label>
             <div className="flex gap-1">
-              {([['new', 'Новые'], ['name', 'По имени'], ['popular', 'Популярные']] as const).map(([value, label]) => (
+              {([
+                ['new', t('filter.sortNew')],
+                ['name', t('filter.sortName')],
+                ['popular', t('filter.sortPopular')],
+              ] as const).map(([value, label]) => (
                 <button
                   key={value}
                   type="button"
@@ -271,22 +279,22 @@ export function FilterPanel() {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Пол</Label>
+              <Label className="text-xs text-muted-foreground">{t('filter.gender')}</Label>
               <Select value={filterGender} onValueChange={(v) => setFilterGender(v as 'all' | 'male' | 'female')}>
                 <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Все</SelectItem>
-                  <SelectItem value="male">Мужчины</SelectItem>
-                  <SelectItem value="female">Женщины</SelectItem>
+                  <SelectItem value="all">{t('filter.genderAll')}</SelectItem>
+                  <SelectItem value="male">{t('filter.genderMale')}</SelectItem>
+                  <SelectItem value="female">{t('filter.genderFemale')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Возраст от</Label>
+              <Label className="text-xs text-muted-foreground">{t('filter.ageFrom')}</Label>
               <Select value={String(filterAgeMin)} onValueChange={(v) => setFilterAgeMin(Number(v))}>
                 <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="0">Любой</SelectItem>
+                  <SelectItem value="0">{t('filter.anyAge')}</SelectItem>
                   <SelectItem value="18">18</SelectItem>
                   <SelectItem value="25">25</SelectItem>
                   <SelectItem value="30">30</SelectItem>
@@ -296,11 +304,11 @@ export function FilterPanel() {
               </Select>
             </div>
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Возраст до</Label>
+              <Label className="text-xs text-muted-foreground">{t('filter.ageTo')}</Label>
               <Select value={String(filterAgeMax)} onValueChange={(v) => setFilterAgeMax(Number(v))}>
                 <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="99">Любой</SelectItem>
+                  <SelectItem value="99">{t('filter.anyAge')}</SelectItem>
                   <SelectItem value="25">25</SelectItem>
                   <SelectItem value="30">30</SelectItem>
                   <SelectItem value="35">35</SelectItem>
@@ -311,11 +319,11 @@ export function FilterPanel() {
             </div>
           </div>
           <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Город</Label>
+            <Label className="text-xs text-muted-foreground">{t('filter.city')}</Label>
             <Input
               value={filterCity}
               onChange={(e) => setFilterCity(e.target.value)}
-              placeholder="Название города..."
+              placeholder={t('filter.cityPlaceholder')}
               className="h-9 text-sm"
             />
           </div>

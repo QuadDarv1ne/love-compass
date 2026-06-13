@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { postWithCSRFFormData, deleteWithCSRF } from '@/lib/api';
 import { useAppStore } from '@/lib/store';
 import { UPLOAD } from '@/lib/constants';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface AvatarUploadProps {
   currentAvatar: string;
@@ -15,6 +16,7 @@ interface AvatarUploadProps {
 }
 
 export function AvatarUpload({ currentAvatar, userId: _userId, userName }: AvatarUploadProps) {
+  const { t } = useTranslation();
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { refreshUser } = useAppStore();
@@ -28,12 +30,12 @@ export function AvatarUpload({ currentAvatar, userId: _userId, userName }: Avata
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      toast.error('Выберите изображение');
+      toast.error(t('profile.chooseImage'));
       return;
     }
 
     if (file.size > UPLOAD.MAX_FILE_SIZE) {
-      toast.error(`Файл слишком большой (макс. ${UPLOAD.MAX_FILE_SIZE / (1024 * 1024)}MB)`);
+      toast.error(t('profile.fileTooLargeMsg', { size: UPLOAD.MAX_FILE_SIZE / (1024 * 1024) }));
       return;
     }
 
@@ -50,10 +52,10 @@ export function AvatarUpload({ currentAvatar, userId: _userId, userName }: Avata
         return;
       }
 
-      toast.success('Аватар обновлён');
+      toast.success(t('profile.avatarUpdated'));
       await refreshUser();
     } catch {
-      toast.error('Ошибка при загрузке');
+      toast.error(t('profile.uploadError'));
     } finally {
       setUploading(false);
       if (fileInputRef.current) {
@@ -71,10 +73,10 @@ export function AvatarUpload({ currentAvatar, userId: _userId, userName }: Avata
         toast.error(data.error);
         return;
       }
-      toast.success('Аватар удалён');
+      toast.success(t('profile.avatarDeleted'));
       await refreshUser();
     } catch {
-      toast.error('Ошибка при удалении');
+      toast.error(t('profile.deleteError'));
     } finally {
       setUploading(false);
     }
@@ -117,7 +119,7 @@ export function AvatarUpload({ currentAvatar, userId: _userId, userName }: Avata
           disabled={uploading}
           className="border-rose-200 text-rose-600 hover:bg-rose-50"
         >
-          {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Изменить'}
+          {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : t('profile.changePhoto')}
         </Button>
 
         {isCustomAvatar && (

@@ -147,6 +147,36 @@ const ru: Dict = {
   'common.someDataNotLoaded': 'Некоторые данные не загрузились',
   'common.failedToLoadWithRetry': 'Не удалось загрузить: {errors}. Попробуйте обновить страницу.',
 
+  // Filter
+  'filter.title': 'Фильтры',
+  'filter.reset': 'Сбросить',
+  'filter.searchByName': 'Поиск по имени',
+  'filter.searchPlaceholder': 'Введите имя...',
+  'filter.sortBy': 'Сортировка',
+  'filter.sortNew': 'Новые',
+  'filter.sortName': 'По имени',
+  'filter.sortPopular': 'Популярные',
+  'filter.gender': 'Пол',
+  'filter.genderAll': 'Все',
+  'filter.genderMale': 'Мужчины',
+  'filter.genderFemale': 'Женщины',
+  'filter.ageFrom': 'Возраст от',
+  'filter.ageTo': 'Возраст до',
+  'filter.anyAge': 'Любой',
+  'filter.city': 'Город',
+  'filter.cityPlaceholder': 'Название города...',
+
+  // Theme
+  'theme.dark': 'Тёмная',
+  'theme.light': 'Светлая',
+  'theme.system': 'Системная',
+
+  // Match animation
+  'matchAnimation.title': 'Это мэтч!',
+  'matchAnimation.subtitle': 'Вы понравились друг другу',
+  'matchAnimation.sendMessage': 'Написать сообщение',
+  'matchAnimation.continue': 'Продолжить',
+
   // Matches
   'matches.empty': 'Пока нет мэтчей',
   'matches.emptyDesc': 'Когда кто-то ответит вам взаимностью, он появится здесь',
@@ -212,6 +242,12 @@ const ru: Dict = {
   'profile.avatarDeletedDesc': 'Фото профиля удалено',
   'profile.avatarDeleteError': 'Не удалось удалить аватар',
   'profile.lookingFor': 'Ищу',
+  'profile.avatarLabel': 'Аватар',
+  'profile.chooseImage': 'Выберите изображение',
+  'profile.fileTooLargeMsg': 'Файл слишком большой (макс. {size} MB)',
+  'profile.uploadError': 'Ошибка при загрузке',
+  'profile.deleteError': 'Ошибка при удалении',
+  'profile.changePhoto': 'Изменить',
 
   // Liked You
   'likedYou.empty': 'Пока никто не лайкнул',
@@ -566,6 +602,36 @@ const en: Dict = {
   'common.someDataNotLoaded': 'Some data was not loaded',
   'common.failedToLoadWithRetry': 'Failed to load: {errors}. Try refreshing the page.',
 
+  // Filter
+  'filter.title': 'Filters',
+  'filter.reset': 'Reset',
+  'filter.searchByName': 'Search by name',
+  'filter.searchPlaceholder': 'Enter name...',
+  'filter.sortBy': 'Sort by',
+  'filter.sortNew': 'New',
+  'filter.sortName': 'By name',
+  'filter.sortPopular': 'Popular',
+  'filter.gender': 'Gender',
+  'filter.genderAll': 'All',
+  'filter.genderMale': 'Male',
+  'filter.genderFemale': 'Female',
+  'filter.ageFrom': 'Age from',
+  'filter.ageTo': 'Age to',
+  'filter.anyAge': 'Any',
+  'filter.city': 'City',
+  'filter.cityPlaceholder': 'City name...',
+
+  // Theme
+  'theme.dark': 'Dark',
+  'theme.light': 'Light',
+  'theme.system': 'System',
+
+  // Match animation
+  'matchAnimation.title': "It's a match!",
+  'matchAnimation.subtitle': 'You liked each other',
+  'matchAnimation.sendMessage': 'Send message',
+  'matchAnimation.continue': 'Continue',
+
   'matches.empty': 'No matches yet',
   'matches.emptyDesc': 'When someone reciprocates your interest, they will appear here',
   'matches.new': 'New match!',
@@ -628,6 +694,12 @@ const en: Dict = {
   'profile.avatarDeletedDesc': 'Profile photo deleted',
   'profile.avatarDeleteError': 'Failed to delete avatar',
   'profile.lookingFor': 'Looking for',
+  'profile.avatarLabel': 'Avatar',
+  'profile.chooseImage': 'Choose an image',
+  'profile.fileTooLargeMsg': 'File too large (max {size} MB)',
+  'profile.uploadError': 'Upload error',
+  'profile.deleteError': 'Delete error',
+  'profile.changePhoto': 'Change',
 
   'likedYou.empty': 'No one has liked you yet',
   'likedYou.emptyDesc': 'When someone shows interest, you will see it here',
@@ -974,6 +1046,36 @@ const zh: Dict = {
   'common.someDataNotLoaded': '部分数据加载失败',
   'common.failedToLoadWithRetry': '加载失败：{errors}。请尝试刷新页面。',
 
+  // Filter
+  'filter.title': '筛选',
+  'filter.reset': '重置',
+  'filter.searchByName': '按姓名搜索',
+  'filter.searchPlaceholder': '输入姓名...',
+  'filter.sortBy': '排序',
+  'filter.sortNew': '最新',
+  'filter.sortName': '按姓名',
+  'filter.sortPopular': '热门',
+  'filter.gender': '性别',
+  'filter.genderAll': '全部',
+  'filter.genderMale': '男',
+  'filter.genderFemale': '女',
+  'filter.ageFrom': '年龄从',
+  'filter.ageTo': '年龄至',
+  'filter.anyAge': '不限',
+  'filter.city': '城市',
+  'filter.cityPlaceholder': '城市名称...',
+
+  // Theme
+  'theme.dark': '深色',
+  'theme.light': '浅色',
+  'theme.system': '跟随系统',
+
+  // Match animation
+  'matchAnimation.title': '匹配成功！',
+  'matchAnimation.subtitle': '你们互相喜欢了对方',
+  'matchAnimation.sendMessage': '发送消息',
+  'matchAnimation.continue': '继续',
+
   'matches.empty': '暂无匹配',
   'matches.emptyDesc': '当有人与您相互喜欢时，会出现在这里',
   'matches.new': '新匹配！',
@@ -1036,6 +1138,12 @@ const zh: Dict = {
   'profile.avatarDeletedDesc': '个人资料照片已删除',
   'profile.avatarDeleteError': '删除头像失败',
   'profile.lookingFor': '寻找',
+  'profile.avatarLabel': '头像',
+  'profile.chooseImage': '选择图片',
+  'profile.fileTooLargeMsg': '文件太大（最大{size}MB）',
+  'profile.uploadError': '上传失败',
+  'profile.deleteError': '删除失败',
+  'profile.changePhoto': '更改',
 
   'likedYou.empty': '还没有人喜欢您',
   'likedYou.emptyDesc': '当有人对您表示兴趣时，您会在这里看到',
