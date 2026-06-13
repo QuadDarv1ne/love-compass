@@ -75,39 +75,44 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Too many messages, try again later' }, { status: 429 });
     }
 
-    // Verify user is a participant in this match
-    const match = await db.match.findUnique({ id: matchId });
+    // Atomically verify match participation, block status, and create message
+    const result = await db.transaction(async (tx) => {
+      const match = await tx.match.findUnique({ id: matchId });
+      if (!match || (match.user1Id !== user.id && match.user2Id !== user.id)) {
+        throw Object.assign(new Error('Unauthorized'), { status: 403 });
+      }
 
-    if (!match || (match.user1Id !== user.id && match.user2Id !== user.id)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
-    }
+      const otherUserId = match.user1Id === user.id ? match.user2Id : match.user1Id;
+      const existingBlock = await tx.block.findFirst({
+        OR: [
+          { blockerId: user.id, blockedId: otherUserId },
+          { blockerId: otherUserId, blockedId: user.id },
+        ],
+      });
 
-    // Check if either user has blocked the other
-    const otherUserId = match.user1Id === user.id ? match.user2Id : match.user1Id;
-    const existingBlock = await db.block.findFirst({
-      OR: [
-        { blockerId: user.id, blockedId: otherUserId },
-        { blockerId: otherUserId, blockedId: user.id },
-      ],
+      if (existingBlock) {
+        throw Object.assign(new Error('Unable to interact with this user'), { status: 403 });
+      }
+
+      const message = await tx.message.create({ matchId, senderId: user.id, content });
+      const sender = await tx.user.findUnique({ id: user.id });
+
+      if (!sender) {
+        throw Object.assign(new Error('User not found'), { status: 500 });
+      }
+
+      return { message, sender };
     });
 
-    if (existingBlock) {
-      return NextResponse.json({ error: 'Unable to interact with this user' }, { status: 403 });
-    }
-
-    const [message, sender] = await Promise.all([
-      db.message.create({ matchId, senderId: user.id, content }),
-      db.user.findUnique({ id: user.id }),
-    ]);
-
-    if (!sender) {
-      return NextResponse.json({ error: 'User not found' }, { status: 500 });
-    }
-
-    return NextResponse.json({ ...message, sender: { id: sender.id, name: sender.name, avatar: sender.avatar } }, { status: 201 });
+    return NextResponse.json({ ...result.message, sender: { id: result.sender.id, name: result.sender.name, avatar: result.sender.avatar } }, { status: 201 });
   } catch (error) {
     if (isZodError(error)) {
       return NextResponse.json({ error: 'Validation failed', details: error.issues }, { status: 400 });
+    }
+    // Handle custom errors thrown from the transaction
+    if (error instanceof Error && 'status' in error) {
+      const status = (error as Error & { status: number }).status;
+      return NextResponse.json({ error: error.message }, { status });
     }
     return NextResponse.json({ error: 'Failed to send message' }, { status: 500 });
   }

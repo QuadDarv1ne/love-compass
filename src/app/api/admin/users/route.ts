@@ -87,10 +87,10 @@ export async function GET(request: Request) {
       ]),
       db.message.groupBy({ by: ['senderId'], where: { senderId: { in: userIds } }, _count: { senderId: true } }),
       db.moment.groupBy({ by: ['userId'], where: { userId: { in: userIds } }, _count: { userId: true } }),
-      // Last activity = max message createdAt per sender
+      // Last activity = most recent message createdAt per sender
+      // Fetch without take limit; with default 20 users per page, this is negligible
       db.message.findMany({ senderId: { in: userIds } }, {
         orderBy: { createdAt: 'desc' },
-        take: userIds.length * 2,
       }),
     ]);
 
