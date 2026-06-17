@@ -1,5 +1,40 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { createRateLimiter } from '@/lib/rate-limit';
+import { RATE_LIMITS, LOGIN_LIMITS, REGISTRATION_LIMITS } from '@/lib/constants';
+
+// ─── Rate limiters ──────────────────────────────────────────────────────────
+const rateLimiters = {
+  api: createRateLimiter({ max: 100, windowMs: 60_000 }),          // 100 req/min per IP
+  login: createRateLimiter({ max: LOGIN_LIMITS.MAX_ATTEMPTS, windowMs: LOGIN_LIMITS.LOCKOUT_WINDOW * 1000 }),
+  register: createRateLimiter({ max: REGISTRATION_LIMITS.MAX_PER_HOUR, windowMs: REGISTRATION_LIMITS.WINDOW_SECONDS * 1000 }),
+  forgotPassword: createRateLimiter({ max: RATE_LIMITS.FORGOT_PASSWORD.MAX, windowMs: RATE_LIMITS.FORGOT_PASSWORD.WINDOW * 1000 }),
+  heavy: createRateLimiter({ max: 30, windowMs: 60_000 }),         // 30 req/min for write-heavy paths
+};
+
+function getClientIp(request: NextRequest): string {
+  return request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+    || request.headers.get('x-real-ip')
+    || '127.0.0.1';
+}
+
+function applyRateLimit(request: NextRequest, limiter: ReturnType<typeof createRateLimiter>): Response | null {
+  const ip = getClientIp(request);
+  const result = limiter.check(ip);
+  if (!result.allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again later.' },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': String(Math.max(1, result.reset - Math.floor(Date.now() / 1000))),
+          'X-RateLimit-Remaining': '0',
+        },
+      },
+    );
+  }
+  return null;
+}
 
 // Paths that require authentication
 const PROTECTED_PATHS = [
@@ -44,6 +79,30 @@ export async function middleware(request: NextRequest) {
   // Skip non-API routes and health checks
   if (!pathname.startsWith('/api/') || pathname === '/api/health') {
     return NextResponse.next();
+  }
+
+  // ── Rate limiting ────────────────────────────────────────────────────────
+  // Apply global API rate limit first
+  const globalLimit = applyRateLimit(request, rateLimiters.api);
+  if (globalLimit) return globalLimit;
+
+  // Stricter limits for auth endpoints
+  if (pathname === '/api/auth/login') {
+    const loginLimit = applyRateLimit(request, rateLimiters.login);
+    if (loginLimit) return loginLimit;
+  } else if (pathname === '/api/auth/register') {
+    const registerLimit = applyRateLimit(request, rateLimiters.register);
+    if (registerLimit) return registerLimit;
+  } else if (pathname === '/api/auth/forgot-password') {
+    const forgotLimit = applyRateLimit(request, rateLimiters.forgotPassword);
+    if (forgotLimit) return forgotLimit;
+  }
+
+  // Stricter limits for write-heavy API paths
+  const heavyPaths = ['/api/like', '/api/dislike', '/api/messages', '/api/block', '/api/report', '/api/moments'];
+  if (heavyPaths.some((p) => pathname === p || pathname.startsWith(p + '/'))) {
+    const heavyLimit = applyRateLimit(request, rateLimiters.heavy);
+    if (heavyLimit) return heavyLimit;
   }
 
   // Check if this is a public auth path
