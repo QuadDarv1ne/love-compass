@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { AuthLayout } from '@/components/auth/auth-layout';
 import { Button } from '@/components/ui/button';
@@ -13,7 +13,6 @@ import { useTranslation } from '@/hooks/useTranslation';
 function VerifyEmailPendingContent() {
   const { t } = useTranslation();
   const searchParams = useSearchParams();
-  const _router = useRouter();
   const email = searchParams.get('email') || '';
   const [cooldown, setCooldown] = useState(0);
   const [sending, setSending] = useState(false);

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { AuthLayout } from '@/components/auth/auth-layout';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,6 @@ import { useTranslation } from '@/hooks/useTranslation';
 function VerifyEmailContent() {
   const { t } = useTranslation();
   const searchParams = useSearchParams();
-  const _router = useRouter();
   const token = searchParams.get('token') || '';
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>(token ? 'loading' : 'error');
   const [email, setEmail] = useState('');

@@ -25,8 +25,6 @@ const POPULAR_EMOJIS = [
 
 const IS_DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
 
-const EMOJI_LIST = POPULAR_EMOJIS;
-
 // ─── Emoji Picker ────────────────────────────────────────────────────────────
 function EmojiPicker({ onSelect }: { onSelect: (emoji: string) => void }) {
   const [open, setOpen] = useState(false);
@@ -53,7 +51,7 @@ function EmojiPicker({ onSelect }: { onSelect: (emoji: string) => void }) {
             style={{ maxHeight: `${EMOJI.PICKER_MAX_HEIGHT_VH}vh` }}
           >
             <div className="emoji-picker-grid gap-1" style={{ display: 'grid', gridTemplateColumns: `repeat(${EMOJI.GRID_COLUMNS}, minmax(0, 1fr))` }}>
-              {EMOJI_LIST.map((emoji) => (
+              {POPULAR_EMOJIS.map((emoji) => (
                 <button
                   key={emoji}
                   type="button"
