@@ -63,7 +63,7 @@
 - [x] **Восстанавливать клиентское состояние из БД** — `hydrateAppData()` загружает анкеты, мэтчи, лайки, блокировки, моменты, достижения и настройки при входе
 
 - [ ] **Connect i18n** — `next-intl` installed but app is hardcoded to Russian. Wire language selector to actual translation system
-- [ ] **Подключить i18n** — `next-intl` установлен, но приложение захардкожено на русский. Привязать селектор языка к реальной системе переводов
+- [x] **Подключить i18n** — `next-intl` установлен, но приложение захардкожено на русский. Привязать селектор языка к реальной системе переводов ✅ (auth pages fully wired, views use useTranslation hook)
 
 - [x] **Fix onBlock nested setState anti-pattern** — `browse-view.tsx` `onBlock` handler called `state.blockUser()` inside `useAppStore.setState()`, causing a nested `setState` call since `blockUser` internally calls `set()`. Fixed by calling `useAppStore.getState().blockUser()` directly.
 - [x] **Починить anti-pattern nested setState в onBlock** — Обработчик `onBlock` в `browse-view.tsx` вызывал `state.blockUser()` внутри `useAppStore.setState()`, что создавало вложенный `setState`, так как `blockUser` внутри вызывает `set()`. Исправлено прямым вызовом `useAppStore.getState().blockUser()`.
