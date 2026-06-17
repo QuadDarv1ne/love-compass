@@ -30,7 +30,7 @@ function isValidIP(ip: string): boolean {
 export function getClientIp(request: Request): string {
   const forwarded = request.headers.get('x-forwarded-for');
   if (forwarded) {
-    const firstIP = forwarded.split(',')[0].trim();
+    const firstIP = forwarded.split(',')[0]!.trim();
     if (isValidIP(firstIP)) {
       return firstIP;
     }

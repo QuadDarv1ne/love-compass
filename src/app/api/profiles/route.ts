@@ -73,7 +73,7 @@ export async function GET(request: Request) {
         }
       }
 
-      const lastProfile = profiles[profiles.length - 1];
+      const lastProfile = profiles[profiles.length - 1]!;
       cursor = lastProfile.id;
     }
 

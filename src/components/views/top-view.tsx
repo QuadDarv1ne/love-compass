@@ -348,7 +348,7 @@ export function TopView() {
     },
   ];
 
-  const currentTab = tabConfig.find((t) => t.key === activeTab) ?? tabConfig[0];
+  const currentTab = tabConfig.find((t) => t.key === activeTab) ?? tabConfig[0]!;
 
   // ─── Loading State ────────────────────────────────────────────────────────
   if (loading) {

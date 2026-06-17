@@ -150,7 +150,7 @@ export function ChatView() {
           } else {
             setMessages(messageList);
           }
-          lastMessageIdRef.current = messageList[messageList.length - 1].id;
+          lastMessageIdRef.current = messageList[messageList.length - 1]!.id;
           const currentUserId = currentUserRef.current?.id;
           const unreadIds = messageList
             .filter((m: Message) => m.senderId !== currentUserId && !m.read)
@@ -231,9 +231,9 @@ export function ChatView() {
   selectedMatchRef.current = selectedMatch;
 
   // Auto-reply simulation — only triggers when the *latest* message is from current user
-  const lastMessage = messages.length > 0 ? messages[messages.length - 1] : null;
+  const lastMessage = messages.length > 0 ? messages[messages.length - 1]! : null;
   const lastMessageRef = useRef<Message | null>(null);
-  lastMessageRef.current = lastMessage;
+  lastMessageRef.current = lastMessage ?? null;
 
   useEffect(() => {
     if (!lastMessage || !selectedMatchRef.current || !currentUserRef.current || !IS_DEMO_MODE) return;
@@ -334,7 +334,7 @@ export function ChatView() {
         groups.push({ date: msg.createdAt, messages: [msg] });
         lastDate = dateStr;
       } else {
-        groups[groups.length - 1].messages.push(msg);
+        groups[groups.length - 1]!.messages.push(msg);
       }
     }
     return groups;

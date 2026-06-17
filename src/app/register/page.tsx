@@ -16,8 +16,8 @@ import { toast } from 'sonner';
 import { Eye, EyeOff } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
 
-const AVATARS = Array.from({ length: 20 }, (_, i) =>
-  `https://api.dicebear.com/9.x/adventurer/svg?seed=${i + 1}`
+const AVATARS: readonly string[] = Array.from({ length: 20 }, (_, i) =>
+  `https://api.dicebear.com/9.x/notionists/svg?seed=${i + 1}`
 );
 
 export default function RegisterPage() {
@@ -35,7 +35,7 @@ export default function RegisterPage() {
     interests: '',
     lookingFor: 'all',
   });
-  const [avatar, setAvatar] = useState(AVATARS[0]);
+  const [avatar, setAvatar] = useState(AVATARS[0]!);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);

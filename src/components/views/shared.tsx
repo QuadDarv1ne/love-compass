@@ -136,11 +136,11 @@ const HEART_STYLES = (() => {
     vals.push((s - 1) / 2147483646);
   }
   return Array.from({ length: 10 }, (_, i) => ({
-    left: `${vals[i * 7] * 100}%`,
-    size: 14 + vals[i * 7 + 1] * 18,
-    duration: 8 + vals[i * 7 + 2] * 8,
-    delay: vals[i * 7 + 3] * 12,
-    opacity: 0.12 + vals[i * 7 + 6] * 0.18,
+    left: `${vals[i * 7]! * 100}%`,
+    size: 14 + vals[i * 7 + 1]! * 18,
+    duration: 8 + vals[i * 7 + 2]! * 8,
+    delay: vals[i * 7 + 3]! * 12,
+    opacity: 0.12 + vals[i * 7 + 6]! * 0.18,
   }));
 })();
 

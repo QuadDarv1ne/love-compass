@@ -80,8 +80,8 @@
 - [x] **Add pagination** — `/api/profiles` already has cursor-based pagination with `cursor` and `limit` params
 - [x] **Добавить пагинацию** — `/api/profiles` уже имеет курсорную пагинацию с параметрами `cursor` и `limit`
 
-- [x] **Enable TypeScript strictness** — `noImplicitAny: true` in tsconfig, all types fixed, zero lint errors
-- [x] **Включить строгий TypeScript** — `noImplicitAny: true` в tsconfig, все типы исправлены, 0 ошибок линта
+- [x] **Enable TypeScript strictness** — `noImplicitAny: true` and `noUncheckedIndexedAccess: true` in tsconfig, all types fixed, zero lint errors
+- [x] **Включить строгий TypeScript** — `noImplicitAny: true` и `noUncheckedIndexedAccess: true` в tsconfig, все типы исправлены, 0 ошибок линта
 
 - [x] **Implement account deletion** — `DELETE /api/account` with full cascade delete; settings-view calls it with confirmation dialog
 - [x] **Реализовать удаление аккаунта** — `DELETE /api/account` с полным каскадным удалением; settings-view вызывает с диалогом подтверждения
@@ -146,7 +146,14 @@
 - [ ] **Добавить версионирование API** — Маршруты на `/api/*` без версии. Добавить префикс `/api/v1/`
 
 - [ ] **Fix Tailwind v4 config** — Using `tailwind.config.ts` but v4 prefers CSS-first configuration
-- [ ] **Починить конфиг Tailwind v4** — Используется `tailwind.config.ts`, но v4 предпочитает CSS-first конфигурацию
+
+- [x] **Add unit tests** — Test utilities, hooks, and complex components
+- [x] **Добавить юнит-тесты** — Тестирование утилит, хуков и сложных компонентов
+
+- [x] **Add CI/CD** — GitHub Actions for lint, test, build on push/PR
+- [x] **Добавить CI/CD** — GitHub Actions для lint, test, build при push/PR
+
+- [x] **Unify avatar style** — Registration page used `adventurer` DiceBear style while app used `notionists`. Fixed to use `notionists` everywhere for consistency
 
 ## Low Priority
 
@@ -244,13 +251,13 @@
 
 ### 🛠 Техническое качество
 
-- [ ] **Устранить дублирующиеся API-вызовы** — `LikedYouView` вызывает `/api/likes/received` дважды, `MatchesView` и `ChatListView` независимо загружают матчи
-- [ ] **Починить race conditions в Zustand** — Несколько `useEffect` вызывают `useAppStore.getState()`, что даёт устаревшее состояние
+- [x] **Устранить дублирующиеся API-вызовы** — `LikedYouView` вызывает `/api/likes/received` дважды, `MatchesView` и `ChatListView` независимо загружают матчи
+- [x] **Починить race conditions в Zustand** — Несколько `useEffect` вызывают `useAppStore.getState()`, что даёт устаревшее состояние
 - [ ] **Добавить версионирование API (`/api/v1/`)** — Подготовка к breaking changes в будущем
 - [ ] **Мигрировать на Tailwind v4 CSS-first config** — `tailwind.config.ts` устарел для v4
-- [ ] **Починить имя приложения** — В UI "Love Compas" (без 's'), в README — "Love Compass"
-- [ ] **Вынести магические числа в константы** — Пороги свайпа, задержки ответов, длительности анимаций
-- [ ] **Добавить TypeScript strict mode** — `strictNullChecks`, `noUncheckedIndexedAccess`
+- [x] **Починить имя приложения** — В UI "Love Compas" (без 's'), в README — "Love Compass"
+- [x] **Вынести магические числа в константы** — Пороги свайпа, задержки ответов, длительности анимаций
+- [x] **Добавить TypeScript strict mode** — `strictNullChecks`, `noUncheckedIndexedAccess`
 - [ ] **Оптимизировать бандл** — Code splitting, lazy loading тяжёлых компонентов (framer-motion, lucide icons)
 - [ ] **Добавить image optimization** — Кэширование DiceBear SVG, preload критичных изображений
 - [ ] **Перейти на PostgreSQL для продакшена** — SQLite не подходит для многопользовательской среды

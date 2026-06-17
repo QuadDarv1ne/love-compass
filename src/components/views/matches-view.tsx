@@ -37,7 +37,7 @@ export function MatchesView() {
     const unreadIds: string[] = [];
     for (const match of matches) {
       if (match.messages && match.messages.length > 0) {
-        const lastMsg = match.messages[match.messages.length - 1];
+        const lastMsg = match.messages[match.messages.length - 1]!;
         if (lastMsg.senderId !== currentUser.id && !lastMsg.read) {
           unreadIds.push(match.id);
         }
@@ -172,7 +172,7 @@ export function ChatListView() {
                 <h4 className="font-semibold text-sm text-rose-800 dark:text-rose-200 truncate">{partner.name}</h4>
                 <span className="text-[10px] text-muted-foreground flex-shrink-0">
                   {match.messages?.[match.messages.length - 1]?.createdAt
-                    ? formatMessageDate(match.messages[match.messages.length - 1].createdAt, useAppStore.getState().language || 'ru')
+                    ? formatMessageDate(match.messages[match.messages.length - 1]!.createdAt!, useAppStore.getState().language || 'ru')
                     : ''}
                 </span>
               </div>

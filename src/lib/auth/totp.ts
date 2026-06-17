@@ -9,7 +9,7 @@ export function generateTOTPSecret(): string {
   const base32Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
   let result = '';
   for (let i = 0; i < secret.length; i++) {
-    result += base32Chars[secret[i] & 0x1f];
+    result += base32Chars[secret[i]! & 0x1f];
   }
   return result;
 }
@@ -55,7 +55,7 @@ export function generateBackupCodes(count = 8): string[] {
     const bytes = new Uint8Array(8);
     crypto.getRandomValues(bytes);
     for (let j = 0; j < 8; j++) {
-      code += chars[bytes[j] % chars.length];
+      code += chars[bytes[j]! % chars.length];
     }
     codes.push(code);
   }
@@ -76,7 +76,7 @@ export async function verifyBackupCode(
 ): Promise<{ valid: boolean; index: number }> {
   const upperInput = input.toUpperCase().trim();
   for (let i = 0; i < storedHashes.length; i++) {
-    if (await verifyPassword(upperInput, storedHashes[i])) {
+    if (await verifyPassword(upperInput, storedHashes[i]!)) {
       return { valid: true, index: i };
     }
   }

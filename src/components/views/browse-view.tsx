@@ -620,7 +620,7 @@ export function BrowseView() {
               <Card className="overflow-hidden border-0 bg-card">
                 <div className="relative aspect-[3/4]">
                   <SafeImage
-                    src={filteredProfiles[1].avatar || 'https://api.dicebear.com/9.x/notionists/svg?seed=Default'}
+                    src={filteredProfiles[1]!.avatar || 'https://api.dicebear.com/9.x/notionists/svg?seed=Default'}
                     alt=""
                     fill
                     className="object-cover"

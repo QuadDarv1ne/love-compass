@@ -26,6 +26,18 @@ jobs:
       - run: bun tsc --noEmit
 
   test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - run: bun prisma generate
+      - run: bun run test
+
+  build:
     name: Build Test
     runs-on: ubuntu-latest
     steps:
@@ -55,7 +67,7 @@ jobs:
 
   deploy:
     name: Deploy to Production
-    needs: [lint, test, security]
+    needs: [lint, test, build, security]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment: production

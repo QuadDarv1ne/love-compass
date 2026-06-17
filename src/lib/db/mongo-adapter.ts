@@ -73,9 +73,9 @@ function parseAtomicOp(data: Record<string, unknown>): { $set: Record<string, un
   const $inc: Record<string, number> = {};
   for (const [key, value] of Object.entries(data)) {
     if (value && typeof value === 'object' && 'increment' in (value as Record<string, unknown>)) {
-      $inc[key] = (value as Record<string, number>).increment;
+      $inc[key] = (value as Record<string, number>).increment!;
     } else if (value && typeof value === 'object' && 'decrement' in (value as Record<string, unknown>)) {
-      $inc[key] = -(value as Record<string, number>).decrement;
+      $inc[key] = -(value as Record<string, number>).decrement!;
     } else {
       $set[key] = value;
     }

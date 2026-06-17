@@ -100,7 +100,7 @@ function StoryViewer({
     onCloseRef.current = onClose;
   }, [onClose]);
 
-  const currentMoment = localMoments[currentIndex];
+  const currentMoment = localMoments[currentIndex]!;
 
   // Auto-advance progress
   useEffect(() => {
@@ -150,11 +150,11 @@ function StoryViewer({
 
   // Touch handlers for swipe down to close
   const handleTouchStart = (e: React.TouchEvent) => {
-    dragStartY.current = e.touches[0].clientY;
+    dragStartY.current = e.touches[0]!.clientY;
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-    const diff = e.changedTouches[0].clientY - dragStartY.current;
+    const diff = e.changedTouches[0]!.clientY - dragStartY.current;
     if (diff > MOMENTS_CONST.STORY_SWIPE_CLOSE_THRESHOLD) {
       onClose();
     }
@@ -476,7 +476,7 @@ function CreateMomentDialog({
   onSubmit: (text: string, gradient: string) => void;
 }) {
   const [text, setText] = useState('');
-  const [selectedGradient, setSelectedGradient] = useState(GRADIENT_PRESETS[0]);
+  const [selectedGradient, setSelectedGradient] = useState(GRADIENT_PRESETS[0]!);
   const remaining = MOMENTS_CONST.CHARACTER_LIMIT - text.length;
   const { t } = useTranslation();
 
@@ -484,7 +484,7 @@ function CreateMomentDialog({
     if (!text.trim()) return;
     onSubmit(text.trim(), selectedGradient);
     setText('');
-    setSelectedGradient(GRADIENT_PRESETS[0]);
+    setSelectedGradient(GRADIENT_PRESETS[0]!);
     onOpenChange(false);
   };
 
@@ -684,6 +684,7 @@ export function MomentsView() {
   const { currentUser, moments: storeMoments, setMoments: setStoreMoments, addMoment: addStoreMoment } = useAppStore();
   const { t } = useTranslation();
   const [moments, setMoments] = useState<Moment[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [showStoryViewer, setShowStoryViewer] = useState(false);
   const [selectedStoryUserId, setSelectedStoryUserId] = useState<string | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -695,6 +696,7 @@ export function MomentsView() {
   useEffect(() => {
     if (storeMoments.length > 0) {
       setMoments(storeMoments);
+      setIsLoading(false);
       return;
     }
     let cancelled = false;
@@ -722,6 +724,8 @@ export function MomentsView() {
       } catch (error) {
         appLogger.error('moments-view.fetch', 'Failed to fetch moments', error);
         if (!cancelled) setMoments([]);
+      } finally {
+        if (!cancelled) setIsLoading(false);
       }
     })();
     return () => { cancelled = true; };
@@ -896,6 +900,17 @@ export function MomentsView() {
       );
     }
   };
+
+  // ─── Loading State ──────────────────────────────────────────────────────────
+  if (isLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
+          <Heart className="w-10 h-10 text-rose-400" />
+        </motion.div>
+      </div>
+    );
+  }
 
   // ─── Empty State ──────────────────────────────────────────────────────────
   if (moments.length === 0) {

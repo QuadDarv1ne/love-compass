@@ -31,7 +31,7 @@ export async function fetchWithTimeout(url: string, init?: RequestInit, timeoutM
  */
 function getCSRFTokenFromCookie(): string | null {
   const match = document.cookie.match(/(?:^|;\s*)__csrf=([^;]*)/);
-  return match ? decodeURIComponent(match[1]) : null;
+  return match ? decodeURIComponent(match[1]!) : null;
 }
 
 /**

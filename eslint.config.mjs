@@ -11,7 +11,7 @@ const eslintConfig = [...nextCoreWebVitals, ...nextTypescript, {
     // TypeScript rules — enable useful checks
     "@typescript-eslint/no-explicit-any": "warn",
     "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
-    "@typescript-eslint/no-non-null-assertion": "warn",
+    "@typescript-eslint/no-non-null-assertion": "off",
     "@typescript-eslint/prefer-as-const": "warn",
 
     // React rules — keep helpful warnings

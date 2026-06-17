@@ -24,7 +24,7 @@ export function detectBrowserLocale(): Locale {
   if (typeof navigator === 'undefined') return 'ru';
   const langs = navigator.languages ?? [navigator.language];
   for (const lang of langs) {
-    const code = lang.split('-')[0].toLowerCase();
+    const code = lang.split('-')[0]!.toLowerCase();
     if (code === 'zh' || code === 'cmn' || code === 'yue') return 'zh';
     if (code === 'en') return 'en';
     if (code === 'ru') return 'ru';

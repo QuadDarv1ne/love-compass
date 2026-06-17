@@ -8,7 +8,7 @@ export function getPartner(match: MatchWithUsers, currentUser: User | null): Use
 
 export function getLastMessage(match: MatchWithUsers, currentUser: User | null, youPrefix: string): string {
   if (match.messages && match.messages.length > 0) {
-    const lastMsg = match.messages[match.messages.length - 1];
+    const lastMsg = match.messages[match.messages.length - 1]!;
     const isMine = lastMsg.senderId === currentUser?.id;
     return isMine ? `${youPrefix}${lastMsg.content}` : lastMsg.content;
   }
