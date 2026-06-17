@@ -123,7 +123,7 @@ export default function RegisterPage() {
               id="name"
               value={form.name}
               onChange={(e) => updateField('name', e.target.value)}
-              placeholder="Ваше имя"
+              placeholder={t('auth.name')}
               required
               className="mt-1"
             />

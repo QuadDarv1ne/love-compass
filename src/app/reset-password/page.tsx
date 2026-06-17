@@ -10,8 +10,10 @@ import { validatePasswordStrength } from '@/lib/auth/password';
 import { appLogger } from '@/lib/logger';
 import { toast } from 'sonner';
 import { Eye, EyeOff } from 'lucide-react';
+import { useTranslation } from '@/hooks/useTranslation';
 
 function ResetPasswordContent() {
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get('token') || '';
@@ -32,12 +34,12 @@ function ResetPasswordContent() {
     e.preventDefault();
 
     if (!token) {
-      toast.error('Отсутствует токен');
+      toast.error(t('resetPassword.tokenMissing'));
       return;
     }
 
     if (password !== confirmPassword) {
-      toast.error('Пароли не совпадают');
+      toast.error(t('resetPassword.passwordMismatch'));
       return;
     }
 
@@ -61,11 +63,11 @@ function ResetPasswordContent() {
         return;
       }
 
-      toast.success('Пароль изменён! Войдите с новым паролем');
+      toast.success(t('resetPassword.success'));
       router.push('/login');
     } catch (error) {
       appLogger.error('reset-password.submit', 'Reset password request failed', error);
-      toast.error('Ошибка сервера. Попробуйте ещё раз');
+      toast.error(t('resetPassword.error'));
     } finally {
       setLoading(false);
     }
@@ -80,19 +82,19 @@ function ResetPasswordContent() {
 
   return (
     <AuthLayout
-      title="Новый пароль"
-      subtitle="Установите новый пароль"
+      title={t('resetPassword.title')}
+      subtitle={t('resetPassword.subtitle')}
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <Label htmlFor="password">Новый пароль</Label>
+          <Label htmlFor="password">{t('resetPassword.newPasswordLabel')}</Label>
           <div className="relative mt-1">
             <Input
               id="password"
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => handlePasswordChange(e.target.value)}
-              placeholder="Минимум 8 символов"
+              placeholder={t('resetPassword.passwordPlaceholder')}
               required
               className="pr-10"
             />
@@ -112,14 +114,14 @@ function ResetPasswordContent() {
         </div>
 
         <div>
-          <Label htmlFor="confirmPassword">Подтвердите пароль</Label>
+          <Label htmlFor="confirmPassword">{t('resetPassword.confirmLabel')}</Label>
           <div className="relative mt-1">
             <Input
               id="confirmPassword"
               type={showConfirm ? 'text' : 'password'}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Повторите пароль"
+              placeholder={t('resetPassword.confirmPlaceholder')}
               required
               className="pr-10"
             />
@@ -132,12 +134,12 @@ function ResetPasswordContent() {
             </button>
           </div>
           {confirmPassword && password !== confirmPassword && (
-            <div className="mt-1 text-xs text-rose-500">Пароли не совпадают</div>
+            <div className="mt-1 text-xs text-rose-500">{t('resetPassword.passwordMismatch')}</div>
           )}
         </div>
 
         <Button type="submit" className="w-full" disabled={!isValid || loading}>
-          {loading ? 'Сохранение...' : 'Сохранить пароль'}
+          {loading ? t('resetPassword.saving') : t('resetPassword.saved')}
         </Button>
       </form>
     </AuthLayout>
@@ -145,8 +147,9 @@ function ResetPasswordContent() {
 }
 
 export default function ResetPasswordPage() {
+  const { t } = useTranslation();
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Загрузка...</div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">{t('resetPassword.loading')}</div>}>
       <ResetPasswordContent />
     </Suspense>
   );

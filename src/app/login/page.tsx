@@ -108,7 +108,7 @@ export default function LoginPage() {
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Введите пароль"
+              placeholder={t('login.passwordPlaceholder')}
               required
               className="pr-10"
             />

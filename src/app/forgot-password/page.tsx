@@ -9,8 +9,10 @@ import { Label } from '@/components/ui/label';
 import { appLogger } from '@/lib/logger';
 import { toast } from 'sonner';
 import { Mail } from 'lucide-react';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function ForgotPasswordPage() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -37,7 +39,7 @@ export default function ForgotPasswordPage() {
       setSent(true);
     } catch (error) {
       appLogger.error('forgot-password.submit', 'Forgot password request failed', error);
-      toast.error('Ошибка сервера. Попробуйте ещё раз');
+      toast.error(t('forgotPassword.error'));
     } finally {
       setLoading(false);
     }
@@ -45,8 +47,8 @@ export default function ForgotPasswordPage() {
 
   return (
     <AuthLayout
-      title="Сброс пароля"
-      subtitle="Введите email для получения ссылки"
+      title={t('forgotPassword.title')}
+      subtitle={t('forgotPassword.subtitle')}
     >
       {sent ? (
         <div className="text-center space-y-4">
@@ -54,17 +56,16 @@ export default function ForgotPasswordPage() {
             <Mail className="w-12 h-12 text-rose-500" />
           </div>
           <p className="text-gray-600 dark:text-gray-300">
-            Если аккаунт с email <strong>{email}</strong> существует,
-            мы отправили ссылку для сброса пароля
+            {t('forgotPassword.sentDesc', { email })}
           </p>
           <Link href="/login">
-            <Button className="w-full">Вернуться ко входу</Button>
+            <Button className="w-full">{t('forgotPassword.backToLogin')}</Button>
           </Link>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t('forgotPassword.emailLabel')}</Label>
             <Input
               id="email"
               type="email"
@@ -77,15 +78,15 @@ export default function ForgotPasswordPage() {
           </div>
 
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? 'Отправка...' : 'Отправить ссылку'}
+            {loading ? t('forgotPassword.sending') : t('forgotPassword.sent')}
           </Button>
         </form>
       )}
 
       <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-4">
-        Вспомнили пароль?{' '}
+        {t('forgotPassword.rememberPassword')}{' '}
         <Link href="/login" className="text-rose-500 hover:text-rose-600">
-          Войти
+          {t('forgotPassword.login')}
         </Link>
       </p>
     </AuthLayout>
