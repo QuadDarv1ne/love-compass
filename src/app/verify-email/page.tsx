@@ -6,8 +6,10 @@ import Link from 'next/link';
 import { AuthLayout } from '@/components/auth/auth-layout';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { useTranslation } from '@/hooks/useTranslation';
 
 function VerifyEmailContent() {
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   const _router = useRouter();
   const token = searchParams.get('token') || '';
@@ -48,10 +50,10 @@ function VerifyEmailContent() {
     <AuthLayout
       title={
         status === 'loading'
-          ? 'Проверка...'
+          ? t('verifyEmail.checking')
           : status === 'success'
-          ? 'Email подтверждён!'
-          : 'Ошибка подтверждения'
+          ? t('verifyEmail.confirmed')
+          : t('verifyEmail.confirmError')
       }
     >
       <div className="text-center space-y-4">
@@ -67,10 +69,10 @@ function VerifyEmailContent() {
               <CheckCircle className="w-16 h-16 text-green-500" />
             </div>
             <p className="text-gray-600 dark:text-gray-300">
-              Ваш email <strong>{email}</strong> успешно подтверждён
+              {t('verifyEmail.emailConfirmed', { email })}
             </p>
             <Link href="/login">
-              <Button className="w-full">Войти</Button>
+              <Button className="w-full">{t('verifyEmail.login')}</Button>
             </Link>
           </>
         )}
@@ -81,17 +83,17 @@ function VerifyEmailContent() {
               <XCircle className="w-16 h-16 text-rose-500" />
             </div>
             <p className="text-gray-600 dark:text-gray-300">
-              Ссылка неверная или истекла
+              {t('verifyEmail.linkInvalid')}
             </p>
             <div className="space-y-2">
               <Link href="/login">
                 <Button variant="outline" className="w-full">
-                  Вернуться ко входу
+                  {t('verifyEmail.backToLogin')}
                 </Button>
               </Link>
               <Link href="/register">
                 <Button variant="ghost" className="w-full">
-                  Зарегистрироваться заново
+                  {t('verifyEmail.registerAgain')}
                 </Button>
               </Link>
             </div>
@@ -103,8 +105,9 @@ function VerifyEmailContent() {
 }
 
 export default function VerifyEmailPage() {
+  const { t } = useTranslation();
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Загрузка...</div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">{t('common.loading')}</div>}>
       <VerifyEmailContent />
     </Suspense>
   );

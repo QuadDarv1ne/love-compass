@@ -12,8 +12,10 @@ import { hydrateAppData, fetchWithCSRF } from '@/lib/api';
 import { appLogger } from '@/lib/logger';
 import { toast } from 'sonner';
 import { Shield, KeyRound, Loader2 } from 'lucide-react';
+import { useTranslation } from '@/hooks/useTranslation';
 
 function TwoFAVerifyContent() {
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   const router = useRouter();
   const login = useAppStore((s) => s.login);
@@ -27,7 +29,7 @@ function TwoFAVerifyContent() {
     e.preventDefault();
 
     if (!tempToken) {
-      toast.error('Отсутствует токен сессии');
+      toast.error(t('twoFA.sessionMissing'));
       router.push('/login');
       return;
     }
@@ -53,11 +55,11 @@ function TwoFAVerifyContent() {
       } catch (hydrateError) {
         appLogger.error('2fa-verify.hydrate', 'Failed to hydrate app data after 2FA', hydrateError);
       }
-      toast.success('Добро пожаловать!');
+      toast.success(t('twoFA.welcome'));
       router.push('/');
     } catch (error) {
       appLogger.error('2fa-verify.submit', '2FA verification failed', error);
-      toast.error('Ошибка сервера. Попробуйте ещё раз');
+      toast.error(t('twoFA.error'));
     } finally {
       setLoading(false);
     }
@@ -65,8 +67,8 @@ function TwoFAVerifyContent() {
 
   return (
     <AuthLayout
-      title="Двухфакторная аутентификация"
-      subtitle="Введите код из приложения-аутентификатора"
+      title={t('twoFA.title')}
+      subtitle={t('twoFA.subtitle')}
     >
       <div className="text-center mb-4">
         <Shield className="w-12 h-12 text-rose-500 mx-auto" />
@@ -76,7 +78,7 @@ function TwoFAVerifyContent() {
         {!useBackup ? (
           <>
             <div>
-              <Label htmlFor="code">6-значный код</Label>
+              <Label htmlFor="code">{t('twoFA.codeLabel')}</Label>
               <Input
                 id="code"
                 value={code}
@@ -89,7 +91,7 @@ function TwoFAVerifyContent() {
             </div>
 
             <Button type="submit" className="w-full" disabled={code.length !== 6 || loading}>
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Подтвердить'}
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : t('twoFA.confirm')}
             </Button>
 
             <button
@@ -97,13 +99,13 @@ function TwoFAVerifyContent() {
               onClick={() => setUseBackup(true)}
               className="w-full text-sm text-rose-500 hover:text-rose-600"
             >
-              Использовать резервный код
+              {t('twoFA.useBackup')}
             </button>
           </>
         ) : (
           <>
             <div>
-              <Label htmlFor="backupCode">Резервный код</Label>
+              <Label htmlFor="backupCode">{t('twoFA.backupLabel')}</Label>
               <div className="flex items-center gap-2 mt-1">
                 <KeyRound className="w-4 h-4 text-gray-400" />
                 <Input
@@ -119,7 +121,7 @@ function TwoFAVerifyContent() {
             </div>
 
             <Button type="submit" className="w-full" disabled={backupCode.length !== 8 || loading}>
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Подтвердить'}
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : t('twoFA.confirm')}
             </Button>
 
             <button
@@ -130,7 +132,7 @@ function TwoFAVerifyContent() {
               }}
               className="w-full text-sm text-rose-500 hover:text-rose-600"
             >
-              Вернуться к коду из приложения
+              {t('twoFA.backToApp')}
             </button>
           </>
         )}
@@ -138,7 +140,7 @@ function TwoFAVerifyContent() {
 
       <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-4">
         <Link href="/login" className="text-rose-500 hover:text-rose-600">
-          Вернуться ко входу
+          {t('twoFA.backToLogin')}
         </Link>
       </p>
     </AuthLayout>
@@ -146,8 +148,9 @@ function TwoFAVerifyContent() {
 }
 
 export default function TwoFAVerifyPage() {
+  const { t } = useTranslation();
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Загрузка...</div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">{t('common.loading')}</div>}>
       <TwoFAVerifyContent />
     </Suspense>
   );

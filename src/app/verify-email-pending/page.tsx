@@ -8,8 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Mail, AlertCircle } from 'lucide-react';
 import { appLogger } from '@/lib/logger';
 import { toast } from 'sonner';
+import { useTranslation } from '@/hooks/useTranslation';
 
 function VerifyEmailPendingContent() {
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   const _router = useRouter();
   const email = searchParams.get('email') || '';
@@ -39,11 +41,11 @@ function VerifyEmailPendingContent() {
         return;
       }
 
-      toast.success('Письмо отправлено повторно');
+      toast.success(t('verifyEmail.resent'));
       setCooldown(60);
     } catch (error) {
       appLogger.error('verify-email.resend', 'Email resend failed', error);
-      toast.error('Ошибка сервера. Попробуйте ещё раз');
+      toast.error(t('forgotPassword.error'));
     } finally {
       setSending(false);
     }
@@ -51,8 +53,8 @@ function VerifyEmailPendingContent() {
 
   return (
     <AuthLayout
-      title="Подтвердите email"
-      subtitle="Мы отправили письмо для подтверждения"
+      title={t('verifyEmail.title')}
+      subtitle={t('verifyEmail.subtitle')}
     >
       <div className="text-center space-y-6">
         <div className="flex justify-center">
@@ -63,16 +65,16 @@ function VerifyEmailPendingContent() {
 
         <div>
           <p className="text-gray-600 dark:text-gray-300">
-            Мы отправили письмо на <strong>{email}</strong>
+            {t('verifyEmail.sentTo', { email })}
           </p>
           <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">
-            Перейдите по ссылке в письме, чтобы подтвердить ваш email
+            {t('verifyEmail.checkInbox')}
           </p>
         </div>
 
         <div className="flex items-center gap-2 text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-3 rounded-lg">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
-          <span>Проверьте папку &laquo;Спам&raquo;, если письмо не пришло</span>
+          <span>{t('verifyEmail.checkSpam')}</span>
         </div>
 
         <div className="space-y-3">
@@ -83,15 +85,15 @@ function VerifyEmailPendingContent() {
             variant="outline"
           >
             {cooldown > 0
-              ? `Отправить повторно (${cooldown}с)`
+              ? t('verifyEmail.resendCooldown', { cooldown })
               : sending
-              ? 'Отправка...'
-              : 'Отправить повторно'}
+              ? t('verifyEmail.sending')
+              : t('verifyEmail.resend')}
           </Button>
 
           <Link href="/login">
             <Button variant="ghost" className="w-full">
-              Вернуться ко входу
+              {t('verifyEmail.backToLogin')}
             </Button>
           </Link>
         </div>
@@ -101,8 +103,9 @@ function VerifyEmailPendingContent() {
 }
 
 export default function VerifyEmailPendingPage() {
+  const { t } = useTranslation();
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Загрузка...</div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">{t('common.loading')}</div>}>
       <VerifyEmailPendingContent />
     </Suspense>
   );
