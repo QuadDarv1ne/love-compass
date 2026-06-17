@@ -24,7 +24,14 @@ interface RateLimitResult {
   reset: number;
 }
 
-const stores = new Map<string, Map<string, number[]>>();
+let stores = new Map<string, Map<string, number[]>>();
+
+/**
+ * Reset all rate limit stores — used in tests between cases.
+ */
+export function resetAllStores(): void {
+  stores = new Map();
+}
 
 function pruneEntry(id: string, cutoff: number, store: Map<string, number[]>): number[] {
   const timestamps = store.get(id);
@@ -40,12 +47,13 @@ function pruneEntry(id: string, cutoff: number, store: Map<string, number[]>): n
 
 export function createRateLimiter(config: RateLimitConfig) {
   const { max, windowMs } = config;
+  const storeKey = `${max}:${windowMs}`;
 
-  if (!stores.has(config.windowMs.toString())) {
-    stores.set(config.windowMs.toString(), new Map());
+  if (!stores.has(storeKey)) {
+    stores.set(storeKey, new Map());
   }
 
-  const store = stores.get(config.windowMs.toString());
+  const store = stores.get(storeKey);
   if (!store) throw new Error('Rate limit store not found');
 
   return {
@@ -80,9 +88,11 @@ export function createRateLimiter(config: RateLimitConfig) {
 
 /**
  * Returns a RateLimitResult when the limit is exceeded, otherwise null.
- * Convenience for use in API route handlers.
+ * Convenience for middleware/route handlers.
+ * Note: this is the in-memory variant — for DB-backed rate limiting see
+ * `@/lib/auth/rate-limit`.
  */
-export function checkRateLimit(
+export function isRateLimited(
   limiter: ReturnType<typeof createRateLimiter>,
   id: string,
 ): RateLimitResult | null {
