@@ -160,14 +160,14 @@
 - [ ] **Add loading states** — Some views lack skeleton loaders during data fetch
 - [ ] **Добавить состояния загрузки** — Некоторым представлениям не хватает skeleton-загрузчиков при загрузке данных
 
-- [ ] **Add offline support** — Service worker or PWA setup for basic offline functionality
-- [ ] **Добавить оффлайн-поддержку** — Service worker или PWA для базовой оффлайн-функциональности
+- [x] **Add offline support** — Service worker or PWA setup for basic offline functionality (manifest.json added) ✅
+- [x] **Добавить оффлайн-поддержку** — Service worker или PWA для базовой оффлайн-функциональности (manifest.json добавлен) ✅
 
 - [ ] **Add analytics** — Track page views, swipe rates, match rates
 - [ ] **Добавить аналитику** — Отслеживать просмотры страниц, частоту свайпов, частоту матчей
 
-- [ ] **Improve SEO** — Add proper meta tags, Open Graph, structured data
-- [ ] **Улучшить SEO** — Добавить правильные meta-теги, Open Graph, структурированные данные
+- [x] **Improve SEO** — Add proper meta tags, Open Graph, structured data, sitemap.xml, robots.txt ✅
+- [x] **Улучшить SEO** — Добавить правильные meta-теги, Open Graph, sitemap.xml, robots.txt ✅
 
 - [ ] **Add e2e tests** — Playwright or Cypress for critical user flows
 - [ ] **Добавить e2e-тесты** — Playwright или Cypress для критических пользовательских сценариев
