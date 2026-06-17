@@ -1,5 +1,16 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { readFileSync } from "fs";
+import { join } from "path";
+
+function getVersion(): string {
+  try {
+    const pkg = JSON.parse(readFileSync(join(process.cwd(), "package.json"), "utf-8"));
+    return pkg.version || "0.3.0";
+  } catch {
+    return "0.3.0";
+  }
+}
 
 export async function GET() {
   const health: {
@@ -14,7 +25,7 @@ export async function GET() {
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     memory: process.memoryUsage(),
-    version: process.env.npm_package_version || "0.2.0",
+    version: getVersion(),
   };
 
   // Check database connection using the shared singleton

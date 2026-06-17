@@ -36,6 +36,21 @@ function applyRateLimit(request: NextRequest, limiter: ReturnType<typeof createR
   return null;
 }
 
+function logRequest(method: string, pathname: string, status: number, duration: number, ip: string) {
+  const entry = {
+    level: status >= 500 ? 'error' : status >= 400 ? 'warn' : 'info',
+    timestamp: new Date().toISOString(),
+    context: 'middleware',
+    message: `${method} ${pathname} ${status}`,
+    data: { duration: `${duration}ms`, ip },
+  };
+  if (status >= 500) {
+    console.error(JSON.stringify(entry));
+  } else if (status >= 400) {
+    console.warn(JSON.stringify(entry));
+  }
+}
+
 // Paths that require authentication
 const PROTECTED_PATHS = [
   '/api/profiles',
@@ -75,6 +90,9 @@ const PUBLIC_AUTH_PATHS = [
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const startTime = Date.now();
+  const method = request.method;
+  const ip = getClientIp(request);
 
   // Skip non-API routes and health checks
   if (!pathname.startsWith('/api/') || pathname === '/api/health') {
@@ -84,25 +102,40 @@ export async function middleware(request: NextRequest) {
   // ── Rate limiting ────────────────────────────────────────────────────────
   // Apply global API rate limit first
   const globalLimit = applyRateLimit(request, rateLimiters.api);
-  if (globalLimit) return globalLimit;
+  if (globalLimit) {
+    logRequest(method, pathname, 429, Date.now() - startTime, ip);
+    return globalLimit;
+  }
 
   // Stricter limits for auth endpoints
   if (pathname === '/api/auth/login') {
     const loginLimit = applyRateLimit(request, rateLimiters.login);
-    if (loginLimit) return loginLimit;
+    if (loginLimit) {
+      logRequest(method, pathname, 429, Date.now() - startTime, ip);
+      return loginLimit;
+    }
   } else if (pathname === '/api/auth/register') {
     const registerLimit = applyRateLimit(request, rateLimiters.register);
-    if (registerLimit) return registerLimit;
+    if (registerLimit) {
+      logRequest(method, pathname, 429, Date.now() - startTime, ip);
+      return registerLimit;
+    }
   } else if (pathname === '/api/auth/forgot-password') {
     const forgotLimit = applyRateLimit(request, rateLimiters.forgotPassword);
-    if (forgotLimit) return forgotLimit;
+    if (forgotLimit) {
+      logRequest(method, pathname, 429, Date.now() - startTime, ip);
+      return forgotLimit;
+    }
   }
 
   // Stricter limits for write-heavy API paths
   const heavyPaths = ['/api/like', '/api/dislike', '/api/messages', '/api/block', '/api/report', '/api/moments'];
   if (heavyPaths.some((p) => pathname === p || pathname.startsWith(p + '/'))) {
     const heavyLimit = applyRateLimit(request, rateLimiters.heavy);
-    if (heavyLimit) return heavyLimit;
+    if (heavyLimit) {
+      logRequest(method, pathname, 429, Date.now() - startTime, ip);
+      return heavyLimit;
+    }
   }
 
   // Check if this is a public auth path
@@ -125,6 +158,7 @@ export async function middleware(request: NextRequest) {
   );
 
   if ((isProtectedPath || isAdminPath) && !sessionCookie) {
+    logRequest(method, pathname, 401, Date.now() - startTime, ip);
     return NextResponse.json(
       { error: 'Authentication required' },
       { status: 401 }
@@ -146,12 +180,14 @@ export async function middleware(request: NextRequest) {
           const host = request.headers.get('host');
           const requestOrigin = `https://${host}`;
           if (originUrl.origin !== requestOrigin) {
+            logRequest(method, pathname, 403, Date.now() - startTime, ip);
             return NextResponse.json(
               { error: 'Forbidden' },
               { status: 403 }
             );
           }
         } else if (!allowedOrigins.includes(originUrl.origin)) {
+          logRequest(method, pathname, 403, Date.now() - startTime, ip);
           return NextResponse.json(
             { error: 'Forbidden' },
             { status: 403 }
@@ -160,6 +196,7 @@ export async function middleware(request: NextRequest) {
       }
     } catch {
       // Invalid origin header
+      logRequest(method, pathname, 400, Date.now() - startTime, ip);
       return NextResponse.json(
         { error: 'Bad Request' },
         { status: 400 }
