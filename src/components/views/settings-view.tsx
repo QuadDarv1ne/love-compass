@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useShallow } from 'zustand/react/shallow';
 import { useTheme } from 'next-themes';
 import { toast } from 'sonner';
 import {
@@ -269,7 +270,31 @@ export function SettingsView() {
     setMatchNotifications: setMatchNotif,
     likeNotifications: likeNotif,
     setLikeNotifications: setLikeNotif,
-  } = useAppStore();
+  } = useAppStore(
+    useShallow((s) => ({
+      currentUser: s.currentUser,
+      refreshUser: s.refreshUser,
+      logout: s.logout,
+      clearAllData: s.clearAllData,
+      notificationsEnabled: s.notificationsEnabled,
+      setNotificationsEnabled: s.setNotificationsEnabled,
+      profileVisible: s.profileVisible,
+      setProfileVisible: s.setProfileVisible,
+      showOnlineStatus: s.showOnlineStatus,
+      setShowOnlineStatus: s.setShowOnlineStatus,
+      language: s.language,
+      setLanguage: s.setLanguage,
+      loadSettings: s.loadSettings,
+      showDistance: s.showDistance,
+      setShowDistance: s.setShowDistance,
+      soundEnabled: s.soundEnabled,
+      setSoundEnabled: s.setSoundEnabled,
+      matchNotifications: s.matchNotifications,
+      setMatchNotifications: s.setMatchNotifications,
+      likeNotifications: s.likeNotifications,
+      setLikeNotifications: s.setLikeNotifications,
+    }))
+  );
 
   /* 2FA & password state */
   const [twoFADialogOpen, setTwoFADialogOpen] = useState(false);

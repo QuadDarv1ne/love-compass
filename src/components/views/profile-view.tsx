@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { SafeImage } from '@/components/ui/safe-image';
 import { motion } from 'framer-motion';
+import { useShallow } from 'zustand/react/shallow';
 import { toast } from 'sonner';
 import {
   Heart, X, Star, LogOut, Edit3, MapPin, Zap, MessageSquare, Camera, Trash2,
@@ -28,7 +29,17 @@ import { useTranslation } from '@/hooks/useTranslation';
 
 export function ProfileView() {
   const { t } = useTranslation();
-  const { currentUser, setCurrentUser, logout, likedUserIds, dislikedUserIds, superLikedUserIds, matches } = useAppStore();
+  const { currentUser, setCurrentUser, logout, likedUserIds, dislikedUserIds, superLikedUserIds, matches } = useAppStore(
+    useShallow((s) => ({
+      currentUser: s.currentUser,
+      setCurrentUser: s.setCurrentUser,
+      logout: s.logout,
+      likedUserIds: s.likedUserIds,
+      dislikedUserIds: s.dislikedUserIds,
+      superLikedUserIds: s.superLikedUserIds,
+      matches: s.matches,
+    }))
+  );
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState('');

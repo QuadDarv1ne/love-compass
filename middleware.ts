@@ -7,6 +7,7 @@ const PROTECTED_PATHS = [
   '/api/profile',
   '/api/likes',
   '/api/like',
+  '/api/dislike',
   '/api/matches',
   '/api/messages',
   '/api/settings',

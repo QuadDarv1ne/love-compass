@@ -3,6 +3,7 @@
 import { useState, useMemo, useRef, useCallback, useEffect } from 'react';
 import { SafeImage } from '@/components/ui/safe-image';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useShallow } from 'zustand/react/shallow';
 import { toast } from 'sonner';
 import {
   Heart, X, Star, MapPin, SlidersHorizontal, Undo2, ShieldAlert, Flag,
@@ -161,7 +162,31 @@ export function BrowseView() {
     setShowMatchAnimation, setMatchAnimationPartner, showFilters, setShowFilters,
     filterGender, filterAgeMin, filterAgeMax, filterCity,
     searchQuery, sortBy, blockedUserIds, dislikedUserIds,
-  } = useAppStore();
+  } = useAppStore(
+    useShallow((s) => ({
+      profiles: s.profiles,
+      currentUser: s.currentUser,
+      profilesCursor: s.profilesCursor,
+      removeProfile: s.removeProfile,
+      addProfiles: s.addProfiles,
+      setProfilesCursor: s.setProfilesCursor,
+      addLikedUserId: s.addLikedUserId,
+      addDislikedUserId: s.addDislikedUserId,
+      addSuperLikedUserId: s.addSuperLikedUserId,
+      setShowMatchAnimation: s.setShowMatchAnimation,
+      setMatchAnimationPartner: s.setMatchAnimationPartner,
+      showFilters: s.showFilters,
+      setShowFilters: s.setShowFilters,
+      filterGender: s.filterGender,
+      filterAgeMin: s.filterAgeMin,
+      filterAgeMax: s.filterAgeMax,
+      filterCity: s.filterCity,
+      searchQuery: s.searchQuery,
+      sortBy: s.sortBy,
+      blockedUserIds: s.blockedUserIds,
+      dislikedUserIds: s.dislikedUserIds,
+    }))
+  );
   const { t } = useTranslation();
   const [loadingMore, setLoadingMore] = useState(false);
   const [swipeDir, setSwipeDir] = useState<'left' | 'right' | null>(null);
@@ -204,7 +229,7 @@ export function BrowseView() {
   }, []);
 
   // Build a popularity map from likedYouProfiles (users who liked you are "popular")
-  const likedYouProfiles = useAppStore((s) => s.likedYouProfiles);
+  const likedYouProfiles = useAppStore(useShallow((s) => s.likedYouProfiles));
   const popularityMap = useMemo(() => {
     const map: Record<string, number> = {};
     for (const p of likedYouProfiles) {
@@ -556,7 +581,7 @@ export function BrowseView() {
         {showFilters && <FilterPanel />}
       </AnimatePresence>
 
-      <div className="flex-1 flex flex-col items-center justify-center w-full">
+      <div className="flex-1 flex flex-col items-center justify-center w-full relative">
         {/* Heart Burst */}
         <AnimatePresence>
           {showHeartBurst && (
@@ -586,13 +611,35 @@ export function BrowseView() {
           )}
         </AnimatePresence>
 
+        {/* Card Stack: show next card behind current */}
+        {filteredProfiles.length > 1 && (
+          <div className="absolute w-full max-w-sm md:max-w-md pointer-events-none" style={{ zIndex: 0 }}>
+            <div
+              className="w-full rounded-3xl overflow-hidden opacity-40 scale-[0.95] translate-y-2"
+            >
+              <Card className="overflow-hidden border-0 bg-card">
+                <div className="relative aspect-[3/4]">
+                  <SafeImage
+                    src={filteredProfiles[1].avatar || 'https://api.dicebear.com/9.x/notionists/svg?seed=Default'}
+                    alt=""
+                    fill
+                    className="object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                </div>
+              </Card>
+            </div>
+          </div>
+        )}
+
         {/* Profile Card with drag */}
         <motion.div
           ref={cardRef}
           key={currentProfile.id}
-          initial={{ opacity: 0, x: 100, rotate: 5 }}
+          initial={{ opacity: 0, x: 100, rotate: 5, scale: 0.95 }}
           animate={{
             opacity: 1,
+            scale: swipeDir ? 0.9 : dragX ? 1 - Math.abs(dragX) * 0.0005 : 1,
             x: swipeDir === 'right' ? SWIPE_EXT.EXIT_X : swipeDir === 'left' ? -SWIPE_EXT.EXIT_X : dragX,
             rotate: swipeDir === 'right' ? SWIPE_EXT.ROTATION_ANGLE : swipeDir === 'left' ? -SWIPE_EXT.ROTATION_ANGLE : dragX * SWIPE_EXT.DRAG_ROTATION_FACTOR,
           }}
@@ -603,8 +650,14 @@ export function BrowseView() {
           onDragStart={handleDragStart}
           onDrag={handleDrag}
           onDragEnd={(_, info) => handleDragEnd(currentProfile, _, info)}
-          whileDrag={{ cursor: 'grabbing' }}
-          className="w-full max-w-sm md:max-w-md relative touch-none"
+          whileDrag={{ cursor: 'grabbing', boxShadow: '0 30px 60px rgba(0,0,0,0.3)' }}
+          className="w-full max-w-sm md:max-w-md relative touch-none z-10"
+          style={{
+            filter: dragX ? `brightness(${1 - Math.abs(dragX) * 0.0003})` : undefined,
+            boxShadow: dragX
+              ? `0 ${10 + Math.abs(dragX) * 0.1}px ${30 + Math.abs(dragX) * 0.2}px rgba(0,0,0,${0.15 + Math.abs(dragX) * 0.001})`
+              : '0 20px 50px rgba(0,0,0,0.15)',
+          }}
         >
           <Card className="overflow-hidden border-0 shadow-2xl rounded-3xl bg-card">
             <div className="relative aspect-[3/4] overflow-hidden rounded-3xl">
@@ -654,7 +707,7 @@ export function BrowseView() {
         </motion.div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-5 mt-6">
+        <div className="flex items-center gap-5 mt-6 z-10">
           <motion.div whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.9 }}>
             <Button onClick={() => handleDislike(currentProfile)} size="lg" className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-card border-2 border-gray-200 dark:border-rose-800 hover:border-red-300 hover:bg-red-50 dark:hover:bg-rose-900/20 text-gray-400 hover:text-red-500 shadow-lg transition-all">
               <X className="w-7 h-7 md:w-8 md:h-8" />

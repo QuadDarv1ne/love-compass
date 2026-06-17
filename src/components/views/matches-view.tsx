@@ -3,16 +3,28 @@
 import { useState, useEffect } from 'react';
 import { SafeImage } from '@/components/ui/safe-image';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useShallow } from 'zustand/react/shallow';
 import { Heart } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useAppStore, type User, type MatchWithUsers } from '@/lib/store';
+import { useAppStore, type MatchWithUsers } from '@/lib/store';
+import { getPartner, getLastMessage, filterValidMatches, formatMessageDate } from '@/lib/match-utils';
 import { OnlineIndicator } from './shared';
 import { useTranslation } from '@/hooks/useTranslation';
 
 export function MatchesView() {
   const { t } = useTranslation();
-  const { matches, currentUser, navigateTo, setSelectedMatch, setChatListMatchId, unreadMatchIds, setUnreadMatchIds } = useAppStore();
+  const { matches, currentUser, navigateTo, setSelectedMatch, setChatListMatchId, unreadMatchIds, setUnreadMatchIds } = useAppStore(
+    useShallow((s) => ({
+      matches: s.matches,
+      currentUser: s.currentUser,
+      navigateTo: s.navigateTo,
+      setSelectedMatch: s.setSelectedMatch,
+      setChatListMatchId: s.setChatListMatchId,
+      unreadMatchIds: s.unreadMatchIds,
+      setUnreadMatchIds: s.setUnreadMatchIds,
+    }))
+  );
   const [localLoading, setLocalLoading] = useState(() => matches.length === 0);
 
   useEffect(() => {
@@ -35,20 +47,6 @@ export function MatchesView() {
     setLocalLoading(false);
   }, [currentUser, matches, setUnreadMatchIds]);
 
-  const getPartner = (match: MatchWithUsers): User | null => {
-    if (!match.user1 || !match.user2) return null;
-    return match.user1.id === currentUser?.id ? match.user2 : match.user1;
-  };
-
-  const getLastMessage = (match: MatchWithUsers): string => {
-    if (match.messages && match.messages.length > 0) {
-      const lastMsg = match.messages[match.messages.length - 1];
-      const isMine = lastMsg.senderId === currentUser?.id;
-      return isMine ? `${t('matches.youPrefix')}${lastMsg.content}` : lastMsg.content;
-    }
-    return t('matches.startChat');
-  };
-
   const openChat = (match: MatchWithUsers) => {
     setSelectedMatch(match);
     setChatListMatchId(match.id);
@@ -66,7 +64,7 @@ export function MatchesView() {
   }
 
   // Filter out matches with missing user data (deleted accounts)
-  const validMatches = matches.filter((m) => m.user1 && m.user2);
+  const validMatches = filterValidMatches(matches);
 
   if (validMatches.length === 0) {
     return (
@@ -87,10 +85,11 @@ export function MatchesView() {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
         <AnimatePresence>
           {validMatches.map((match, idx) => {
-            const partner = getPartner(match);
+            const partner = getPartner(match, currentUser);
             // Safety guard — should never be null after filter, but prevent crash
             if (!partner) return null;
             const isUnread = unreadMatchIds.includes(match.id);
+            const lastMsg = getLastMessage(match, currentUser, t('matches.youPrefix')) || t('matches.startChat');
             return (
               <motion.div key={match.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }}>
                 <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => openChat(match)} className="cursor-pointer">
@@ -106,7 +105,7 @@ export function MatchesView() {
                       )}
                       <div className="absolute bottom-0 left-0 right-0 p-3">
                         <h3 className="text-white font-semibold text-sm truncate">{partner.name}, {partner.age}</h3>
-                        <p className="text-white/70 text-xs truncate">{getLastMessage(match)}</p>
+                        <p className="text-white/70 text-xs truncate">{lastMsg}</p>
                       </div>
                     </div>
                   </Card>
@@ -123,21 +122,15 @@ export function MatchesView() {
 // ─── Chat List (for desktop sidebar) ────────────────────────────────────────
 export function ChatListView() {
   const { t } = useTranslation();
-  const { matches, currentUser, setSelectedMatch, chatListMatchId, setChatListMatchId } = useAppStore();
-
-  const getPartner = (match: MatchWithUsers): User | null => {
-    if (!match.user1 || !match.user2) return null;
-    return match.user1.id === currentUser?.id ? match.user2 : match.user1;
-  };
-
-  const getLastMessage = (match: MatchWithUsers): string => {
-    if (match.messages && match.messages.length > 0) {
-      const lastMsg = match.messages[match.messages.length - 1];
-      const isMine = lastMsg.senderId === currentUser?.id;
-      return isMine ? `${t('matches.youPrefix')}${lastMsg.content}` : lastMsg.content;
-    }
-    return t('matches.startChat');
-  };
+  const { matches, currentUser, setSelectedMatch, chatListMatchId, setChatListMatchId } = useAppStore(
+    useShallow((s) => ({
+      matches: s.matches,
+      currentUser: s.currentUser,
+      setSelectedMatch: s.setSelectedMatch,
+      chatListMatchId: s.chatListMatchId,
+      setChatListMatchId: s.setChatListMatchId,
+    }))
+  );
 
   const openChat = (match: MatchWithUsers) => {
     setSelectedMatch(match);
@@ -145,7 +138,7 @@ export function ChatListView() {
   };
 
   // Filter out matches with missing user data (deleted accounts)
-  const validMatches = matches.filter((m) => m.user1 && m.user2);
+  const validMatches = filterValidMatches(matches);
 
   if (validMatches.length === 0) {
     return <div className="p-4 text-center text-muted-foreground text-sm">{t('matches.empty')}</div>;
@@ -154,9 +147,10 @@ export function ChatListView() {
   return (
     <div className="space-y-1 p-2">
       {validMatches.map((match) => {
-        const partner = getPartner(match);
+        const partner = getPartner(match, currentUser);
         if (!partner) return null;
         const isActive = chatListMatchId === match.id;
+        const lastMsg = getLastMessage(match, currentUser, t('matches.youPrefix')) || t('matches.startChat');
         return (
           <motion.button
             key={match.id}
@@ -178,11 +172,11 @@ export function ChatListView() {
                 <h4 className="font-semibold text-sm text-rose-800 dark:text-rose-200 truncate">{partner.name}</h4>
                 <span className="text-[10px] text-muted-foreground flex-shrink-0">
                   {match.messages?.[match.messages.length - 1]?.createdAt
-                    ? new Date(match.messages[match.messages.length - 1].createdAt).toLocaleDateString(useAppStore.getState().language || 'ru', { day: 'numeric', month: 'short' })
+                    ? formatMessageDate(match.messages[match.messages.length - 1].createdAt, useAppStore.getState().language || 'ru')
                     : ''}
                 </span>
               </div>
-              <p className="text-xs text-muted-foreground truncate">{getLastMessage(match)}</p>
+              <p className="text-xs text-muted-foreground truncate">{lastMsg}</p>
             </div>
           </motion.button>
         );

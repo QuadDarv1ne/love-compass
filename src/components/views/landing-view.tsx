@@ -95,11 +95,18 @@ export function LandingView() {
         className="text-center mb-8 md:mb-12 z-10"
       >
         <motion.div
-          animate={{ scale: [1, 1.1, 1] }}
-          transition={{ duration: 2, repeat: Infinity }}
+          animate={{ scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] }}
+          transition={{ duration: 3, repeat: Infinity, repeatType: 'reverse' }}
           className="inline-block mb-4"
         >
-          <Compass className="w-16 h-16 md:w-20 md:h-20 text-rose-500 mx-auto" strokeWidth={1.5} />
+          <div className="relative">
+            <Compass className="w-16 h-16 md:w-20 md:h-20 text-rose-500 mx-auto" strokeWidth={1.5} />
+            <motion.div
+              animate={{ opacity: [0, 0.5, 0] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              className="absolute inset-0 bg-rose-400/20 rounded-full blur-xl"
+            />
+          </div>
         </motion.div>
         <h1 className="text-5xl md:text-7xl font-bold gradient-text mb-4">Love Compass</h1>
         <p className="text-lg md:text-xl text-rose-400 font-medium mb-2">{t('app.tagline')}</p>

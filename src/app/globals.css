@@ -152,23 +152,22 @@
   background: #fb7185;
 }
 
-/* Floating hearts animation */
+/* Floating hearts animation — CSS-only, no SVG overhead */
 @keyframes float-heart {
   0% {
-    transform: translateY(0) translateX(0) rotate(0deg) scale(1);
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.8;
-  }
-  100% {
-    transform: translateY(-100vh) translateX(var(--drift)) rotate(var(--spin)) scale(0.3);
+    transform: translateY(0) translateX(0) scale(1);
     opacity: 0;
   }
-}
-
-.floating-heart {
-  animation: float-heart var(--duration) ease-out forwards;
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(-100vh) translateX(30px) scale(0.2);
+    opacity: 0;
+  }
 }
 
 /* Match explosion animation */
@@ -298,6 +297,16 @@
 
 .badge-pulse {
   animation: badge-pulse 2s ease-in-out infinite;
+}
+
+/* Respect user motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Smooth scroll behavior */

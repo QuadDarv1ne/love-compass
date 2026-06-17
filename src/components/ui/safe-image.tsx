@@ -37,12 +37,15 @@ export function SafeImage({
     );
   }
 
+  const safeLoading = imageProps.priority ? undefined : (imageProps.loading ?? 'lazy');
+
   return (
     <Image
       alt={alt}
       className={className}
       onError={() => setError(true)}
       {...imageProps}
+      loading={safeLoading}
     />
   );
 }

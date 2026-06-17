@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Suspense } from "react";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
 import { ErrorBoundary } from "@/components/error-boundary";
@@ -40,10 +41,12 @@ export default function RootLayout({
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <ErrorBoundary>
-            {children}
+            <Suspense fallback={null}>
+              {children}
+            </Suspense>
           </ErrorBoundary>
+          <Toaster />
         </ThemeProvider>
-        <Toaster />
       </body>
     </html>
   );

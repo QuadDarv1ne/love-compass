@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo, Fragment } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useShallow } from 'zustand/react/shallow';
 import { MessageCircle, ChevronLeft, Send, Sparkles, CheckCheck, Smile } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -76,7 +77,18 @@ function EmojiPicker({ onSelect }: { onSelect: (emoji: string) => void }) {
 // ─── Chat View ──────────────────────────────────────────────────────────────
 export function ChatView() {
   const { t } = useTranslation();
-  const { selectedMatch, currentUser, messages, setMessages, addMessage, navigateTo, onlineUserIds, markMessagesAsRead } = useAppStore();
+  const { selectedMatch, currentUser, messages, setMessages, addMessage, navigateTo, onlineUserIds, markMessagesAsRead } = useAppStore(
+    useShallow((s) => ({
+      selectedMatch: s.selectedMatch,
+      currentUser: s.currentUser,
+      messages: s.messages,
+      setMessages: s.setMessages,
+      addMessage: s.addMessage,
+      navigateTo: s.navigateTo,
+      onlineUserIds: s.onlineUserIds,
+      markMessagesAsRead: s.markMessagesAsRead,
+    }))
+  );
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [partnerTyping, setPartnerTyping] = useState(false);

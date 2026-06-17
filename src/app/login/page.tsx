@@ -11,18 +11,33 @@ import { useAppStore } from '@/lib/store';
 import { hydrateAppData } from '@/lib/api';
 import { appLogger } from '@/lib/logger';
 import { toast } from 'sonner';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { useTranslation } from '@/hooks/useTranslation';
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function LoginPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const login = useAppStore((s) => s.login);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const isEmailValid = email === '' || EMAIL_REGEX.test(email);
+  const canSubmit = email.length > 0 && password.length >= 8 && isEmailValid && !loading;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!EMAIL_REGEX.test(email)) {
+      toast.error(t('error.emailInvalid'));
+      return;
+    }
+    if (password.length < 8) {
+      toast.error(t('error.passwordMin'));
+      return;
+    }
     setLoading(true);
 
     try {
@@ -45,7 +60,7 @@ export default function LoginPage() {
       }
 
       if (!res.ok) {
-        toast.error(data.error || 'Ошибка входа');
+        toast.error(data.error || t('login.error'));
         return;
       }
 
@@ -56,11 +71,11 @@ export default function LoginPage() {
         appLogger.error('login.hydrate', 'Failed to hydrate app data after login', hydrateError);
         // Continue — user is logged in, data will load on next navigation
       }
-      toast.success('Добро пожаловать!');
+      toast.success(t('login.welcome'));
       router.push('/');
     } catch (error) {
       appLogger.error('login.submit', 'Login failed', error);
-      toast.error('Ошибка сервера. Попробуйте ещё раз');
+      toast.error(t('login.serverError'));
     } finally {
       setLoading(false);
     }
@@ -68,12 +83,12 @@ export default function LoginPage() {
 
   return (
     <AuthLayout
-      title="Вход"
-      subtitle="Рады вас видеть снова"
+      title={t('auth.login')}
+      subtitle={t('login.subtitle')}
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">{t('auth.email')}</Label>
           <Input
             id="email"
             type="email"
@@ -86,7 +101,7 @@ export default function LoginPage() {
         </div>
 
         <div>
-          <Label htmlFor="password">Пароль</Label>
+          <Label htmlFor="password">{t('auth.password')}</Label>
           <div className="relative mt-1">
             <Input
               id="password"
@@ -112,19 +127,24 @@ export default function LoginPage() {
             href="/forgot-password"
             className="text-sm text-rose-500 hover:text-rose-600"
           >
-            Забыли пароль?
+            {t('auth.forgotPassword')}
           </Link>
         </div>
 
-        <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? 'Вход...' : 'Войти'}
+        <Button type="submit" className="w-full" disabled={!canSubmit}>
+          {loading ? (
+            <span className="flex items-center gap-2">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              {t('login.loading')}
+            </span>
+          ) : t('auth.login')}
         </Button>
       </form>
 
       <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-4">
-        Нет аккаунта?{' '}
+        {t('auth.noAccount')}{' '}
         <Link href="/register" className="text-rose-500 hover:text-rose-600">
-          Зарегистрироваться
+          {t('auth.register')}
         </Link>
       </p>
     </AuthLayout>

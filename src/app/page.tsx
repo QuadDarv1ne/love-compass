@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useShallow } from 'zustand/react/shallow';
 import {
   Heart, Search, User, Eye, Compass, Camera, Trophy, Settings as SettingsIcon,
 } from 'lucide-react';
@@ -23,7 +24,17 @@ import { useTranslation } from '@/hooks/useTranslation';
 
 // ─── Main Page ──────────────────────────────────────────────────────────────
 export default function HomePage() {
-  const { currentView, matches, likedYouCount, viewDirection, authStatus, checkAuth, showMatchAnimation } = useAppStore();
+  const { currentView, matches, likedYouCount, viewDirection, authStatus, checkAuth, showMatchAnimation } = useAppStore(
+    useShallow((s) => ({
+      currentView: s.currentView,
+      matches: s.matches,
+      likedYouCount: s.likedYouCount,
+      viewDirection: s.viewDirection,
+      authStatus: s.authStatus,
+      checkAuth: s.checkAuth,
+      showMatchAnimation: s.showMatchAnimation,
+    }))
+  );
   const { t } = useTranslation();
 
   // Check auth session on mount
@@ -78,16 +89,16 @@ export default function HomePage() {
               {navItems.map(({ view, icon: Icon, label, badge }) => (
                 <motion.button
                   key={view}
-                  whileHover={{ x: 4 }}
-                  whileTap={{ scale: 0.98 }}
+                  whileHover={{ x: 4, scale: 1.02 }}
+                  whileTap={{ scale: 0.96 }}
                   onClick={() => useAppStore.getState().navigateTo(view)}
                   className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all relative ${
                     currentView === view || (view === 'matches' && currentView === 'chat')
-                      ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300'
+                      ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 shadow-sm'
                       : 'text-gray-600 dark:text-gray-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 hover:text-rose-600 dark:hover:text-rose-300'
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon className="w-4 h-4 transition-transform group-hover:scale-110" />
                   {label}
                   {badge !== undefined && badge > 0 && (
                     <span className="ml-auto bg-rose-500 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center">

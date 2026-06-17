@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { SafeImage } from '@/components/ui/safe-image';
 import { motion, type Variants } from 'framer-motion';
 import { useTheme } from 'next-themes';
@@ -21,6 +21,7 @@ import {
 import { useAppStore } from '@/lib/store';
 import { FILTER } from '@/lib/constants';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useDebounce } from '@/hooks/useDebounce';
 
 // ─── Avatar Options ──────────────────────────────────────────────────────────
 export const ALL_AVATARS = [
@@ -124,50 +125,42 @@ export function DarkModeToggle() {
   );
 }
 
-// ─── Floating Hearts Background ─────────────────────────────────────────────
+// ─── Floating Hearts Background (CSS-only) ───────────────────────────────────
+// Uses simplified DOM + CSS animations for better performance vs SVG per heart.
 // Deterministic heart positions (pre-computed, no mutation)
-const HEART_CONFIGS = (() => {
+const HEART_STYLES = (() => {
   const vals: number[] = [];
   let s = 42;
-  for (let i = 0; i < 105; i++) {
+  for (let i = 0; i < 70; i++) {
     s = (s * 16807) % 2147483647;
     vals.push((s - 1) / 2147483646);
   }
-  return Array.from({ length: 15 }, (_, i) => ({
-    id: i,
+  return Array.from({ length: 10 }, (_, i) => ({
     left: `${vals[i * 7] * 100}%`,
-    size: 12 + vals[i * 7 + 1] * 20,
-    duration: 6 + vals[i * 7 + 2] * 8,
-    delay: vals[i * 7 + 3] * 10,
-    drift: `${(vals[i * 7 + 4] - 0.5) * 200}px`,
-    spin: `${(vals[i * 7 + 5] - 0.5) * 360}deg`,
-    opacity: 0.15 + vals[i * 7 + 6] * 0.25,
+    size: 14 + vals[i * 7 + 1] * 18,
+    duration: 8 + vals[i * 7 + 2] * 8,
+    delay: vals[i * 7 + 3] * 12,
+    opacity: 0.12 + vals[i * 7 + 6] * 0.18,
   }));
 })();
 
 export function FloatingHearts() {
-  const hearts = HEART_CONFIGS;
-
   return (
-    <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-      {hearts.map((heart) => (
+    <div className="fixed inset-0 overflow-hidden pointer-events-none z-0" aria-hidden="true">
+      {HEART_STYLES.map((h, i) => (
         <div
-          key={heart.id}
-          className="floating-heart absolute"
+          key={i}
+          className="absolute text-rose-300/30 dark:text-rose-400/20 select-none"
           style={{
-            left: heart.left,
-            bottom: '-30px',
-            '--duration': `${heart.duration}s`,
-            '--drift': heart.drift,
-            '--spin': heart.spin,
-            animationDelay: `${heart.delay}s`,
-            opacity: heart.opacity,
-          } as React.CSSProperties}
+            left: h.left,
+            bottom: '-40px',
+            fontSize: `${h.size}px`,
+            animation: `float-heart ${h.duration}s ease-out ${h.delay}s infinite`,
+            opacity: h.opacity,
+            willChange: 'transform, opacity',
+          }}
         >
-          <Heart
-            className="text-rose-300 fill-rose-300 dark:text-rose-400 dark:fill-rose-400"
-            style={{ width: heart.size, height: heart.size }}
-          />
+          ♥
         </div>
       ))}
     </div>
@@ -200,6 +193,44 @@ export function AvatarPicker({ selected, onSelect }: { selected: string; onSelec
         ))}
       </div>
     </div>
+  );
+}
+
+// ─── Debounced Input ────────────────────────────────────────────────────────
+function DebouncedInput({
+  value,
+  onChange,
+  placeholder,
+  className,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  className?: string;
+}) {
+  const [localValue, setLocalValue] = useState(value);
+  const debouncedValue = useDebounce(localValue, 300);
+  const isFirst = useRef(true);
+
+  useEffect(() => {
+    if (isFirst.current) {
+      isFirst.current = false;
+      return;
+    }
+    onChange(debouncedValue);
+  }, [debouncedValue]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+
+  return (
+    <Input
+      value={localValue}
+      onChange={(e) => setLocalValue(e.target.value)}
+      placeholder={placeholder}
+      className={className}
+    />
   );
 }
 
@@ -244,9 +275,9 @@ export function FilterPanel() {
           {/* Search */}
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">{t('filter.searchByName')}</Label>
-            <Input
+            <DebouncedInput
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={setSearchQuery}
               placeholder={t('filter.searchPlaceholder')}
               className="h-9 text-sm"
             />
@@ -320,9 +351,9 @@ export function FilterPanel() {
           </div>
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">{t('filter.city')}</Label>
-            <Input
+            <DebouncedInput
               value={filterCity}
-              onChange={(e) => setFilterCity(e.target.value)}
+              onChange={setFilterCity}
               placeholder={t('filter.cityPlaceholder')}
               className="h-9 text-sm"
             />

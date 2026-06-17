@@ -3,6 +3,7 @@
 import { useRef, useEffect } from 'react';
 import { SafeImage } from '@/components/ui/safe-image';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useShallow } from 'zustand/react/shallow';
 import { toast } from 'sonner';
 import {
   Heart, Eye, MapPin,
@@ -18,7 +19,16 @@ import { useTranslation } from '@/hooks/useTranslation';
 
 export function LikedYouView() {
   const { t } = useTranslation();
-  const { currentUser, likedYouProfiles, setLikedYouProfiles, setShowMatchAnimation, setMatchAnimationPartner, navigateTo } = useAppStore();
+  const { currentUser, likedYouProfiles, setLikedYouProfiles, setShowMatchAnimation, setMatchAnimationPartner, navigateTo } = useAppStore(
+    useShallow((s) => ({
+      currentUser: s.currentUser,
+      likedYouProfiles: s.likedYouProfiles,
+      setLikedYouProfiles: s.setLikedYouProfiles,
+      setShowMatchAnimation: s.setShowMatchAnimation,
+      setMatchAnimationPartner: s.setMatchAnimationPartner,
+      navigateTo: s.navigateTo,
+    }))
+  );
   const matchAnimationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Clean up timer on unmount

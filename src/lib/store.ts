@@ -363,7 +363,20 @@ const clearState = {
   adminLimit: 20,
 };
 
-export const useAppStore = create<AppState>((set, get) => ({
+export const useAppStore = create<AppState>((set, get) => {
+  // Factory for settings setters — eliminates 7+ lines of duplication per setting
+  const settingSetter = <K extends keyof AppState>(key: K) =>
+    (value: AppState[K]) => {
+      const prev = get()[key];
+      set({ [key]: value } as Partial<AppState>);
+      get().saveSettings({ [key]: value } as Record<string, unknown>).catch(() => {
+        set({ [key]: prev } as Partial<AppState>);
+        const t = createTranslatorForLanguage(get().language);
+        toast.error(t('settings.saveError'));
+      });
+    };
+
+  return {
   ...clearState,
 
   setView: (view) => set({ currentView: view }),
@@ -539,79 +552,15 @@ export const useAppStore = create<AppState>((set, get) => ({
   setCurrentMomentIndex: (index) => set({ currentMomentIndex: index }),
   addMoment: (moment) => set((state) => ({ moments: [moment, ...state.moments] })),
 
-  // Settings setters — defined inline to avoid race condition
-  setNotificationsEnabled: (enabled: boolean) => {
-    const prev = get().notificationsEnabled;
-    set({ notificationsEnabled: enabled });
-    get().saveSettings({ notificationsEnabled: enabled }).catch(() => {
-      set({ notificationsEnabled: prev });
-      const t = createTranslatorForLanguage(get().language);
-      toast.error(t('settings.saveError'));
-    });
-  },
-  setProfileVisible: (visible: boolean) => {
-    const prev = get().profileVisible;
-    set({ profileVisible: visible });
-    get().saveSettings({ profileVisible: visible }).catch(() => {
-      set({ profileVisible: prev });
-      const t = createTranslatorForLanguage(get().language);
-      toast.error(t('settings.saveError'));
-    });
-  },
-  setShowOnlineStatus: (show: boolean) => {
-    const prev = get().showOnlineStatus;
-    set({ showOnlineStatus: show });
-    get().saveSettings({ showOnlineStatus: show }).catch(() => {
-      set({ showOnlineStatus: prev });
-      const t = createTranslatorForLanguage(get().language);
-      toast.error(t('settings.saveError'));
-    });
-  },
-  setLanguage: (lang: string) => {
-    const prev = get().language;
-    set({ language: lang });
-    get().saveSettings({ language: lang }).catch(() => {
-      set({ language: prev });
-      const t = createTranslatorForLanguage(get().language);
-      toast.error(t('settings.saveError'));
-    });
-  },
-  setShowDistance: (show: boolean) => {
-    const prev = get().showDistance;
-    set({ showDistance: show });
-    get().saveSettings({ showDistance: show }).catch(() => {
-      set({ showDistance: prev });
-      const t = createTranslatorForLanguage(get().language);
-      toast.error(t('settings.saveError'));
-    });
-  },
-  setSoundEnabled: (enabled: boolean) => {
-    const prev = get().soundEnabled;
-    set({ soundEnabled: enabled });
-    get().saveSettings({ soundEnabled: enabled }).catch(() => {
-      set({ soundEnabled: prev });
-      const t = createTranslatorForLanguage(get().language);
-      toast.error(t('settings.saveError'));
-    });
-  },
-  setMatchNotifications: (enabled: boolean) => {
-    const prev = get().matchNotifications;
-    set({ matchNotifications: enabled });
-    get().saveSettings({ matchNotifications: enabled }).catch(() => {
-      set({ matchNotifications: prev });
-      const t = createTranslatorForLanguage(get().language);
-      toast.error(t('settings.saveError'));
-    });
-  },
-  setLikeNotifications: (enabled: boolean) => {
-    const prev = get().likeNotifications;
-    set({ likeNotifications: enabled });
-    get().saveSettings({ likeNotifications: enabled }).catch(() => {
-      set({ likeNotifications: prev });
-      const t = createTranslatorForLanguage(get().language);
-      toast.error(t('settings.saveError'));
-    });
-  },
+  // Settings setters — factory pattern reduces 8 identical handlers to 2 lines each
+  setNotificationsEnabled: settingSetter('notificationsEnabled'),
+  setProfileVisible: settingSetter('profileVisible'),
+  setShowOnlineStatus: settingSetter('showOnlineStatus'),
+  setLanguage: settingSetter('language'),
+  setShowDistance: settingSetter('showDistance'),
+  setSoundEnabled: settingSetter('soundEnabled'),
+  setMatchNotifications: settingSetter('matchNotifications'),
+  setLikeNotifications: settingSetter('likeNotifications'),
   loadSettings: async () => {
     try {
       const res = await fetch('/api/settings');
@@ -795,4 +744,5 @@ export const useAppStore = create<AppState>((set, get) => ({
       toast.error(t('admin.visibilityError'));
     }
   },
-}));
+  };
+});
