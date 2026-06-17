@@ -174,8 +174,8 @@
 - [ ] **Improve README** — Add architecture diagram, setup instructions, contributing guide
 - [ ] **Улучшить README** — Добавить диаграмму архитектуры, инструкции по настройке, руководство по контрибуции
 
-- [ ] **Add rate limiting** — Prevent abuse on API endpoints (spam, message flooding)
-- [ ] **Добавить rate limiting** — Предотвратить злоупотребления на API-эндпоинтах (спам, флуд сообщениями)
+- [x] **Add rate limiting** — Prevent abuse on API endpoints (spam, message flooding)
+- [x] **Добавить rate limiting** — Предотвратить злоупотребления на API-эндпоинтах (спам, флуд сообщениями)
 
 - [ ] **Configure CORS** — Restrict allowed origins for production
 - [ ] **Настроить CORS** — Ограничить разрешённые origin для продакшена
