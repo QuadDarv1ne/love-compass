@@ -1,0 +1,21 @@
+{
+  "name": "Love Compass",
+  "short_name": "LoveCompass",
+  "description": "Международный сайт знакомств. Компас, который ведёт к любви.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fff5f7",
+  "theme_color": "#f43f5e",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
