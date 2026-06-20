@@ -100,15 +100,18 @@ export async function POST(request: Request) {
     // Handle unique constraint violation from TOCTOU race
     if (
       error instanceof Error &&
-      (error.message.includes('Unique constraint failed') || error.message.includes('UNIQUE constraint failed'))
+      'code' in error
     ) {
-      return NextResponse.json(
-        {
-          success: true,
-          message: 'Check your email to verify your address',
-        },
-        { status: 200 }
-      );
+      const code = (error as Error & { code: unknown }).code;
+      if (code === 'P2002' || code === 11000) {
+        return NextResponse.json(
+          {
+            success: true,
+            message: 'Check your email to verify your address',
+          },
+          { status: 200 }
+        );
+      }
     }
     logger.error('/api/auth/register', 'Registration error', error);
     return NextResponse.json(

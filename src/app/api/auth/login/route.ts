@@ -11,7 +11,6 @@ import { setSessionCookie } from '@/lib/auth/session';
 import { signTempToken } from '@/lib/auth/jwt';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';
-export { loginUserSelect } from '@/lib/auth/projections';
 import { sanitizeUser } from '@/lib/auth/projections';
 import { LOGIN_LIMITS, TOTP } from '@/lib/constants';
 

@@ -28,7 +28,7 @@ const eslintConfig = [...nextCoreWebVitals, ...nextTypescript, {
 
     // General JavaScript — enable key rules
     "prefer-const": "warn",
-    "no-console": ["warn", { allow: ["warn", "error"] }],
+    "no-console": ["warn", { allow: ["warn", "error", "info"] }],
     "no-unreachable": "warn",
     "no-useless-escape": "warn",
     "no-fallthrough": "warn",

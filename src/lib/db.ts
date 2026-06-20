@@ -1,5 +1,5 @@
 import { detectDbType, getOptimalPort, getDatabaseInfo } from './db/detect';
-import { PrismaAdapter, profileSelect } from './db/prisma-adapter';
+import { PrismaAdapter } from './db/prisma-adapter';
 import { MongoDBAdapter } from './db/mongo-adapter';
 import type { DatabaseAdapter, DbType } from './db/types';
 
@@ -9,10 +9,9 @@ export type {
   DbUser, DbSession, DbLike, DbMatch, DbMessage,
   DbBlock, DbReport, DbRateLimit, DbMoment, DbMomentComment,
   DbMomentReaction, DbMomentLike, DbUserAchievement,
-  SessionWithUser, ProfileSelect,
+  SessionWithUser,
 } from './db/types';
 
-export { profileSelect };
 
 function createAdapter(): DatabaseAdapter {
   const databaseUrl = process.env.DATABASE_URL;

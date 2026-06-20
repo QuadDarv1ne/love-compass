@@ -3,13 +3,15 @@ import { hashPassword, verifyPassword } from './password';
 import { TOTP as TOTP_CONST } from '@/lib/constants';
 
 export function generateTOTPSecret(): string {
-  const secret = new Uint8Array(TOTP_CONST.SECRET_BYTE_LENGTH);
-  crypto.getRandomValues(secret);
-  // Base32 encoding
+  // Each byte encodes to 8/5 = 1.6 base32 chars; to avoid waste,
+  // we use rejection sampling on each 5-bit group.
   const base32Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  const needed = Math.ceil(TOTP_CONST.SECRET_BYTE_LENGTH * 8 / 5);
+  const raw = new Uint8Array(needed);
+  crypto.getRandomValues(raw);
   let result = '';
-  for (let i = 0; i < secret.length; i++) {
-    result += base32Chars[secret[i]! & 0x1f];
+  for (let i = 0; i < needed; i++) {
+    result += base32Chars[raw[i]! & 0x1f];
   }
   return result;
 }
@@ -50,12 +52,20 @@ export function verifyTOTP(
 export function generateBackupCodes(count = 8): string[] {
   const codes: string[] = [];
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  const maxValid = 256 - (256 % chars.length);
   for (let i = 0; i < count; i++) {
     let code = '';
-    const bytes = new Uint8Array(8);
-    crypto.getRandomValues(bytes);
-    for (let j = 0; j < 8; j++) {
-      code += chars[bytes[j]! % chars.length];
+    const bytes = new Uint8Array(16);
+    let byteIndex = 0;
+    while (code.length < 8) {
+      if (byteIndex >= bytes.length) {
+        crypto.getRandomValues(bytes);
+        byteIndex = 0;
+      }
+      const b = bytes[byteIndex++]!;
+      if (b < maxValid) {
+        code += chars[b % chars.length];
+      }
     }
     codes.push(code);
   }

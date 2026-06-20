@@ -72,6 +72,15 @@ export async function POST(request: Request) {
     // Determine the partner (the other participant)
     const partnerId = match.user1Id === user.id ? match.user2Id : match.user1Id;
 
+    // Check block status: don't auto-reply if either user blocked the other
+    const [blockByUser, blockByPartner] = await Promise.all([
+      db.block.findUnique({ blockerId: user.id, blockedId: partnerId }),
+      db.block.findUnique({ blockerId: partnerId, blockedId: user.id }),
+    ]);
+    if (blockByUser || blockByPartner) {
+      return NextResponse.json({ error: 'Unable to send message' }, { status: 403 });
+    }
+
     // Fetch sender data and create message
     const [sender, createdMessage] = await Promise.all([
       db.user.findUnique({ id: partnerId }),

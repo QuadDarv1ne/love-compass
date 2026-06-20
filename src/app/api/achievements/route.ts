@@ -49,12 +49,15 @@ export async function POST(request: Request) {
       // Handle unique constraint violation from concurrent requests
       if (
         dbError instanceof Error &&
-        (dbError.message.includes('Unique constraint') || dbError.message.includes('P2002'))
+        'code' in dbError
       ) {
-        const existing = await db.userAchievement.findUnique(
-          { userId: user.id, achievementId }
-        );
-        return NextResponse.json({ data: existing, alreadyUnlocked: true });
+        const code = (dbError as Error & { code: unknown }).code;
+        if (code === 'P2002' || code === 11000) {
+          const existing = await db.userAchievement.findUnique(
+            { userId: user.id, achievementId }
+          );
+          return NextResponse.json({ data: existing, alreadyUnlocked: true });
+        }
       }
       throw dbError;
     }

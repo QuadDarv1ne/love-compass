@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { requireAdminWithCSRF } from '@/lib/auth/guard';
+import { requireAdmin } from '@/lib/auth/guard';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';
 import { RATE_LIMITS } from '@/lib/constants';
@@ -76,9 +76,9 @@ async function computeStats() {
   };
 }
 
-export async function GET(request: Request) {
+export async function GET(_request: Request) {
   try {
-    const auth = await requireAdminWithCSRF(request);
+    const auth = await requireAdmin();
     if (auth instanceof NextResponse) return auth;
 
     const { user } = auth;

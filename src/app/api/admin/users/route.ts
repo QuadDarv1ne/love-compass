@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { requireAdminWithCSRF, isZodError } from '@/lib/auth/guard';
+import { requireAdmin, isZodError } from '@/lib/auth/guard';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { sanitizeUser } from '@/lib/auth/projections';
 import { z } from 'zod';
@@ -17,7 +17,7 @@ const querySchema = z.object({
 
 export async function GET(request: Request) {
   try {
-    const auth = await requireAdminWithCSRF(request);
+    const auth = await requireAdmin();
     if (auth instanceof NextResponse) return auth;
 
     const { user } = auth;

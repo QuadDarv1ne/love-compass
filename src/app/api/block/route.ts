@@ -48,9 +48,12 @@ export async function POST(request: Request) {
     // Handle unique constraint violation from TOCTOU race
     if (
       error instanceof Error &&
-      (error.message.includes('Unique constraint failed') || error.message.includes('UNIQUE constraint failed'))
+      'code' in error
     ) {
-      return NextResponse.json({ error: 'Already blocked' }, { status: 409 });
+      const code = (error as Error & { code: unknown }).code;
+      if (code === 'P2002' || code === 11000) {
+        return NextResponse.json({ error: 'Already blocked' }, { status: 409 });
+      }
     }
     logger.error('/api/block', 'Failed to block user', error);
     return NextResponse.json({ error: 'Failed to block user' }, { status: 500 });
