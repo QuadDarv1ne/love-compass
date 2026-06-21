@@ -4,7 +4,7 @@ import type { DbUser } from '@/lib/db/types';
 import { z } from 'zod';
 import { requireAuth, isZodError } from '@/lib/auth/guard';
 import { sanitizeUser } from '@/lib/auth/projections';
-import { PAGINATION } from '@/lib/constants';
+import { PAGINATION, RATE_LIMITS } from '@/lib/constants';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
 
 export async function GET(request: Request) {
@@ -15,8 +15,7 @@ export async function GET(request: Request) {
     const { user } = auth;
 
     // Rate limit profile browsing to prevent data scraping
-    // Allow 30 requests per 5 minutes (enough for normal browsing)
-    const rateLimit = await checkRateLimit(`profiles:${user.id}`, 30, 300);
+    const rateLimit = await checkRateLimit(`profiles:${user.id}`, RATE_LIMITS.PROFILES.MAX, RATE_LIMITS.PROFILES.WINDOW);
     if (!rateLimit.allowed) {
       return NextResponse.json(
         { error: 'Too many requests. Please wait a moment before browsing more profiles.' },

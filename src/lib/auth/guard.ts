@@ -4,6 +4,9 @@ import { validateCSRFToken } from './csrf';
 import { db } from '@/lib/db';
 import type { DbUser } from '@/lib/db';
 import { logger } from '@/lib/logger';
+import { ONLINE_PRESENCE } from '@/lib/constants';
+
+const lastSeenCache = new Map<string, number>();
 
 /**
  * Check if an error is a Zod validation error.
@@ -20,10 +23,16 @@ export async function requireAuth(): Promise<{ user: DbUser } | NextResponse> {
     return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
   }
 
-  // Update lastSeenAt for online status tracking (fire-and-forget)
-  db.user.update({ id: user.id }, { lastSeenAt: new Date() }).catch(() => {
-    logger.warn('guard.requireAuth', 'Failed to update lastSeenAt', { userId: user.id });
-  });
+  // Update lastSeenAt at most once per ONLINE_PRESENCE.ACTIVE_THRESHOLD_MS
+  // to avoid a DB write on every single API call
+  const now = Date.now();
+  const lastUpdate = lastSeenCache.get(user.id) ?? 0;
+  if (now - lastUpdate >= ONLINE_PRESENCE.ACTIVE_THRESHOLD_MS) {
+    lastSeenCache.set(user.id, now);
+    db.user.update({ id: user.id }, { lastSeenAt: new Date() }).catch(() => {
+      logger.warn('guard.requireAuth', 'Failed to update lastSeenAt', { userId: user.id });
+    });
+  }
 
   return { user };
 }

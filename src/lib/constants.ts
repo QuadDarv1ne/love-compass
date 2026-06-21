@@ -74,6 +74,8 @@ export const UPLOAD = {
   MAX_PHOTOS: 6,
 } as const;
 
+export const LEADERBOARD_MAX_USERS = 500;
+
 export const ACHIEVEMENT_THRESHOLDS = {
   FIRST_LIKE: 1,
   HEART_HUNTER: 10,

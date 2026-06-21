@@ -5,15 +5,13 @@ import { requireAuth, isZodError } from '@/lib/auth/guard';
 import { sanitizeUser } from '@/lib/auth/projections';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';
-import { SCORING, RATE_LIMITS } from '@/lib/constants';
+import { SCORING, RATE_LIMITS, LEADERBOARD_MAX_USERS } from '@/lib/constants';
 
 const querySchema = z.object({
   sort: z.enum(['popular', 'active', 'new']).default('popular'),
   page: z.coerce.number().min(1).default(1),
   limit: z.coerce.number().min(1).max(50).default(20),
 });
-
-const LEADERBOARD_MAX_USERS = 500;
 
 export async function GET(request: Request) {
   try {

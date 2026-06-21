@@ -58,11 +58,20 @@ export function LandingView() {
     if (!user?.email) return;
     setLoading(true);
     try {
-      const csrfRes = await fetch('/api/auth/csrf-token');
-      const csrfData = await csrfRes.json();
-      const csrfToken = csrfData.csrfToken;
+      const abortController = new AbortController();
+      const timeoutId = setTimeout(() => abortController.abort(), 10000);
 
+      const csrfRes = await fetch('/api/auth/csrf-token', { signal: abortController.signal });
+      clearTimeout(timeoutId);
+      if (!csrfRes.ok) throw new Error('Failed to fetch CSRF token');
+      const csrfData = await csrfRes.json();
+      const csrfToken: string | undefined = csrfData.csrfToken;
+      if (!csrfToken) throw new Error('CSRF token not found');
+
+      const loginAbort = new AbortController();
+      const loginTimeout = setTimeout(() => loginAbort.abort(), 10000);
       const loginRes = await fetch('/api/auth/demo-login', {
+        signal: loginAbort.signal,
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -70,8 +79,12 @@ export function LandingView() {
         },
         body: JSON.stringify({ email: user.email }),
       });
+      clearTimeout(loginTimeout);
       if (loginRes.ok) {
         useAppStore.getState().checkAuth();
+      } else {
+        const errData = await loginRes.json().catch(() => ({}));
+        appLogger.error('landing-view.demo', 'Demo login rejected', { status: loginRes.status, error: errData.error });
       }
     } catch (error) {
       appLogger.error('landing-view.demo', 'Demo login failed', error);
@@ -103,7 +116,7 @@ export function LandingView() {
             />
           </div>
         </motion.div>
-        <h1 className="text-5xl md:text-7xl font-bold gradient-text mb-4">Love Compass</h1>
+        <h1 className="text-5xl md:text-7xl font-bold gradient-text mb-4">{t('app.name')}</h1>
         <p className="text-lg md:text-xl text-rose-400 font-medium mb-2">{t('app.tagline')}</p>
         <p className="text-sm md:text-base text-muted-foreground max-w-md mx-auto">
           {t('landing.subtitle')}

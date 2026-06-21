@@ -171,9 +171,12 @@ export function ChatListView() {
               <div className="flex items-center justify-between">
                 <h4 className="font-semibold text-sm text-rose-800 dark:text-rose-200 truncate">{partner.name}</h4>
                 <span className="text-[10px] text-muted-foreground flex-shrink-0">
-                  {match.messages?.[match.messages.length - 1]?.createdAt
-                    ? formatMessageDate(match.messages[match.messages.length - 1]!.createdAt!, useAppStore.getState().language || 'ru', t('chat.yesterday'))
-                    : ''}
+                  {(() => {
+                    const lastMsg = match.messages?.length ? match.messages[match.messages.length - 1] : null;
+                    return lastMsg?.createdAt
+                      ? formatMessageDate(lastMsg.createdAt, useAppStore.getState().language || 'ru', t('chat.yesterday'))
+                      : '';
+                  })()}
                 </span>
               </div>
               <p className="text-xs text-muted-foreground truncate">{lastMsg}</p>

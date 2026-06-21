@@ -97,9 +97,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'Missing toUserId parameter' }, { status: 400 });
     }
 
-    const validated = z.object({ toUserId: z.string().min(1) }).parse({ toUserId });
-
-    await db.dislike.deleteMany({ fromUserId: user.id, toUserId: validated.toUserId });
+    await db.dislike.deleteMany({ fromUserId: user.id, toUserId });
 
     return NextResponse.json({ success: true });
   } catch (error) {
