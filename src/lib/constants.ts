@@ -233,3 +233,6 @@ export const TIME = {
 export const ONLINE_PRESENCE = {
   ACTIVE_THRESHOLD_MS: 5 * 60 * 1000, // 5 minutes
 } as const;
+
+export const BLOCK_REASON = 'Blocked from profile detail' as const;
+export const REPORT_REASON = 'Inappropriate behavior' as const;

@@ -145,7 +145,7 @@
 - [ ] **Add API versioning** — Routes at `/api/*` with no version. Add `/api/v1/` prefix
 - [ ] **Добавить версионирование API** — Маршруты на `/api/*` без версии. Добавить префикс `/api/v1/`
 
-- [ ] **Fix Tailwind v4 config** — Using `tailwind.config.ts` but v4 prefers CSS-first configuration
+- [x] **Fix Tailwind v4 config** — Using `tailwind.config.ts` but v4 prefers CSS-first configuration (already using v4 CSS-first via `@import "tailwindcss"` in globals.css)
 
 - [x] **Add unit tests** — Test utilities, hooks, and complex components
 - [x] **Добавить юнит-тесты** — Тестирование утилит, хуков и сложных компонентов

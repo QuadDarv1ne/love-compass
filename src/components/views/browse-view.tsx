@@ -14,7 +14,7 @@ import { appLogger } from '@/lib/logger';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { useAppStore, type User } from '@/lib/store';
-import { SUPER_LIKE_DAILY_LIMIT, SWIPE, MATCH_ANIMATION_DELAY, FILTER, SPRING, SWIPE_EXT } from '@/lib/constants';
+import { SUPER_LIKE_DAILY_LIMIT, SWIPE, MATCH_ANIMATION_DELAY, FILTER, SPRING, SWIPE_EXT, BLOCK_REASON, REPORT_REASON } from '@/lib/constants';
 import { FilterPanel } from './shared';
 import { useTranslation } from '@/hooks/useTranslation';
 
@@ -198,7 +198,6 @@ export function BrowseView() {
   const [detailProfile, setDetailProfile] = useState<User | null>(null);
   const [lastSwipedProfile, setLastSwipedProfile] = useState<User | null>(null);
   const [lastSwipeAction, setLastSwipeAction] = useState<'like' | 'dislike' | 'superLike' | null>(null);
-  const dragStartPos = useRef<{ x: number; y: number } | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const timerIdsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
@@ -244,8 +243,8 @@ export function BrowseView() {
       if (blockedUserIds.includes(p.id)) return false;
       if (dislikedUserIds.includes(p.id)) return false;
       if (filterGender !== 'all' && p.gender !== filterGender) return false;
-      if (filterAgeMin > FILTER.AGE_DEFAULT_MIN && p.age < filterAgeMin) return false;
-      if (filterAgeMax < FILTER.AGE_DEFAULT_MAX && p.age > filterAgeMax) return false;
+      if (p.age < filterAgeMin) return false;
+      if (p.age > filterAgeMax) return false;
       if (filterCity && !p.city.toLowerCase().includes(filterCity.toLowerCase())) return false;
       if (searchQuery && !p.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
       return true;
@@ -479,22 +478,17 @@ export function BrowseView() {
           superLikedUserIds: state.superLikedUserIds.filter((id) => id !== lastSwipedProfile.id),
         };
       }
-      return {};
+      return state;
     });
     setLastSwipedProfile(null);
     setLastSwipeAction(null);
   }, [lastSwipedProfile, lastSwipeAction, t]);
 
   // Drag handlers for touch swipe
-  const handleDragStart = () => {
-    dragStartPos.current = { x: 0, y: 0 };
-  };
+  const handleDragStart = () => {};
 
-  const handleDrag = (_: unknown, info: { offset: { x: number }; point: { x: number; y: number } }) => {
+  const handleDrag = (_: unknown, info: { offset: { x: number } }) => {
     setDragX(info.offset.x);
-    if (!dragStartPos.current) {
-      dragStartPos.current = { x: info.point.x, y: info.point.y };
-    }
   };
 
   const handleDragEnd = (profile: User, _e: unknown, info: { offset: { x: number } }) => {
@@ -503,7 +497,6 @@ export function BrowseView() {
     // If drag distance is very small, treat as tap → open detail modal
     if (dragDistance < SWIPE.TAP_DISTANCE) {
       setDragX(0);
-      dragStartPos.current = null;
       setDetailProfile(profile);
       return;
     }
@@ -514,7 +507,6 @@ export function BrowseView() {
       handleDislike(profile);
     }
     setDragX(0);
-    dragStartPos.current = null;
   };
 
   if (!currentProfile) {
@@ -539,7 +531,7 @@ export function BrowseView() {
                 disabled={loadingMore}
                 className="bg-rose-500 hover:bg-rose-600 text-white"
               >
-                {loadingMore ? t('profile.saving') : 'Load more'}
+                {loadingMore ? t('profile.saving') : t('browse.loadMore')}
               </Button>
             )}
           </div>
@@ -750,7 +742,7 @@ export function BrowseView() {
               try {
                 await fetchWithCSRF('/api/block', {
                   blockedId: detailProfile.id,
-                  reason: 'Blocked from profile detail',
+                  reason: BLOCK_REASON,
                 });
                 // Only update UI after API succeeds
                 useAppStore.getState().blockUser(detailProfile.id);
@@ -764,7 +756,7 @@ export function BrowseView() {
               try {
                 await fetchWithCSRF('/api/report', {
                   reportedId: detailProfile.id,
-                  reason: 'Inappropriate behavior',
+                  reason: REPORT_REASON,
                 });
                 // Only show success after API succeeds
                 toast.info(t('browse.reportSent', { name: detailProfile.name }), { description: t('browse.reportSentDesc') });
