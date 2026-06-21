@@ -11,17 +11,17 @@ import {
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { useAppStore } from '@/lib/store';
+import { useAppStore, type User, type MatchWithUsers } from '@/lib/store';
 import { useTranslation } from '@/hooks/useTranslation';
 
 // ─── Achievement definitions ─────────────────────────────────────────────────
 
 interface AchievementState {
   likedUserIds: string[];
-  matches: unknown[];
+  matches: MatchWithUsers[];
   superLikedUserIds: string[];
   dislikedUserIds: string[];
-  currentUser: unknown;
+  currentUser: User | null;
 }
 
 interface AchievementDef {

@@ -368,10 +368,11 @@ export const useAppStore = create<AppState>((set, get) => {
   const settingSetter = <K extends keyof AppState>(key: K) =>
     (value: AppState[K]) => {
       const prev = get()[key];
+      const prevLanguage = get().language;
       set({ [key]: value } as Partial<AppState>);
-      get().saveSettings({ [key]: value } as Record<string, unknown>).catch(() => {
+      get().saveSettings({ [key]: value } as Partial<AppState>).catch(() => {
         set({ [key]: prev } as Partial<AppState>);
-        const t = createTranslatorForLanguage(get().language);
+        const t = createTranslatorForLanguage(prevLanguage);
         toast.error(t('settings.saveError'));
       });
     };
@@ -415,15 +416,13 @@ export const useAppStore = create<AppState>((set, get) => {
         // server-side session active, creating a security risk.
         const data = await res.json();
         const t = createTranslatorForLanguage(get().language);
-        toast.error(data.error || t('settings.logoutError'), {
-          description: t('auth.tooManyAttempts'),
-        });
+        toast.error(data.error || t('settings.logoutError'));
         return false;
       }
     } catch (error) {
       appLogger.error('store.logout', 'Logout API call failed', error);
       const t = createTranslatorForLanguage(get().language);
-      toast.error(t('settings.logoutError'), { description: t('settings.logoutError') });
+      toast.error(t('settings.logoutError'));
       return false;
     }
     // Only clear state after server confirms session is destroyed

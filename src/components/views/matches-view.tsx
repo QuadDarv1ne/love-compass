@@ -172,7 +172,7 @@ export function ChatListView() {
                 <h4 className="font-semibold text-sm text-rose-800 dark:text-rose-200 truncate">{partner.name}</h4>
                 <span className="text-[10px] text-muted-foreground flex-shrink-0">
                   {match.messages?.[match.messages.length - 1]?.createdAt
-                    ? formatMessageDate(match.messages[match.messages.length - 1]!.createdAt!, useAppStore.getState().language || 'ru')
+                    ? formatMessageDate(match.messages[match.messages.length - 1]!.createdAt!, useAppStore.getState().language || 'ru', t('chat.yesterday'))
                     : ''}
                 </span>
               </div>

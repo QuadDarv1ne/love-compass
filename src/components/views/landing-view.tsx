@@ -8,9 +8,8 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { useAppStore, type User } from '@/lib/store';
+import { useAppStore } from '@/lib/store';
 import { appLogger } from '@/lib/logger';
-import { PAGINATION } from '@/lib/constants';
 import { FloatingHearts } from './shared';
 import { useTranslation } from '@/hooks/useTranslation';
 import Link from 'next/link';
@@ -24,27 +23,28 @@ const FEATURES = [
 ];
 
 // ─── Demo users (only in dev mode) ──────────────────────────────────────────
-const DEMO_USERS = [
-  { name: 'Анна', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Anastasia' },
-  { name: 'Дмитрий', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Dmitry' },
-  { name: 'Екатерина', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Ekaterina' },
-  { name: 'Максим', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Maxim' },
-  { name: 'Ольга', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Olga' },
-  { name: 'Артём', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Artem' },
-  { name: 'Мария', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Maria' },
-  { name: 'Никита', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Nikita' },
-  { name: 'Наташа', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Natalia' },
-  { name: 'Минджун', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Ivan' },
-  { name: 'София', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Sofia' },
-  { name: 'Радж', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Andrey' },
-  { name: 'Амара', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Alina' },
-  { name: 'Эйдан', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Sergey' },
-  { name: 'Сакура', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Diana' },
-  { name: 'Кваме', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Kirill' },
-  { name: 'Камилла', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Polina' },
-  { name: 'Эрик', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Roman' },
-  { name: 'Лейла', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Viktoria' },
-  { name: 'Лукас', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Alexander' },
+interface DemoUser { name: string; email: string; avatar: string; }
+const DEMO_USERS: DemoUser[] = [
+  { name: 'Анна', email: 'anna@example.com', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Anastasia' },
+  { name: 'Дмитрий', email: 'dmitry@example.com', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Dmitry' },
+  { name: 'Екатерина', email: 'ekaterina@example.com', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Ekaterina' },
+  { name: 'Максим', email: 'maxim@example.com', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Maxim' },
+  { name: 'Ольга', email: 'olga@example.com', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Olga' },
+  { name: 'Артём', email: 'artem@example.com', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Artem' },
+  { name: 'Мария', email: 'maria@example.com', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Maria' },
+  { name: 'Никита', email: 'nikita@example.com', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Nikita' },
+  { name: 'Наташа', email: 'natasha@example.com', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Natalia' },
+  { name: 'Минджун', email: 'minjun@example.com', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Minjun' },
+  { name: 'София', email: 'sofia@example.com', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Sofia' },
+  { name: 'Радж', email: 'raj@example.com', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Raj' },
+  { name: 'Амара', email: 'amara@example.com', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Amara' },
+  { name: 'Эйдан', email: 'aidan@example.com', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Aidan' },
+  { name: 'Сакура', email: 'sakura@example.com', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Sakura' },
+  { name: 'Кваме', email: 'kwame@example.com', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Kwame' },
+  { name: 'Камилла', email: 'camille@example.com', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Camille' },
+  { name: 'Эрик', email: 'erik@example.com', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Erik' },
+  { name: 'Лейла', email: 'layla@example.com', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Layla' },
+  { name: 'Лукас', email: 'lucas@example.com', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Lucas' },
 ];
 
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
@@ -54,29 +54,24 @@ export function LandingView() {
   const [loading, setLoading] = React.useState(false);
 
   const quickLogin = async (avatarIndex: number) => {
+    const user = DEMO_USERS[avatarIndex];
+    if (!user?.email) return;
     setLoading(true);
     try {
-      const res = await fetch(`/api/profiles?limit=${PAGINATION.DEMO_FETCH_LIMIT}`);
-      const body = await res.json();
-      const users: User[] = body.data ?? body;
-      const selectedUser = users[avatarIndex];
-      if (selectedUser && selectedUser.email) {
-        // Get CSRF token first
-        const csrfRes = await fetch('/api/auth/csrf-token');
-        const csrfData = await csrfRes.json();
-        const csrfToken = csrfData.csrfToken;
+      const csrfRes = await fetch('/api/auth/csrf-token');
+      const csrfData = await csrfRes.json();
+      const csrfToken = csrfData.csrfToken;
 
-        const loginRes = await fetch('/api/auth/demo-login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-csrf-token': csrfToken,
-          },
-          body: JSON.stringify({ email: selectedUser.email }),
-        });
-        if (loginRes.ok) {
-          useAppStore.getState().checkAuth();
-        }
+      const loginRes = await fetch('/api/auth/demo-login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-csrf-token': csrfToken,
+        },
+        body: JSON.stringify({ email: user.email }),
+      });
+      if (loginRes.ok) {
+        useAppStore.getState().checkAuth();
       }
     } catch (error) {
       appLogger.error('landing-view.demo', 'Demo login failed', error);

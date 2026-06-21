@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { existsSync, mkdirSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, writeFileSync, unlinkSync } from 'fs';
 import path from 'path';
 import sharp from 'sharp';
 
@@ -109,7 +109,6 @@ export async function validateAndProcessImage(
 export async function cleanupFile(filePath: string): Promise<void> {
   if (existsSync(filePath)) {
     try {
-      const { unlinkSync } = await import('fs');
       unlinkSync(filePath);
     } catch {
       // Ignore deletion errors

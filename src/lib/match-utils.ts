@@ -15,7 +15,7 @@ export function getLastMessage(match: MatchWithUsers, currentUser: User | null, 
   return '';
 }
 
-export function formatMessageDate(dateStr: string, language: string): string {
+export function formatMessageDate(dateStr: string, language: string, yesterdayLabel?: string): string {
   if (!dateStr) return '';
   const date = new Date(dateStr);
   const today = new Date();
@@ -25,7 +25,7 @@ export function formatMessageDate(dateStr: string, language: string): string {
   const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
   if (date.toDateString() === yesterday.toDateString()) {
-    return date.toLocaleTimeString(language || 'ru', { hour: '2-digit', minute: '2-digit' });
+    return yesterdayLabel || date.toLocaleTimeString(language || 'ru', { hour: '2-digit', minute: '2-digit' });
   }
   return date.toLocaleDateString(language || 'ru', { day: 'numeric', month: 'short' });
 }
