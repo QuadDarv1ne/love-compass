@@ -2,6 +2,7 @@ import { useAppStore, type User, type MatchWithUsers } from '@/lib/store';
 import { appLogger } from '@/lib/logger';
 import { PAGINATION, ONLINE_PRESENCE } from '@/lib/constants';
 import { detectBrowserLocale, SUPPORTED_LOCALES, createTranslatorForLanguage, type Locale } from '@/lib/i18n';
+import { toast } from 'sonner';
 
 let csrfToken: string | null = null;
 let csrfTokenFetchedAt: number | null = null;
@@ -416,7 +417,6 @@ export async function hydrateAppData(user?: User) {
 
   if (hydrateGeneration !== generation) return;
   if (errors.length > 0) {
-    const { toast } = await import('sonner');
     const lang = useAppStore.getState().language || 'ru';
     const t = createTranslatorForLanguage(lang);
     toast.warning(t('common.someDataNotLoaded'), {

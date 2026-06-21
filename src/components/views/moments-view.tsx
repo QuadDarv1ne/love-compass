@@ -275,10 +275,11 @@ function StoryViewer({
       })
     );
     setCommentText('');
-    toast.success(t('moments.commentAdded'));
 
     // Sync with server with rollback on failure
-    patchWithCSRF('/api/moments', { id: currentMoment.id, action: 'comment', content }).catch((error) => {
+    patchWithCSRF('/api/moments', { id: currentMoment.id, action: 'comment', content }).then(() => {
+      toast.success(t('moments.commentAdded'));
+    }).catch((error) => {
       appLogger.error('moments-view.syncComment', 'Failed to sync comment', error);
       toast.error(t('moments.commentError'));
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useShallow } from 'zustand/react/shallow';
 import { useTheme } from 'next-themes';
@@ -117,6 +117,7 @@ function TwoFASetupDialog({
   const [backupCodes, setBackupCodes] = useState<string[]>([]);
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
+  const cancelledRef = useRef(false);
 
   useEffect(() => {
     if (open) {
@@ -126,25 +127,32 @@ function TwoFASetupDialog({
       setBackupCodes([]);
       setCode('');
       setLoading(true);
+      cancelledRef.current = false;
       (async () => {
         try {
           const res = await fetchWithCSRF('/api/auth/2fa/setup', {});
+          if (cancelledRef.current) return;
           const data = await res.json();
           if (!res.ok) {
             toast.error(data.error);
             return;
           }
+          if (cancelledRef.current) return;
           setSecret(data.secret);
           setUri(data.uri);
           setBackupCodes(data.backupCodes);
           setStep('verify');
         } catch {
+          if (cancelledRef.current) return;
           toast.error(t('error.server'));
         } finally {
-          setLoading(false);
+          if (!cancelledRef.current) setLoading(false);
         }
       })();
     }
+    return () => {
+      cancelledRef.current = true;
+    };
   }, [open, t]);
 
   const handleVerify = async () => {

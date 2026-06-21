@@ -37,17 +37,22 @@ function applyRateLimit(request: NextRequest, limiter: ReturnType<typeof createR
 }
 
 function logRequest(method: string, pathname: string, status: number, duration: number, ip: string) {
-  const entry = {
-    level: status >= 500 ? 'error' : status >= 400 ? 'warn' : 'info',
-    timestamp: new Date().toISOString(),
-    context: 'middleware',
-    message: `${method} ${pathname} ${status}`,
-    data: { duration: `${duration}ms`, ip },
-  };
   if (status >= 500) {
-    console.error(JSON.stringify(entry));
+    console.error(JSON.stringify({
+      level: 'error',
+      timestamp: new Date().toISOString(),
+      context: 'middleware',
+      message: `${method} ${pathname} ${status}`,
+      data: { duration: `${duration}ms`, ip },
+    }));
   } else if (status >= 400) {
-    console.warn(JSON.stringify(entry));
+    console.warn(JSON.stringify({
+      level: 'warn',
+      timestamp: new Date().toISOString(),
+      context: 'middleware',
+      message: `${method} ${pathname} ${status}`,
+      data: { duration: `${duration}ms`, ip },
+    }));
   }
 }
 

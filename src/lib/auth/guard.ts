@@ -3,6 +3,7 @@ import { getUserFromRequest } from './session-server';
 import { validateCSRFToken } from './csrf';
 import { db } from '@/lib/db';
 import type { DbUser } from '@/lib/db';
+import { logger } from '@/lib/logger';
 
 /**
  * Check if an error is a Zod validation error.
@@ -20,7 +21,9 @@ export async function requireAuth(): Promise<{ user: DbUser } | NextResponse> {
   }
 
   // Update lastSeenAt for online status tracking (fire-and-forget)
-  db.user.update({ id: user.id }, { lastSeenAt: new Date() }).catch(() => {});
+  db.user.update({ id: user.id }, { lastSeenAt: new Date() }).catch(() => {
+    logger.warn('guard.requireAuth', 'Failed to update lastSeenAt', { userId: user.id });
+  });
 
   return { user };
 }

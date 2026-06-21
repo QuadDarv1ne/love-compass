@@ -211,14 +211,19 @@ function DebouncedInput({
   const [localValue, setLocalValue] = useState(value);
   const debouncedValue = useDebounce(localValue, 300);
   const isFirst = useRef(true);
+  const onChangeRef = useRef(onChange);
+
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
 
   useEffect(() => {
     if (isFirst.current) {
       isFirst.current = false;
       return;
     }
-    onChange(debouncedValue);
-  }, [debouncedValue]); // eslint-disable-line react-hooks/exhaustive-deps
+    onChangeRef.current(debouncedValue);
+  }, [debouncedValue]);
 
   useEffect(() => {
     setLocalValue(value);

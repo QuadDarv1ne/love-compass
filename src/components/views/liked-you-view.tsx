@@ -19,11 +19,10 @@ import { useTranslation } from '@/hooks/useTranslation';
 
 export function LikedYouView() {
   const { t } = useTranslation();
-  const { currentUser, likedYouProfiles, setLikedYouProfiles, setShowMatchAnimation, setMatchAnimationPartner, navigateTo } = useAppStore(
+  const { currentUser, likedYouProfiles, setShowMatchAnimation, setMatchAnimationPartner, navigateTo } = useAppStore(
     useShallow((s) => ({
       currentUser: s.currentUser,
       likedYouProfiles: s.likedYouProfiles,
-      setLikedYouProfiles: s.setLikedYouProfiles,
       setShowMatchAnimation: s.setShowMatchAnimation,
       setMatchAnimationPartner: s.setMatchAnimationPartner,
       navigateTo: s.navigateTo,
@@ -61,9 +60,11 @@ export function LikedYouView() {
           description: t('likedYou.likeBackToastDesc'),
         });
       }
-      // Remove from liked you list only after success
-      const updated = likedYouProfiles.filter(p => p.id !== profile.id);
-      setLikedYouProfiles(updated);
+      // Remove from liked you list — use functional updater to avoid stale closure
+      useAppStore.setState((prev) => ({
+        likedYouProfiles: prev.likedYouProfiles.filter((p) => p.id !== profile.id),
+        likedYouCount: Math.max(0, prev.likedYouCount - 1),
+      }));
     } catch (error) {
       toast.error(t('likedYou.likeBackError'), { description: t('likedYou.likeBackErrorDesc') });
       appLogger.error('liked-you-view.likeBack', 'Like back failed', error);
