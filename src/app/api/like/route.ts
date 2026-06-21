@@ -194,12 +194,10 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'Missing toUserId parameter' }, { status: 400 });
     }
 
-    const validated = z.object({ toUserId: z.string().min(1) }).parse({ toUserId });
-
     await db.transaction(async (tx) => {
       // Delete the like
       const deleted = await tx.like.deleteMany({
-        AND: [{ fromUserId: user.id }, { toUserId: validated.toUserId }],
+        AND: [{ fromUserId: user.id }, { toUserId }],
       });
 
       // If no like was deleted, nothing more to do
@@ -209,8 +207,8 @@ export async function DELETE(request: Request) {
       // so when either party withdraws their like, the match should end
       const match = await tx.match.findFirst({
         OR: [
-          { user1Id: user.id, user2Id: validated.toUserId },
-          { user1Id: validated.toUserId, user2Id: user.id },
+          { user1Id: user.id, user2Id: toUserId },
+          { user1Id: toUserId, user2Id: user.id },
         ],
       });
 

@@ -213,7 +213,7 @@ interface AppState {
 
   setView: (view: ViewType) => void;
   login: (user: User) => void;
-  logout: () => Promise<void>;
+  logout: () => Promise<boolean>;
   checkAuth: () => Promise<void>;
   refreshUser: () => Promise<void>;
   clearAllData: () => void;
@@ -333,7 +333,7 @@ const clearState = {
   searchQuery: '',
   sortBy: 'new' as const,
   filterGender: 'all' as const,
-  filterAgeMin: 0,
+  filterAgeMin: 18,
   filterAgeMax: 99,
   filterCity: '',
   showFilters: false,
@@ -418,16 +418,17 @@ export const useAppStore = create<AppState>((set, get) => {
         toast.error(data.error || t('settings.logoutError'), {
           description: t('auth.tooManyAttempts'),
         });
-        return;
+        return false;
       }
     } catch (error) {
       appLogger.error('store.logout', 'Logout API call failed', error);
       const t = createTranslatorForLanguage(get().language);
       toast.error(t('settings.logoutError'), { description: t('settings.logoutError') });
-      return;
+      return false;
     }
     // Only clear state after server confirms session is destroyed
     set({ ...clearState, authStatus: 'unauthenticated' });
+    return true;
   },
 
   checkAuth: async () => {

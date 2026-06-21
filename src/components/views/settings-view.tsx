@@ -730,12 +730,8 @@ export function SettingsView() {
                   variant="outline"
                   className="w-full justify-start gap-2 border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl"
                   onClick={async () => {
-                    try {
-                      await logout();
-                      toast.success(t('settings.loggedOut'));
-                    } catch {
-                      toast.error(t('settings.logoutError'));
-                    }
+                    const ok = await logout();
+                    if (ok) toast.success(t('settings.loggedOut'));
                   }}
                 >
                   <LogOut className="w-4 h-4" />
