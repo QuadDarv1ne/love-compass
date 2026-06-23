@@ -33,11 +33,28 @@ CREATE TABLE "new_User" (
     "soundEnabled" BOOLEAN NOT NULL DEFAULT true,
     "matchNotifications" BOOLEAN NOT NULL DEFAULT true,
     "likeNotifications" BOOLEAN NOT NULL DEFAULT true,
+    "emailNotifications" BOOLEAN NOT NULL DEFAULT true,
     "lastSeenAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL
 );
-INSERT INTO "new_User" SELECT "id", "email", "passwordHash", "name", "age", "gender", "bio", "interests", "avatar", "photos", "city", "lookingFor", "emailVerified", "emailVerificationToken", "emailVerificationExpiry", "passwordResetToken", "passwordResetExpiry", "totpSecret", "totpEnabled", "totpBackupCodes", "loginAttempts", "lockedUntil", "notificationsEnabled", "profileVisible", "role", "showOnlineStatus", "language", "showDistance", "soundEnabled", "matchNotifications", "likeNotifications", "createdAt", "updatedAt" FROM "User";
+INSERT INTO "new_User" (
+    "id", "email", "passwordHash", "name", "age", "gender", "bio", "interests",
+    "avatar", "photos", "city", "lookingFor", "emailVerified", "emailVerificationToken",
+    "emailVerificationExpiry", "passwordResetToken", "passwordResetExpiry",
+    "totpSecret", "totpEnabled", "totpBackupCodes", "loginAttempts", "lockedUntil",
+    "notificationsEnabled", "profileVisible", "role", "showOnlineStatus",
+    "language", "showDistance", "soundEnabled", "matchNotifications",
+    "likeNotifications", "createdAt", "updatedAt"
+) SELECT
+    "id", "email", "passwordHash", "name", "age", "gender", "bio", "interests",
+    "avatar", "photos", "city", "lookingFor", "emailVerified", "emailVerificationToken",
+    "emailVerificationExpiry", "passwordResetToken", "passwordResetExpiry",
+    "totpSecret", "totpEnabled", "totpBackupCodes", "loginAttempts", "lockedUntil",
+    "notificationsEnabled", "profileVisible", "role", "showOnlineStatus",
+    "language", "showDistance", "soundEnabled", "matchNotifications",
+    "likeNotifications", "createdAt", "updatedAt"
+FROM "User";
 DROP TABLE "User";
 ALTER TABLE "new_User" RENAME TO "User";
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");

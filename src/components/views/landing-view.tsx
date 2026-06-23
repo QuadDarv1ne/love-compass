@@ -12,6 +12,7 @@ import { useAppStore } from '@/lib/store';
 import { appLogger } from '@/lib/logger';
 import { FloatingHearts } from './shared';
 import { useTranslation } from '@/hooks/useTranslation';
+import { toast } from 'sonner';
 import Link from 'next/link';
 
 // ─── Features data ──────────────────────────────────────────────────────────
@@ -85,9 +86,11 @@ export function LandingView() {
       } else {
         const errData = await loginRes.json().catch(() => ({}));
         appLogger.error('landing-view.demo', 'Demo login rejected', { status: loginRes.status, error: errData.error });
+        toast.error(errData.error || t('landing.demoLoginError'));
       }
     } catch (error) {
       appLogger.error('landing-view.demo', 'Demo login failed', error);
+      toast.error(t('landing.demoLoginError'));
     }
     setLoading(false);
   };

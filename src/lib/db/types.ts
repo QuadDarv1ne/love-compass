@@ -33,6 +33,7 @@ export interface DbUser {
   soundEnabled: boolean;
   matchNotifications: boolean;
   likeNotifications: boolean;
+  emailNotifications: boolean;
   lastSeenAt: Date;
   createdAt: Date;
   updatedAt: Date;

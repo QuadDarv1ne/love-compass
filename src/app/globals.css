@@ -282,23 +282,6 @@
   color: #fce7f3;
 }
 
-/* Super Like glow animation */
-@keyframes super-like-glow {
-  0% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
-  50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.8); }
-  100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
-}
-
-/* Notification badge pulse */
-@keyframes badge-pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
-}
-
-.badge-pulse {
-  animation: badge-pulse 2s ease-in-out infinite;
-}
-
 /* Respect user motion preferences */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

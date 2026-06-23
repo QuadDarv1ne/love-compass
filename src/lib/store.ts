@@ -195,6 +195,7 @@ interface AppState {
   soundEnabled: boolean;
   matchNotifications: boolean;
   likeNotifications: boolean;
+  emailNotifications: boolean;
 
   // Achievements
   unlockedAchievements: string[];
@@ -275,6 +276,7 @@ interface AppState {
   setSoundEnabled: (enabled: boolean) => void;
   setMatchNotifications: (enabled: boolean) => void;
   setLikeNotifications: (enabled: boolean) => void;
+  setEmailNotifications: (enabled: boolean) => void;
   loadSettings: () => Promise<void>;
   saveSettings: (settings: {
     notificationsEnabled?: boolean;
@@ -285,6 +287,7 @@ interface AppState {
     soundEnabled?: boolean;
     matchNotifications?: boolean;
     likeNotifications?: boolean;
+    emailNotifications?: boolean;
   }) => Promise<void>;
 
   // Achievements
@@ -348,6 +351,7 @@ const clearState = {
   soundEnabled: true,
   matchNotifications: true,
   likeNotifications: true,
+  emailNotifications: true,
   unlockedAchievements: [],
   showMatchAnimation: false,
   matchAnimationPartner: null,
@@ -561,6 +565,7 @@ export const useAppStore = create<AppState>((set, get) => {
   setSoundEnabled: settingSetter('soundEnabled'),
   setMatchNotifications: settingSetter('matchNotifications'),
   setLikeNotifications: settingSetter('likeNotifications'),
+  setEmailNotifications: settingSetter('emailNotifications'),
   loadSettings: async () => {
     try {
       const res = await fetch('/api/settings');
@@ -575,6 +580,7 @@ export const useAppStore = create<AppState>((set, get) => {
           soundEnabled: settings.soundEnabled ?? true,
           matchNotifications: settings.matchNotifications ?? true,
           likeNotifications: settings.likeNotifications ?? true,
+          emailNotifications: settings.emailNotifications ?? true,
         });
       }
     } catch (error) {

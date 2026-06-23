@@ -40,6 +40,7 @@ model User {
   soundEnabled           Boolean   @default(true)
   matchNotifications     Boolean   @default(true)
   likeNotifications      Boolean   @default(true)
+  emailNotifications     Boolean   @default(true)
   lastSeenAt             DateTime  @default(now())
   createdAt              DateTime  @default(now())
   updatedAt              DateTime  @updatedAt

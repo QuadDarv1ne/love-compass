@@ -278,6 +278,8 @@ export function SettingsView() {
     setMatchNotifications: setMatchNotif,
     likeNotifications: likeNotif,
     setLikeNotifications: setLikeNotif,
+    emailNotifications: emailNotif,
+    setEmailNotifications: setEmailNotif,
   } = useAppStore(
     useShallow((s) => ({
       currentUser: s.currentUser,
@@ -297,10 +299,12 @@ export function SettingsView() {
       setShowDistance: s.setShowDistance,
       soundEnabled: s.soundEnabled,
       setSoundEnabled: s.setSoundEnabled,
-      matchNotifications: s.matchNotifications,
-      setMatchNotifications: s.setMatchNotifications,
-      likeNotifications: s.likeNotifications,
-      setLikeNotifications: s.setLikeNotifications,
+    matchNotifications: s.matchNotifications,
+    setMatchNotifications: s.setMatchNotifications,
+    likeNotifications: s.likeNotifications,
+    setLikeNotifications: s.setLikeNotifications,
+    emailNotifications: s.emailNotifications,
+    setEmailNotifications: s.setEmailNotifications,
     }))
   );
 
@@ -510,6 +514,14 @@ export function SettingsView() {
                 checked={likeNotif}
                 onCheckedChange={setLikeNotif}
               />
+
+              <SettingRow
+                icon={<Mail className="w-4 h-4" />}
+                label={t('settings.emailNotif')}
+                description={t('settings.emailNotifDesc')}
+                checked={emailNotif}
+                onCheckedChange={setEmailNotif}
+              />
             </CardContent>
           </Card>
         </motion.div>
@@ -712,7 +724,9 @@ export function SettingsView() {
                     <p className="text-sm font-medium truncate">
                       {currentUser?.email ?? '—'}
                     </p>
-                    {!currentUser?.emailVerified && (
+                    {currentUser?.emailVerified ? (
+                      <Badge variant="default" className="text-[10px] bg-green-500 hover:bg-green-600">{t('settings.verified')}</Badge>
+                    ) : (
                       <Badge variant="destructive" className="text-[10px]">{t('settings.notVerified')}</Badge>
                     )}
                   </div>

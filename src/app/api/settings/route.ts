@@ -14,6 +14,7 @@ const updateSettingsSchema = z.object({
   soundEnabled: z.boolean().optional(),
   matchNotifications: z.boolean().optional(),
   likeNotifications: z.boolean().optional(),
+  emailNotifications: z.boolean().optional(),
 });
 
 export async function GET() {
@@ -38,6 +39,7 @@ export async function GET() {
       soundEnabled: dbUser.soundEnabled,
       matchNotifications: dbUser.matchNotifications,
       likeNotifications: dbUser.likeNotifications,
+      emailNotifications: dbUser.emailNotifications,
     });
   } catch (error) {
     logger.error('/api/settings', 'Failed to fetch settings', error);
