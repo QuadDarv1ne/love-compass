@@ -7,6 +7,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { Heart } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { SkeletonMatchCard } from '@/components/ui/skeleton';
 import { useAppStore, type MatchWithUsers } from '@/lib/store';
 import { getPartner, getLastMessage, filterValidMatches, formatMessageDate } from '@/lib/match-utils';
 import { OnlineIndicator } from './shared';
@@ -55,10 +56,13 @@ export function MatchesView() {
 
   if (localLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
-          <Heart className="w-10 h-10 text-rose-400" />
-        </motion.div>
+      <div className="flex-1 px-4 py-4 md:py-6">
+        <div className="h-6 w-48 rounded-lg bg-rose-100/70 dark:bg-rose-900/30 animate-pulse mb-6" />
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <SkeletonMatchCard key={i} />
+          ))}
+        </div>
       </div>
     );
   }

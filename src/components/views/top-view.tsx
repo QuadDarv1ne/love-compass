@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
+import Skeleton from '@/components/ui/skeleton';
 import { useAppStore, type User } from '@/lib/store';
 import { OnlineIndicator } from './shared';
 import { appLogger } from '@/lib/logger';
@@ -353,13 +354,28 @@ export function TopView() {
   // ─── Loading State ────────────────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-        >
-          <Heart className="w-10 h-10 text-rose-400" />
-        </motion.div>
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="px-4 pt-4 pb-2 md:pt-6 md:pb-3">
+          <Skeleton className="h-8 w-48 mb-2" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+        <div className="flex-1 overflow-y-auto px-4 pb-4">
+          <div className="flex gap-2 mb-6">
+            <Skeleton className="h-10 flex-1 rounded-xl" />
+            <Skeleton className="h-10 flex-1 rounded-xl" />
+            <Skeleton className="h-10 flex-1 rounded-xl" />
+          </div>
+          <div className="flex items-end justify-center gap-3 mb-6">
+            {[160, 180, 160].map((w, i) => (
+              <Skeleton key={i} className="rounded-2xl" style={{ width: w, height: i === 1 ? 220 : 190 }} />
+            ))}
+          </div>
+          <div className="space-y-2">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Skeleton key={i} className="h-12 w-full rounded-xl" />
+            ))}
+          </div>
+        </div>
       </div>
     );
   }

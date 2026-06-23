@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import Skeleton from '@/components/ui/skeleton';
 import {
   Dialog,
   DialogContent,
@@ -905,10 +906,29 @@ export function MomentsView() {
   // ─── Loading State ──────────────────────────────────────────────────────────
   if (isLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
-          <Heart className="w-10 h-10 text-rose-400" />
-        </motion.div>
+      <div className="flex-1 overflow-y-auto pb-4">
+        <div className="px-4 pt-4 pb-2 md:pt-6 md:pb-3">
+          <Skeleton className="h-7 w-40 mb-1" />
+          <Skeleton className="h-4 w-56" />
+        </div>
+        <div className="px-4 mb-4">
+          <div className="flex items-center gap-3 overflow-hidden pb-2">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="flex-shrink-0 flex flex-col items-center gap-1.5">
+                <Skeleton className="w-16 h-16 md:w-[68px] md:h-[68px] rounded-full" />
+                <Skeleton className="w-12 h-3 rounded" />
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="px-4">
+          <Skeleton className="h-4 w-32 mb-3" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="h-56 rounded-2xl" />
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
