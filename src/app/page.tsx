@@ -4,9 +4,9 @@ import { useEffect, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useShallow } from 'zustand/react/shallow';
 import {
-  Heart, Search, User, Eye, Compass, Camera, Trophy, Settings as SettingsIcon,
+  Heart, Search, User, Eye, Compass, Camera, Trophy, Shield, Settings as SettingsIcon,
 } from 'lucide-react';
-import { useAppStore } from '@/lib/store';
+import { useAppStore, type ViewType } from '@/lib/store';
 import { viewTransitionVariants, DarkModeToggle } from '@/components/views/shared';
 import { MatchAnimationOverlay } from '@/components/views/match-animation-overlay';
 import { Separator } from '@/components/ui/separator';
@@ -24,10 +24,11 @@ const MomentsView = lazy(() => import('@/components/views/moments-view').then((m
 const TopView = lazy(() => import('@/components/views/top-view').then((m) => ({ default: m.TopView })));
 const SettingsView = lazy(() => import('@/components/views/settings-view').then((m) => ({ default: m.SettingsView })));
 const AchievementsView = lazy(() => import('@/components/views/achievements-view').then((m) => ({ default: m.AchievementsView })));
+const AdminView = lazy(() => import('@/components/views/admin-view').then((m) => ({ default: m.AdminView })));
 
 // ─── Main Page ──────────────────────────────────────────────────────────────
 export default function HomePage() {
-  const { currentView, matches, likedYouCount, viewDirection, authStatus, checkAuth, showMatchAnimation } = useAppStore(
+  const { currentView, matches, likedYouCount, viewDirection, authStatus, checkAuth, showMatchAnimation, currentUser } = useAppStore(
     useShallow((s) => ({
       currentView: s.currentView,
       matches: s.matches,
@@ -36,6 +37,7 @@ export default function HomePage() {
       authStatus: s.authStatus,
       checkAuth: s.checkAuth,
       showMatchAnimation: s.showMatchAnimation,
+      currentUser: s.currentUser,
     }))
   );
   const { t } = useTranslation();
@@ -46,6 +48,28 @@ export default function HomePage() {
       checkAuth();
     }
   }, [authStatus, checkAuth]);
+
+  // Keyboard shortcuts for navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (authStatus !== 'authenticated') return;
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return;
+
+      const keyMap: Record<string, string> = {
+        '1': 'browse', '2': 'moments', '3': 'matches', '4': 'top', '5': 'profile',
+      };
+      const view = keyMap[e.key];
+      if (view && currentView !== view) {
+        useAppStore.getState().navigateTo(view as ViewType);
+      }
+      if (e.key === 'g' && currentUser?.role === 'admin') {
+        useAppStore.getState().navigateTo('admin');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [authStatus, currentUser, currentView]);
 
   const matchCount = matches.length;
 
@@ -62,6 +86,7 @@ export default function HomePage() {
   const secondaryNavItems = [
     { view: 'likedYou' as const, icon: Eye, label: t('nav.likedYou'), badge: likedYouCount },
     { view: 'achievements' as const, icon: Trophy, label: t('nav.achievements'), badge: undefined as number | undefined },
+    ...(currentUser?.role === 'admin' ? [{ view: 'admin' as const, icon: Shield, label: t('nav.admin'), badge: undefined as number | undefined }] : []),
     { view: 'settings' as const, icon: SettingsIcon, label: t('nav.settings'), badge: undefined as number | undefined },
   ];
 
@@ -162,6 +187,7 @@ export default function HomePage() {
               {currentView === 'top' && renderView('top', <Suspense fallback={<ViewSkeleton />}><TopView /></Suspense>, viewDirection)}
               {currentView === 'settings' && renderView('settings', <Suspense fallback={<ViewSkeleton />}><SettingsView /></Suspense>, viewDirection)}
               {currentView === 'achievements' && renderView('achievements', <Suspense fallback={<ViewSkeleton />}><AchievementsView /></Suspense>, viewDirection)}
+              {currentView === 'admin' && renderView('admin', <Suspense fallback={<ViewSkeleton />}><AdminView /></Suspense>, viewDirection)}
             </AnimatePresence>
           </main>
 

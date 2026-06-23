@@ -4,6 +4,8 @@ const nextConfig: NextConfig = {
   output: "standalone",
   reactStrictMode: true,
   images: {
+    deviceSizes: [375, 640, 768, 1024, 1280, 1536],
+    formats: ['image/webp'],
     remotePatterns: [
       {
         protocol: "https",
