@@ -104,6 +104,21 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Handle CORS preflight requests
+  if (method === 'OPTIONS') {
+    const origin = request.headers.get('origin') || '*';
+    return new NextResponse(null, {
+      status: 204,
+      headers: {
+        'Access-Control-Allow-Origin': origin,
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, x-csrf-token, Authorization',
+        'Access-Control-Allow-Credentials': 'true',
+        'Access-Control-Max-Age': '86400',
+      },
+    });
+  }
+
   // ── Rate limiting ────────────────────────────────────────────────────────
   // Apply global API rate limit first
   const globalLimit = applyRateLimit(request, rateLimiters.api);

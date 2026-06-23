@@ -1,0 +1,94 @@
+import { NextResponse } from 'next/server';
+import { z } from 'zod';
+import { db } from '@/lib/db';
+import { requireAuth, requireAuthWithCSRF, isZodError } from '@/lib/auth/guard';
+import { logger } from '@/lib/logger';
+
+// In-memory typing store: matchId -> { userId, timestamp }
+const typingStore = new Map<string, { userId: string; timestamp: number }>();
+const TYPING_EXPIRY_MS = 5_000;
+const CLEANUP_INTERVAL_MS = 15_000;
+
+// Periodic cleanup of stale typing entries
+let cleanupTimer: ReturnType<typeof setInterval> | null = null;
+function ensureCleanup() {
+  if (cleanupTimer) return;
+  cleanupTimer = setInterval(() => {
+    const now = Date.now();
+    for (const [key, { timestamp }] of typingStore) {
+      if (now - timestamp > TYPING_EXPIRY_MS) {
+        typingStore.delete(key);
+      }
+    }
+    if (typingStore.size === 0 && cleanupTimer) {
+      clearInterval(cleanupTimer);
+      cleanupTimer = null;
+    }
+  }, CLEANUP_INTERVAL_MS);
+}
+
+const typingSchema = z.object({
+  matchId: z.string().min(1),
+});
+
+export async function POST(request: Request) {
+  try {
+    const auth = await requireAuthWithCSRF(request);
+    if (auth instanceof NextResponse) return auth;
+
+    const { user } = auth;
+    const body = await request.json();
+    const { matchId } = typingSchema.parse(body);
+
+    const match = await db.match.findUnique({ id: matchId });
+    if (!match || (match.user1Id !== user.id && match.user2Id !== user.id)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    }
+
+    typingStore.set(matchId, { userId: user.id, timestamp: Date.now() });
+    ensureCleanup();
+
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    if (isZodError(error)) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: error.issues },
+        { status: 400 }
+      );
+    }
+    logger.error('/api/messages/typing', 'Typing signal error', error);
+    return NextResponse.json({ error: 'Failed to send typing signal' }, { status: 500 });
+  }
+}
+
+export async function GET(request: Request) {
+  try {
+    const auth = await requireAuth();
+    if (auth instanceof NextResponse) return auth;
+
+    const { user } = auth;
+    const { searchParams } = new URL(request.url);
+    const matchId = searchParams.get('matchId');
+
+    if (!matchId) {
+      return NextResponse.json({ error: 'Missing matchId parameter' }, { status: 400 });
+    }
+
+    const match = await db.match.findUnique({ id: matchId });
+    if (!match || (match.user1Id !== user.id && match.user2Id !== user.id)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    }
+
+    const typingEntry = typingStore.get(matchId);
+    const partnerId = match.user1Id === user.id ? match.user2Id : match.user1Id;
+
+    if (typingEntry && typingEntry.userId === partnerId && Date.now() - typingEntry.timestamp < TYPING_EXPIRY_MS) {
+      return NextResponse.json({ typing: true });
+    }
+
+    return NextResponse.json({ typing: false });
+  } catch (error) {
+    logger.error('/api/messages/typing', 'Typing check error', error);
+    return NextResponse.json({ typing: false });
+  }
+}

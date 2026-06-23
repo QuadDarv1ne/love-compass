@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo, Fragment } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback, Fragment } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useShallow } from 'zustand/react/shallow';
 import { MessageCircle, ChevronLeft, Send, Sparkles, CheckCheck, Smile, X } from 'lucide-react';
@@ -117,6 +117,29 @@ export function ChatView() {
   const lastMessageIdRef = useRef<string | null>(null);
   const lastMessageCountRef = useRef<number>(0);
   const isPollingRef = useRef(false);
+  const pollingRetryDelayRef = useRef(1000);
+  const typingSignalTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Send typing signal with debounce
+  const signalTyping = useCallback(async (matchId: string) => {
+    try {
+      await fetchWithCSRF('/api/messages/typing', { matchId });
+    } catch {
+      // Silently fail — typing indicator is not critical
+    }
+  }, []);
+
+  const checkPartnerTyping = useCallback(async (matchId: string) => {
+    try {
+      const res = await fetch(`/api/messages/typing?matchId=${encodeURIComponent(matchId)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setPartnerTyping(data.typing === true);
+      }
+    } catch {
+      // Silently fail
+    }
+  }, []);
 
   useEffect(() => {
     if (!selectedMatch) return;
@@ -124,6 +147,7 @@ export function ChatView() {
     let cancelled = false;
     lastMessageIdRef.current = null;
     let inFlightAbortController = abortController;
+    pollingRetryDelayRef.current = 1000;
 
     const wrappedLoadMessages = async (isPoll = false) => {
       if (isPoll && isPollingRef.current) return;
@@ -165,6 +189,8 @@ export function ChatView() {
             }
           }
         }
+        // Reset retry delay on success
+        pollingRetryDelayRef.current = 1000;
       } catch (error) {
         if ((error as Error).name === 'AbortError') return;
         if (!cancelled) appLogger.error('chat-view.loadMessages', 'Failed to load messages', error);
@@ -176,10 +202,17 @@ export function ChatView() {
 
     wrappedLoadMessages(false);
 
-    // Set up polling for real-time updates — incremental fetch
-    pollingIntervalRef.current = setInterval(() => {
-      if (selectedMatchIdRef.current && hasFocusRef.current) {
-        wrappedLoadMessages(true);
+    // Set up polling for real-time updates — incremental fetch with auto-retry
+    pollingIntervalRef.current = setInterval(async () => {
+      const currentMatchId = selectedMatchIdRef.current;
+      if (currentMatchId && hasFocusRef.current) {
+        await wrappedLoadMessages(true);
+        // Also check if partner is typing
+        await checkPartnerTyping(currentMatchId);
+        pollingRetryDelayRef.current = 1000;
+      } else if (currentMatchId && !hasFocusRef.current) {
+        // Even without focus, check typing status for badge updates
+        await checkPartnerTyping(currentMatchId);
       }
     }, 5000);
 
@@ -189,10 +222,11 @@ export function ChatView() {
       if (autoReplyTimerRef.current) clearTimeout(autoReplyTimerRef.current);
       if (innerTimerRef.current) clearTimeout(innerTimerRef.current);
       if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
+      if (typingSignalTimerRef.current) clearTimeout(typingSignalTimerRef.current);
     };
     // selectedMatch is used as a guard — only the stable .id is needed for re-trigger
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedMatch?.id]);
+  }, [selectedMatch?.id, checkPartnerTyping]);
 
   // Track window focus to control polling
   useEffect(() => {
@@ -517,14 +551,23 @@ export function ChatView() {
       {/* Message Input */}
       <div className="p-3 md:p-4 border-t border-rose-100 dark:border-rose-900/50 bg-card/80 backdrop-blur-sm">
         <div className="flex items-center gap-2">
-          <Input
-            ref={inputRef}
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={t('chat.placeholder')}
-            className="flex-1 border-rose-200 dark:border-rose-800 focus:border-rose-400 rounded-full px-4 py-5 bg-rose-50/50 dark:bg-rose-900/20"
-          />
+            <Input
+              ref={inputRef}
+              value={newMessage}
+              onChange={(e) => {
+                setNewMessage(e.target.value);
+                // Debounced typing signal
+                if (selectedMatchIdRef.current && e.target.value) {
+                  if (typingSignalTimerRef.current) clearTimeout(typingSignalTimerRef.current);
+                  typingSignalTimerRef.current = setTimeout(() => {
+                    if (selectedMatchIdRef.current) signalTyping(selectedMatchIdRef.current);
+                  }, 500);
+                }
+              }}
+              onKeyDown={handleKeyDown}
+              placeholder={t('chat.placeholder')}
+              className="flex-1 border-rose-200 dark:border-rose-800 focus:border-rose-400 rounded-full px-4 py-5 bg-rose-50/50 dark:bg-rose-900/20"
+            />
           <EmojiPicker onSelect={handleEmojiSelect} />
           <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
             <Button
