@@ -20,7 +20,9 @@
     "db:status": "bun run scripts/db-setup.ts status",
     "seed": "bun run seed.ts",
     "check-env": "bun run scripts/check-env.ts",
-    "validate-env": "bun run scripts/validate-env.ts"
+    "validate-env": "bun run scripts/validate-env.ts",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.1.1",
@@ -60,6 +62,7 @@
     "zustand": "^5.0.6"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.0",
     "@tailwindcss/postcss": "^4",
     "@types/bcryptjs": "^3.0.0",
     "@types/react": "^19",

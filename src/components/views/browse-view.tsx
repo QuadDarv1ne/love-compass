@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useShallow } from 'zustand/react/shallow';
 import { toast } from 'sonner';
 import {
-  Heart, X, Star, MapPin, SlidersHorizontal, Undo2, ShieldAlert, Flag,
+  Heart, X, Star, MapPin, SlidersHorizontal, Undo2, ShieldAlert, Flag, BadgeCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { fetchWithCSRF, deleteWithCSRF } from '@/lib/api';
@@ -68,7 +68,12 @@ function ProfileDetailModal({
           <SafeImage src={profile.avatar || 'https://api.dicebear.com/9.x/notionists/svg?seed=Default'} alt={profile.name} fill className="object-cover" priority />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
           <div className="absolute bottom-4 left-4">
-            <h2 className="text-2xl md:text-3xl font-bold text-white">{profile.name}, {profile.age}</h2>
+            <h2 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-2">
+              {profile.name}, {profile.age}
+              {profile.emailVerified && (
+                <BadgeCheck className="w-5 h-5 text-blue-400 drop-shadow" />
+              )}
+            </h2>
             {profile.city && (
               <div className="flex items-center gap-1 text-white/80 mt-1">
                 <MapPin className="w-4 h-4" />
@@ -671,7 +676,12 @@ export function BrowseView() {
               <div className="absolute bottom-0 left-0 right-0 p-6">
                 <div className="flex items-end justify-between">
                   <div className="flex-1 min-w-0">
-                    <h2 className="text-3xl font-bold text-white drop-shadow-lg">{currentProfile.name}, {currentProfile.age}</h2>
+                    <h2 className="text-3xl font-bold text-white drop-shadow-lg flex items-center gap-2">
+                      {currentProfile.name}, {currentProfile.age}
+                      {currentProfile.emailVerified && (
+                        <BadgeCheck className="w-5 h-5 text-blue-400 drop-shadow" />
+                      )}
+                    </h2>
                     {currentProfile.city && (
                       <div className="flex items-center gap-1 mt-1 text-white/80">
                         <MapPin className="w-4 h-4" />

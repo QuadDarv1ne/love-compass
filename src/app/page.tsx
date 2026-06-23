@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useShallow } from 'zustand/react/shallow';
 import {
@@ -9,18 +9,21 @@ import {
 import { useAppStore } from '@/lib/store';
 import { viewTransitionVariants, DarkModeToggle } from '@/components/views/shared';
 import { MatchAnimationOverlay } from '@/components/views/match-animation-overlay';
-import { LandingView } from '@/components/views/landing-view';
-import { BrowseView } from '@/components/views/browse-view';
-import { MatchesView, ChatListView } from '@/components/views/matches-view';
-import { ChatView } from '@/components/views/chat-view';
-import { ProfileView } from '@/components/views/profile-view';
-import { LikedYouView } from '@/components/views/liked-you-view';
-import { MomentsView } from '@/components/views/moments-view';
-import { TopView } from '@/components/views/top-view';
-import { SettingsView } from '@/components/views/settings-view';
-import { AchievementsView } from '@/components/views/achievements-view';
 import { Separator } from '@/components/ui/separator';
 import { useTranslation } from '@/hooks/useTranslation';
+
+// Dynamic imports for route-level code splitting
+const LandingView = lazy(() => import('@/components/views/landing-view').then((m) => ({ default: m.LandingView })));
+const BrowseView = lazy(() => import('@/components/views/browse-view').then((m) => ({ default: m.BrowseView })));
+const MatchesView = lazy(() => import('@/components/views/matches-view').then((m) => ({ default: m.MatchesView })));
+const ChatListView = lazy(() => import('@/components/views/matches-view').then((m) => ({ default: m.ChatListView })));
+const ChatView = lazy(() => import('@/components/views/chat-view').then((m) => ({ default: m.ChatView })));
+const ProfileView = lazy(() => import('@/components/views/profile-view').then((m) => ({ default: m.ProfileView })));
+const LikedYouView = lazy(() => import('@/components/views/liked-you-view').then((m) => ({ default: m.LikedYouView })));
+const MomentsView = lazy(() => import('@/components/views/moments-view').then((m) => ({ default: m.MomentsView })));
+const TopView = lazy(() => import('@/components/views/top-view').then((m) => ({ default: m.TopView })));
+const SettingsView = lazy(() => import('@/components/views/settings-view').then((m) => ({ default: m.SettingsView })));
+const AchievementsView = lazy(() => import('@/components/views/achievements-view').then((m) => ({ default: m.AchievementsView })));
 
 // ─── Main Page ──────────────────────────────────────────────────────────────
 export default function HomePage() {
@@ -150,15 +153,15 @@ export default function HomePage() {
           {/* Main Content with transitions */}
           <main className="flex-1 flex flex-col min-h-0 overflow-hidden">
             <AnimatePresence mode="wait" custom={viewDirection}>
-              {currentView === 'browse' && renderView('browse', <BrowseView />, viewDirection)}
-              {currentView === 'moments' && renderView('moments', <MomentsView />, viewDirection)}
-              {currentView === 'matches' && renderView('matches', <MatchesView />, viewDirection)}
-              {currentView === 'chat' && renderView('chat', <ChatView />, viewDirection)}
-              {currentView === 'profile' && renderView('profile', <ProfileView />, viewDirection)}
-              {currentView === 'likedYou' && renderView('likedYou', <LikedYouView />, viewDirection)}
-              {currentView === 'top' && renderView('top', <TopView />, viewDirection)}
-              {currentView === 'settings' && renderView('settings', <SettingsView />, viewDirection)}
-              {currentView === 'achievements' && renderView('achievements', <AchievementsView />, viewDirection)}
+              {currentView === 'browse' && renderView('browse', <Suspense fallback={<ViewSkeleton />}><BrowseView /></Suspense>, viewDirection)}
+              {currentView === 'moments' && renderView('moments', <Suspense fallback={<ViewSkeleton />}><MomentsView /></Suspense>, viewDirection)}
+              {currentView === 'matches' && renderView('matches', <Suspense fallback={<ViewSkeleton />}><MatchesView /></Suspense>, viewDirection)}
+              {currentView === 'chat' && renderView('chat', <Suspense fallback={<ViewSkeleton />}><ChatView /></Suspense>, viewDirection)}
+              {currentView === 'profile' && renderView('profile', <Suspense fallback={<ViewSkeleton />}><ProfileView /></Suspense>, viewDirection)}
+              {currentView === 'likedYou' && renderView('likedYou', <Suspense fallback={<ViewSkeleton />}><LikedYouView /></Suspense>, viewDirection)}
+              {currentView === 'top' && renderView('top', <Suspense fallback={<ViewSkeleton />}><TopView /></Suspense>, viewDirection)}
+              {currentView === 'settings' && renderView('settings', <Suspense fallback={<ViewSkeleton />}><SettingsView /></Suspense>, viewDirection)}
+              {currentView === 'achievements' && renderView('achievements', <Suspense fallback={<ViewSkeleton />}><AchievementsView /></Suspense>, viewDirection)}
             </AnimatePresence>
           </main>
 
@@ -197,6 +200,18 @@ export default function HomePage() {
           </footer>
         </div>
       )}
+    </div>
+  );
+}
+
+// Skeleton fallback for lazy-loaded views
+function ViewSkeleton() {
+  return (
+    <div className="flex-1 flex items-center justify-center">
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-8 h-8 rounded-full border-2 border-rose-200 border-t-rose-500 animate-spin" />
+        <p className="text-xs text-muted-foreground">Loading...</p>
+      </div>
     </div>
   );
 }

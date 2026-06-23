@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { SafeImage } from '@/components/ui/safe-image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useShallow } from 'zustand/react/shallow';
-import { Heart } from 'lucide-react';
+import { Heart, Search } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { SkeletonMatchCard } from '@/components/ui/skeleton';
@@ -74,9 +75,14 @@ export function MatchesView() {
     return (
       <div className="flex-1 flex flex-col items-center justify-center px-4 py-12">
         <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="text-center">
-          <Heart className="w-16 h-16 text-rose-200 dark:text-rose-800 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-rose-400 mb-2">{t('matches.empty')}</h2>
-          <p className="text-muted-foreground text-sm">{t('matches.explorePrompt')}</p>
+          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-rose-100 to-pink-100 dark:from-rose-900/40 dark:to-pink-900/40 flex items-center justify-center mx-auto mb-6 shadow-inner">
+            <Heart className="w-12 h-12 text-rose-300 dark:text-rose-600" />
+          </div>
+          <h2 className="text-xl font-bold gradient-text mb-2">{t('matches.empty')}</h2>
+          <p className="text-muted-foreground text-sm max-w-xs mx-auto leading-relaxed">{t('matches.emptyDesc')}</p>
+          <Button onClick={() => navigateTo('browse')} variant="outline" className="mt-6 border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl px-6">
+            <Search className="w-4 h-4 mr-2" />{t('matches.explorePrompt')}
+          </Button>
         </motion.div>
       </div>
     );

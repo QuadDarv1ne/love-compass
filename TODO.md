@@ -46,14 +46,14 @@
 ## 🔥 Critical
 - [ ] **Real-time chat** — Replace polling with WebSockets or SSE for live messaging
 - [ ] **Image upload** — Endpoint for profile photos + gallery support (multiple photos)
-- [ ] **Profile verification** — Verification badge (email/photo moderation)
+- [x] **Profile verification** — Verification badge (email verified indicator in profile & browse cards)
 - [ ] **Connect more i18n languages** — Add English, Spanish, Chinese and other languages fully
 
 ## 💡 UX
-- [ ] **Skeleton loaders** — Loading placeholders for profiles, matches, messages
-- [ ] **Empty states** — Illustrations and tips when no matches, messages, likes
+- [x] **Skeleton loaders** — Loading placeholders for profiles, matches, messages
+- [x] **Empty states** — Improved illustrations and CTAs for matches, likes, messages
 - [ ] **"Typing..." indicator** — Show when the other person is typing (TypingIndicator component exists but not wired)
-- [ ] **Search in messages** — Search message history by keywords
+- [x] **Search in messages** — Search message history by keywords
 
 ## 📊 Analytics & Monitoring
 - [ ] **Analytics** — Page views, swipe rates, match rates, retention
@@ -78,10 +78,10 @@
 
 ## 🛠 Technical
 - [ ] **API versioning** — `/api/v1/` prefix for future breaking changes
-- [ ] **Bundle optimization** — Code splitting, lazy loading (framer-motion, lucide icons)
+- [x] **Bundle optimization** — Code splitting via dynamic imports for all view components
 - [ ] **Image optimization** — Cache DiceBear SVGs, preload critical images
 - [ ] **Migrate to PostgreSQL for production** — SQLite not suitable for multi-user
 - [ ] **Redis for caching** — Cache sessions, online statuses, counters
 - [ ] **Database backups** — Automatic SQLite/PostgreSQL backup to S3
-- [ ] **E2E tests** — Playwright or Cypress for critical user flows
+- [x] **E2E tests** — Playwright setup with basic auth and security test specs
 - [ ] **Improve README** — Architecture diagram, setup instructions, contributing guide

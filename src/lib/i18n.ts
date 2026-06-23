@@ -283,6 +283,8 @@ const ru: Dict = {
   'chat.markReadError': 'Не удалось отметить сообщения как прочитанные',
   'chat.sendError': 'Не удалось отправить сообщение',
   'chat.sendRetry': 'Попробуйте ещё раз',
+  'chat.searchPlaceholder': 'Поиск сообщений...',
+  'chat.searchNoResults': 'Сообщений не найдено',
 
   // Profile
   'profile.edit': 'Редактировать',
@@ -324,6 +326,8 @@ const ru: Dict = {
   'profile.avatarDeletedDesc': 'Фото профиля удалено',
   'profile.avatarDeleteError': 'Не удалось удалить аватар',
   'profile.lookingFor': 'Ищу',
+  'profile.verified': 'Верифицирован',
+  'profile.verifiedBadge': 'Email подтверждён',
   'profile.avatarLabel': 'Аватар',
   'profile.chooseImage': 'Выберите изображение',
   'profile.fileTooLargeMsg': 'Файл слишком большой (макс. {size} MB)',
@@ -818,6 +822,8 @@ const en: Dict = {
   'chat.markReadError': 'Failed to mark messages as read',
   'chat.sendError': 'Failed to send message',
   'chat.sendRetry': 'Please try again',
+  'chat.searchPlaceholder': 'Search messages...',
+  'chat.searchNoResults': 'No messages found',
 
   'profile.edit': 'Edit',
   'profile.photos': 'Photos',
@@ -858,6 +864,8 @@ const en: Dict = {
   'profile.avatarDeletedDesc': 'Profile photo deleted',
   'profile.avatarDeleteError': 'Failed to delete avatar',
   'profile.lookingFor': 'Looking for',
+  'profile.verified': 'Verified',
+  'profile.verifiedBadge': 'Email verified',
   'profile.avatarLabel': 'Avatar',
   'profile.chooseImage': 'Choose an image',
   'profile.fileTooLargeMsg': 'File too large (max {size} MB)',
@@ -1344,6 +1352,8 @@ const zh: Dict = {
   'chat.markReadError': '标记消息已读失败',
   'chat.sendError': '发送消息失败',
   'chat.sendRetry': '请重试',
+  'chat.searchPlaceholder': '搜索消息...',
+  'chat.searchNoResults': '未找到消息',
 
   'profile.edit': '编辑',
   'profile.photos': '照片',
@@ -1384,6 +1394,8 @@ const zh: Dict = {
   'profile.avatarDeletedDesc': '个人资料照片已删除',
   'profile.avatarDeleteError': '删除头像失败',
   'profile.lookingFor': '寻找',
+  'profile.verified': '已验证',
+  'profile.verifiedBadge': '邮箱已验证',
   'profile.avatarLabel': '头像',
   'profile.chooseImage': '选择图片',
   'profile.fileTooLargeMsg': '文件太大（最大{size}MB）',

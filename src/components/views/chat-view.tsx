@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useMemo, Fragment } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useShallow } from 'zustand/react/shallow';
-import { MessageCircle, ChevronLeft, Send, Sparkles, CheckCheck, Smile } from 'lucide-react';
+import { MessageCircle, ChevronLeft, Send, Sparkles, CheckCheck, Smile, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -91,6 +91,7 @@ export function ChatView() {
   const [sending, setSending] = useState(false);
   const [partnerTyping, setPartnerTyping] = useState(false);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const [messageSearch, setMessageSearch] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const autoReplyTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -322,11 +323,19 @@ export function ChatView() {
     return date.toLocaleDateString(lang, { day: 'numeric', month: 'long' });
   };
 
+  // Filter messages by search query
+  const filteredMessages = useMemo(() => {
+    if (!messageSearch.trim()) return messages;
+    const q = messageSearch.toLowerCase();
+    return messages.filter((m) => m.content.toLowerCase().includes(q));
+  }, [messages, messageSearch]);
+
   // Group messages by date
   const messageGroups = useMemo(() => {
+    const target = filteredMessages;
     const groups: { date: string; messages: Message[] }[] = [];
     let lastDate = '';
-    for (const msg of messages) {
+    for (const msg of target) {
       const dateStr = new Date(msg.createdAt).toDateString();
       if (dateStr !== lastDate) {
         groups.push({ date: msg.createdAt, messages: [msg] });
@@ -336,7 +345,7 @@ export function ChatView() {
       }
     }
     return groups;
-  }, [messages]);
+  }, [filteredMessages]);
 
   // Reset new message badge when chat becomes visible
   useEffect(() => {
@@ -395,6 +404,25 @@ export function ChatView() {
         </Button>
       </div>
 
+      {/* Message search */}
+      <div className="px-4 pt-2 pb-0">
+        <div className="relative">
+          <Input
+            value={messageSearch}
+            onChange={(e) => setMessageSearch(e.target.value)}
+            placeholder={t('chat.searchPlaceholder')}
+            className="w-full border-rose-200 dark:border-rose-800 focus:border-rose-400 rounded-full px-4 py-1.5 text-xs h-8 bg-rose-50/50 dark:bg-rose-900/20"
+          />
+          {messageSearch && (
+            <button
+              onClick={() => setMessageSearch('')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-rose-500"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+      </div>
       {/* Messages */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar gradient-bg">
         {/* Match notification */}
@@ -404,7 +432,13 @@ export function ChatView() {
           </div>
         </div>
 
-        {messages.length === 0 && !isLoadingMessages && (
+        {messageSearch && filteredMessages.length === 0 && !isLoadingMessages && (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <MessageCircle className="w-10 h-10 text-rose-300 mb-3" />
+            <p className="text-muted-foreground text-sm">{t('chat.searchNoResults')}</p>
+          </div>
+        )}
+        {!messageSearch && messages.length === 0 && !isLoadingMessages && (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <Sparkles className="w-10 h-10 text-rose-300 mb-3" />
             <p className="text-muted-foreground text-sm">{t('chat.startConversation')}</p>
