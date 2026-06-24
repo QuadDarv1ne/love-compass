@@ -46,7 +46,7 @@ export default function RegisterPage() {
 
     if (field === 'password') {
       const strength = validatePasswordStrength(value);
-      setPasswordErrors(strength.errors);
+      setPasswordErrors(strength.errors.map((e) => t(e)));
     }
   };
 

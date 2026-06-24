@@ -27,7 +27,7 @@ function ResetPasswordContent() {
   const handlePasswordChange = (value: string) => {
     setPassword(value);
     const strength = validatePasswordStrength(value);
-    setPasswordErrors(strength.errors);
+    setPasswordErrors(strength.errors.map((e) => t(e)));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
