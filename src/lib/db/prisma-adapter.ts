@@ -315,6 +315,9 @@ export class PrismaAdapter implements DatabaseAdapter {
     create: (data: Partial<DbReport>) =>
       prisma.report.create({ data: data as Prisma.ReportCreateInput }).then(toDbReport),
 
+    findMany: (where?: Record<string, unknown>) =>
+      prisma.report.findMany({ where: where as Prisma.ReportWhereInput }).then((arr) => arr.map(toDbReport)),
+
     deleteMany: (where: Record<string, unknown>) =>
       prisma.report.deleteMany({ where: where as Prisma.ReportWhereInput }).then((r) => r.count),
 
@@ -561,6 +564,7 @@ export class PrismaAdapter implements DatabaseAdapter {
         },
         report: {
           create: (data) => tx.report.create({ data: data as Prisma.ReportCreateInput }).then(toDbReport),
+          findMany: (where) => tx.report.findMany({ where: where as Prisma.ReportWhereInput }).then((arr) => arr.map(toDbReport)),
           deleteMany: (where) => tx.report.deleteMany({ where: where as Prisma.ReportWhereInput }).then((r) => r.count),
           count: (where) => tx.report.count({ where: where as Prisma.ReportWhereInput }),
         },

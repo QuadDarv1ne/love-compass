@@ -232,6 +232,7 @@ export interface DatabaseAdapter {
 
   report: {
     create(data: Partial<DbReport>): Promise<DbReport>;
+    findMany(where?: Record<string, unknown>): Promise<DbReport[]>;
     deleteMany(where: Record<string, unknown>): Promise<number>;
     count(where?: Record<string, unknown>): Promise<number>;
   };

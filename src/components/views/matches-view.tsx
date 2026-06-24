@@ -130,7 +130,6 @@ export function MatchesView() {
   );
 }
 
-// ─── Chat List (for desktop sidebar) ────────────────────────────────────────
 export function ChatListView() {
   const { t } = useTranslation();
   const { matches, currentUser, setSelectedMatch, chatListMatchId, setChatListMatchId } = useAppStore(

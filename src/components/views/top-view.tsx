@@ -49,7 +49,6 @@ function getMotivationalText(rank: number, total: number, t: (key: string) => st
   return `🌱 ${t('top.keepGoing')}`;
 }
 
-// ─── Podium Card ────────────────────────────────────────────────────────────
 function PodiumCard({
   ranked,
   place,
@@ -161,7 +160,6 @@ function PodiumCard({
   );
 }
 
-// ─── Ranked List Row ────────────────────────────────────────────────────────
 function RankedListRow({
   ranked,
   rank,
@@ -250,7 +248,6 @@ function RankedListRow({
   );
 }
 
-// ─── Main Component ─────────────────────────────────────────────────────────
 export function TopView() {
   const { currentUser } = useAppStore();
   const { t } = useTranslation();
@@ -351,7 +348,6 @@ export function TopView() {
 
   const currentTab = tabConfig.find((t) => t.key === activeTab) ?? tabConfig[0]!;
 
-  // ─── Loading State ────────────────────────────────────────────────────────
   if (loading) {
     return (
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -380,7 +376,6 @@ export function TopView() {
     );
   }
 
-  // ─── Empty State ──────────────────────────────────────────────────────────
   if (leaderboardData.length === 0 && !loading) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center px-4 py-12">
@@ -536,7 +531,6 @@ export function TopView() {
   );
 }
 
-// ─── Leaderboard Content (shared across tabs) ──────────────────────────────
 function LeaderboardContent({
   top3,
   rest,

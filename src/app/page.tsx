@@ -26,7 +26,6 @@ const SettingsView = lazy(() => import('@/components/views/settings-view').then(
 const AchievementsView = lazy(() => import('@/components/views/achievements-view').then((m) => ({ default: m.AchievementsView })));
 const AdminView = lazy(() => import('@/components/views/admin-view').then((m) => ({ default: m.AdminView })));
 
-// ─── Main Page ──────────────────────────────────────────────────────────────
 export default function HomePage() {
   const { currentView, matches, likedYouCount, viewDirection, authStatus, checkAuth, showMatchAnimation, currentUser } = useAppStore(
     useShallow((s) => ({

@@ -15,7 +15,6 @@ import { appLogger } from '@/lib/logger';
 import { AUTO_REPLY, EMOJI, ANIMATION, AVATAR_BASE_URL } from '@/lib/constants';
 import { useTranslation } from '@/hooks/useTranslation';
 
-// ─── Popular Emojis ──────────────────────────────────────────────────────────
 const POPULAR_EMOJIS = [
   '❤️', '🔥', '😘', '😂', '👍', '😍',
   '🥰', '✨', '😊', '🤗', '💋', '💕',
@@ -25,7 +24,6 @@ const POPULAR_EMOJIS = [
 
 const IS_DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
 
-// ─── Emoji Picker ────────────────────────────────────────────────────────────
 function EmojiPicker({ onSelect }: { onSelect: (emoji: string) => void }) {
   const [open, setOpen] = useState(false);
 
@@ -72,7 +70,6 @@ function EmojiPicker({ onSelect }: { onSelect: (emoji: string) => void }) {
   );
 }
 
-// ─── Chat View ──────────────────────────────────────────────────────────────
 export function ChatView() {
   const { t } = useTranslation();
   const { selectedMatch, currentUser, messages, setMessages, addMessage, navigateTo, onlineUserIds, markMessagesAsRead } = useAppStore(

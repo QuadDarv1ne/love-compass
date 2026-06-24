@@ -23,7 +23,6 @@ import { FILTER, AVATAR_BASE_URL } from '@/lib/constants';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useDebounce } from '@/hooks/useDebounce';
 
-// ─── Avatar Options ──────────────────────────────────────────────────────────
 export const ALL_AVATARS = [
   `${AVATAR_BASE_URL}?seed=Anastasia`, `${AVATAR_BASE_URL}?seed=Viktoria`, `${AVATAR_BASE_URL}?seed=Ekaterina`, `${AVATAR_BASE_URL}?seed=Maria`,
   `${AVATAR_BASE_URL}?seed=Olga`, `${AVATAR_BASE_URL}?seed=Sofia`, `${AVATAR_BASE_URL}?seed=Natalia`, `${AVATAR_BASE_URL}?seed=Alina`,
@@ -33,7 +32,6 @@ export const ALL_AVATARS = [
   `${AVATAR_BASE_URL}?seed=Kirill`, `${AVATAR_BASE_URL}?seed=Roman`,
 ];
 
-// ─── View Transition Variants ────────────────────────────────────────────────
 export const viewTransitionVariants: Variants = {
   enter: (direction: string) => ({
     x: direction === 'forward' ? 80 : -80,
@@ -52,7 +50,6 @@ export const viewTransitionVariants: Variants = {
   }),
 };
 
-// ─── Online Indicator ────────────────────────────────────────────────────────
 export function OnlineIndicator({ userId, size = 'sm' }: { userId: string; size?: 'sm' | 'md' }) {
   const { onlineUserIds } = useAppStore();
   const isOnline = onlineUserIds.includes(userId);
@@ -63,7 +60,6 @@ export function OnlineIndicator({ userId, size = 'sm' }: { userId: string; size?
   );
 }
 
-// ─── Typing Indicator ────────────────────────────────────────────────────────
 export function TypingIndicator() {
   return (
     <div className="flex justify-start">
@@ -76,7 +72,6 @@ export function TypingIndicator() {
   );
 }
 
-// ─── Dark Mode Toggle ────────────────────────────────────────────────────────
 /**
  * Returns true once the component has mounted on the client.
  * Used to avoid SSR hydration mismatches for theme-dependent UI.
@@ -125,7 +120,6 @@ export function DarkModeToggle() {
   );
 }
 
-// ─── Floating Hearts Background (CSS-only) ───────────────────────────────────
 // Uses simplified DOM + CSS animations for better performance vs SVG per heart.
 // Deterministic heart positions (pre-computed, no mutation)
 const HEART_STYLES = (() => {
@@ -167,7 +161,6 @@ export function FloatingHearts() {
   );
 }
 
-// ─── Avatar Picker ──────────────────────────────────────────────────────────
 export function AvatarPicker({ selected, onSelect }: { selected: string; onSelect: (avatar: string) => void }) {
   const { t } = useTranslation();
   return (
@@ -196,7 +189,6 @@ export function AvatarPicker({ selected, onSelect }: { selected: string; onSelec
   );
 }
 
-// ─── Debounced Input ────────────────────────────────────────────────────────
 function DebouncedInput({
   value,
   onChange,
@@ -239,7 +231,6 @@ function DebouncedInput({
   );
 }
 
-// ─── Filter Panel ────────────────────────────────────────────────────────────
 export function FilterPanel() {
   const {
     searchQuery, sortBy, filterGender, filterAgeMin, filterAgeMax, filterCity,
@@ -370,5 +361,4 @@ export function FilterPanel() {
   );
 }
 
-// ─── Re-export SlidersHorizontal for BrowseView ──────────────────────────────
 export { SlidersHorizontal };

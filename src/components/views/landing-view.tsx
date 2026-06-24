@@ -16,7 +16,6 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { toast } from 'sonner';
 import Link from 'next/link';
 
-// ─── Features data ──────────────────────────────────────────────────────────
 const FEATURES = [
   { icon: Compass, titleKey: 'landing.smartMatching', descKey: 'landing.smartMatchingDesc' },
   { icon: Heart, titleKey: 'landing.matches', descKey: 'landing.matchesDesc' },
@@ -24,7 +23,6 @@ const FEATURES = [
   { icon: Shield, titleKey: 'landing.security', descKey: 'landing.securityDesc' },
 ];
 
-// ─── Demo users (only in dev mode) ──────────────────────────────────────────
 interface DemoUser { name: string; email: string; avatar: string; }
 const DEMO_USERS: DemoUser[] = [
   { name: 'Анна', email: 'anna@example.com', avatar: `${AVATAR_BASE_URL}?seed=Anastasia` },

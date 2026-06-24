@@ -14,7 +14,6 @@ import { Progress } from '@/components/ui/progress';
 import { useAppStore, type User, type MatchWithUsers } from '@/lib/store';
 import { useTranslation } from '@/hooks/useTranslation';
 
-// ─── Achievement definitions ─────────────────────────────────────────────────
 
 interface AchievementState {
   likedUserIds: string[];
@@ -35,7 +34,6 @@ interface AchievementDef {
 }
 
 const ACHIEVEMENTS: AchievementDef[] = [
-  // ── Dating ──
   {
     id: 'first_like',
     nameKey: 'achievements.firstLike',
@@ -64,7 +62,6 @@ const ACHIEVEMENTS: AchievementDef[] = [
     category: 'dating',
   },
 
-  // ── Communication ──
   {
     id: 'first_match',
     nameKey: 'achievements.firstMatch',
@@ -93,7 +90,6 @@ const ACHIEVEMENTS: AchievementDef[] = [
     category: 'communication',
   },
 
-  // ── Explorer ──
   {
     id: 'started',
     nameKey: 'achievements.started',
@@ -113,7 +109,6 @@ const ACHIEVEMENTS: AchievementDef[] = [
     category: 'explorer',
   },
 
-  // ── Special ──
   {
     id: 'super_master',
     nameKey: 'achievements.superMaster',
@@ -134,7 +129,6 @@ const ACHIEVEMENTS: AchievementDef[] = [
   },
 ];
 
-// ─── Category metadata ───────────────────────────────────────────────────────
 
 const CATEGORIES: { key: AchievementDef['category']; titleKey: string; icon: React.ElementType }[] = [
   { key: 'dating', titleKey: 'achievements.catDating', icon: Heart },
@@ -143,7 +137,6 @@ const CATEGORIES: { key: AchievementDef['category']; titleKey: string; icon: Rea
   { key: 'special', titleKey: 'achievements.catSpecial', icon: Zap },
 ];
 
-// ─── Animation variants ──────────────────────────────────────────────────────
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -163,7 +156,6 @@ const cardVariants = {
   },
 } as const;
 
-// ─── Component ───────────────────────────────────────────────────────────────
 
 export function AchievementsView() {
   const {
@@ -181,7 +173,6 @@ export function AchievementsView() {
   // so we only toast about *newly* unlocked ones.
   const initialUnlockedRef = useRef<Set<string>>(new Set(unlockedAchievements));
 
-  // ── Compute current progress values for every achievement ──
   const progressMap = useMemo(() => {
     const state: AchievementState = { likedUserIds, matches, superLikedUserIds, dislikedUserIds, currentUser };
     const map = new Map<string, number>();
@@ -191,7 +182,6 @@ export function AchievementsView() {
     return map;
   }, [likedUserIds, matches, superLikedUserIds, dislikedUserIds, currentUser]);
 
-  // ── Auto-unlock on mount and on state changes ──
   const checkAndUnlock = useCallback(() => {
     const state: AchievementState = { likedUserIds, matches, superLikedUserIds, dislikedUserIds, currentUser };
     for (const a of ACHIEVEMENTS) {
@@ -213,7 +203,6 @@ export function AchievementsView() {
     checkAndUnlock();
   }, [checkAndUnlock]);
 
-  // ── Derived stats ──
   const totalAchievements = ACHIEVEMENTS.length;
   const unlockedCount = unlockedAchievements.length;
   const completionPercent = Math.round((unlockedCount / totalAchievements) * 100);
@@ -223,7 +212,6 @@ export function AchievementsView() {
   const totalSuperLikes = superLikedUserIds.length;
   const totalViewed = likedUserIds.length + dislikedUserIds.length;
 
-  // ── Stats summary data ──
   const stats = [
     { icon: Heart, value: totalLiked, label: t('achievements.likes'), color: 'text-rose-500', bg: 'bg-rose-50 dark:bg-rose-900/20' },
     { icon: MessageCircle, value: totalMatches, label: t('achievements.matchCount'), color: 'text-pink-500', bg: 'bg-pink-50 dark:bg-pink-900/20' },

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@/lib/db';
-import { requireAuthWithCSRF, isZodError } from '@/lib/auth/guard';
+import { requireAuth, requireAuthWithCSRF, isZodError } from '@/lib/auth/guard';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';
 import { REPORT_LIMITS, VALIDATION } from '@/lib/constants';
@@ -11,6 +11,25 @@ const reportSchema = z.object({
   reason: z.string().min(1).max(VALIDATION.REPORT_REASON_MAX_LENGTH),
   details: z.string().max(VALIDATION.REPORT_DETAILS_MAX_LENGTH).optional(),
 });
+
+const retractSchema = z.object({
+  reportedId: z.string().min(1),
+});
+
+export async function GET() {
+  try {
+    const auth = await requireAuth();
+    if (auth instanceof NextResponse) return auth;
+
+    const { user } = auth;
+    const reports = await db.report.findMany({ reporterId: user.id });
+
+    return NextResponse.json({ data: reports });
+  } catch (error) {
+    logger.error('/api/report', 'Failed to fetch reports', error);
+    return NextResponse.json({ error: 'Failed to fetch reports' }, { status: 500 });
+  }
+}
 
 export async function POST(request: Request) {
   try {
@@ -44,5 +63,26 @@ export async function POST(request: Request) {
     }
     logger.error('/api/report', 'Failed to report user', error);
     return NextResponse.json({ error: 'Failed to report user' }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const auth = await requireAuthWithCSRF(request);
+    if (auth instanceof NextResponse) return auth;
+
+    const { user } = auth;
+    const body = await request.json();
+    const { reportedId } = retractSchema.parse(body);
+
+    await db.report.deleteMany({ reporterId: user.id, reportedId });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    if (isZodError(error)) {
+      return NextResponse.json({ error: 'Validation failed', details: error.issues }, { status: 400 });
+    }
+    logger.error('/api/report', 'Failed to retract report', error);
+    return NextResponse.json({ error: 'Failed to retract report' }, { status: 500 });
   }
 }

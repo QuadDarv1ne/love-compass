@@ -26,7 +26,6 @@ import { appLogger } from '@/lib/logger';
 import { MOMENTS as MOMENTS_CONST, ANIMATION, TIME, AVATAR_BASE_URL } from '@/lib/constants';
 import { useTranslation } from '@/hooks/useTranslation';
 
-// ─── Gradient Presets ────────────────────────────────────────────────────────
 const GRADIENT_PRESETS = [
   'from-rose-400 to-pink-500',
   'from-purple-400 to-indigo-500',
@@ -38,7 +37,6 @@ const GRADIENT_PRESETS = [
   'from-red-400 to-rose-500',
 ];
 
-// ─── Story Ring Gradients ────────────────────────────────────────────────────
 const RING_GRADIENTS = [
   'from-rose-500 via-pink-500 to-fuchsia-500',
   'from-violet-500 via-purple-500 to-indigo-500',
@@ -48,10 +46,8 @@ const RING_GRADIENTS = [
   'from-fuchsia-500 via-pink-500 to-rose-500',
 ];
 
-// ─── Reaction Emojis ─────────────────────────────────────────────────────────
 const REACTION_EMOJIS = ['❤️', '🔥', '😂', '😍'];
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
 function timeAgo(dateStr: string, t: (key: string) => string): string {
   const now = Date.now();
   const then = new Date(dateStr).getTime();
@@ -75,7 +71,6 @@ function getUniqueUsersFromMoments(moments: Moment[]) {
   return Array.from(seen.values());
 }
 
-// ─── Story Viewer (Full-screen overlay) ──────────────────────────────────────
 function StoryViewer({
   moments,
   startIndex,
@@ -467,7 +462,6 @@ function StoryViewer({
   );
 }
 
-// ─── Create Moment Dialog ────────────────────────────────────────────────────
 function CreateMomentDialog({
   open,
   onOpenChange,
@@ -565,7 +559,6 @@ function CreateMomentDialog({
   );
 }
 
-// ─── Moment Feed Card ────────────────────────────────────────────────────────
 function MomentFeedCard({
   moment,
   onLike,
@@ -681,7 +674,6 @@ function MomentFeedCard({
   );
 }
 
-// ─── Moments View ────────────────────────────────────────────────────────────
 export function MomentsView() {
   const { currentUser, moments: storeMoments, setMoments: setStoreMoments, addMoment: addStoreMoment } = useAppStore();
   const { t } = useTranslation();
@@ -903,7 +895,6 @@ export function MomentsView() {
     }
   };
 
-  // ─── Loading State ──────────────────────────────────────────────────────────
   if (isLoading) {
     return (
       <div className="flex-1 overflow-y-auto pb-4">
@@ -933,7 +924,6 @@ export function MomentsView() {
     );
   }
 
-  // ─── Empty State ──────────────────────────────────────────────────────────
   if (moments.length === 0) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center px-4 py-12">
@@ -966,7 +956,6 @@ export function MomentsView() {
     );
   }
 
-  // ─── Main View ────────────────────────────────────────────────────────────
   return (
     <div className="flex-1 overflow-y-auto custom-scrollbar pb-4">
       {/* Header */}

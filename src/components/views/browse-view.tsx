@@ -18,7 +18,6 @@ import { SUPER_LIKE_DAILY_LIMIT, SWIPE, MATCH_ANIMATION_DELAY, FILTER, SPRING, S
 import { FilterPanel } from './shared';
 import { useTranslation } from '@/hooks/useTranslation';
 
-// ─── Profile Detail Modal ────────────────────────────────────────────────────
 function ProfileDetailModal({
   profile,
   onClose,
@@ -158,7 +157,6 @@ function ProfileDetailModal({
   );
 }
 
-// ─── Browse View ────────────────────────────────────────────────────────────
 export function BrowseView() {
   const {
     profiles, currentUser, profilesCursor,
