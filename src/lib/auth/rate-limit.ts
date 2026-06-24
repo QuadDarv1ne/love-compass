@@ -1,4 +1,5 @@
 import { db } from '@/lib/db';
+import { logger } from '@/lib/logger';
 
 /**
  * Delete all expired rate limit entries.
@@ -16,8 +17,8 @@ async function maybeCleanup() {
   if (Math.random() < 0.01) {
     try {
       await cleanupExpiredRateLimits();
-    } catch {
-      // Cleanup failure is non-critical; rate limiting still works
+    } catch (err) {
+      logger.error('rate-limit.maybeCleanup', 'Expired rate limit cleanup failed', err);
     }
   }
 }

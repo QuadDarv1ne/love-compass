@@ -2,6 +2,7 @@ import { randomUUID } from 'crypto';
 import { existsSync, mkdirSync, writeFileSync, unlinkSync } from 'fs';
 import path from 'path';
 import sharp from 'sharp';
+import { logger } from '@/lib/logger';
 
 export interface UploadResult {
   filename: string;
@@ -72,7 +73,8 @@ export async function validateAndProcessImage(
   let metadata: sharp.Metadata;
   try {
     metadata = await sharp(buffer).metadata();
-  } catch {
+  } catch (err) {
+    logger.error('upload.validateAndProcessImage', 'Sharp metadata extraction failed', err);
     throw new Error('Invalid image file');
   }
 
@@ -110,8 +112,8 @@ export async function cleanupFile(filePath: string): Promise<void> {
   if (existsSync(filePath)) {
     try {
       unlinkSync(filePath);
-    } catch {
-      // Ignore deletion errors
+    } catch (err) {
+      logger.error('upload.cleanupFile', 'Failed to delete file', { filePath, error: err });
     }
   }
 }

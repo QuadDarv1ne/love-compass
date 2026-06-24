@@ -73,6 +73,8 @@ const PROTECTED_PATHS = [
   '/api/achievements',
   '/api/leaderboard',
   '/api/superlike',
+  '/api/profile/photos',
+  '/api/profile/avatar',
 ];
 
 // Paths that require admin role

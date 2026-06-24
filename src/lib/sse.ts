@@ -32,8 +32,8 @@ function createPubSub(): PubSub {
       set.forEach((listener) => {
         try {
           listener(data);
-        } catch {
-          // Individual listener errors should not break other listeners
+        } catch (err) {
+          logger.error('sse.publish', 'Listener error', err);
         }
       });
     },

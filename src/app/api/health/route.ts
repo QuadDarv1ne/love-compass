@@ -2,12 +2,14 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { readFileSync } from "fs";
 import { join } from "path";
+import { logger } from '@/lib/logger';
 
 function getVersion(): string {
   try {
     const pkg = JSON.parse(readFileSync(join(process.cwd(), "package.json"), "utf-8"));
     return pkg.version || "0.3.0";
-  } catch {
+  } catch (err) {
+    logger.warn('health.getVersion', 'Failed to read package.json', err);
     return "0.3.0";
   }
 }
@@ -32,7 +34,8 @@ export async function GET() {
   try {
     await db.user.count();
     health.database = "connected";
-  } catch {
+  } catch (err) {
+    logger.error('health.GET', 'Database health check failed', err);
     health.database = "disconnected";
     health.status = "degraded";
   }
