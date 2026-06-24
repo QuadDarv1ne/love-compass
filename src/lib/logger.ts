@@ -13,6 +13,13 @@ interface LogEntry {
   data?: unknown;
 }
 
+function safeParseError(data: unknown): unknown {
+  if (data instanceof Error) {
+    return { message: data.message, stack: data.stack };
+  }
+  return data;
+}
+
 function formatEntry(entry: LogEntry): string {
   return JSON.stringify(entry);
 }
@@ -24,7 +31,7 @@ export const logger = {
       timestamp: new Date().toISOString(),
       context,
       message,
-      data: data instanceof Error ? { message: data.message, stack: data.stack } : data,
+      data: safeParseError(data),
     };
     console.error(formatEntry(entry));
   },
@@ -35,7 +42,7 @@ export const logger = {
       timestamp: new Date().toISOString(),
       context,
       message,
-      data,
+      data: safeParseError(data),
     };
     console.warn(formatEntry(entry));
   },
@@ -46,7 +53,7 @@ export const logger = {
       timestamp: new Date().toISOString(),
       context,
       message,
-      data,
+      data: safeParseError(data),
     };
     console.info(formatEntry(entry));
   },
