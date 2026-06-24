@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { db } from '@/lib/db';
 import { requireAuth, requireAuthWithCSRF, isZodError } from '@/lib/auth/guard';
 import { logger } from '@/lib/logger';
+import { messageBus } from '@/lib/sse';
 
 // In-memory typing store: matchId -> { userId, timestamp }
 const typingStore = new Map<string, { userId: string; timestamp: number }>();
@@ -15,9 +16,10 @@ function ensureCleanup() {
   if (cleanupTimer) return;
   cleanupTimer = setInterval(() => {
     const now = Date.now();
-    for (const [key, { timestamp }] of typingStore) {
+    for (const [key, { userId, timestamp }] of typingStore) {
       if (now - timestamp > TYPING_EXPIRY_MS) {
         typingStore.delete(key);
+        messageBus.publish(`typing:${key}`, { userId, matchId: key, typing: false });
       }
     }
     if (typingStore.size === 0 && cleanupTimer) {
@@ -47,6 +49,8 @@ export async function POST(request: Request) {
 
     typingStore.set(matchId, { userId: user.id, timestamp: Date.now() });
     ensureCleanup();
+
+    messageBus.publish(`typing:${matchId}`, { userId: user.id, matchId, typing: true });
 
     return NextResponse.json({ ok: true });
   } catch (error) {

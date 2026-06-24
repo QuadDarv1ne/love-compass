@@ -5,6 +5,7 @@ import { requireAuth, requireAuthWithCSRF, isZodError } from '@/lib/auth/guard';
 import { sanitizeUser } from '@/lib/auth/projections';
 import { logger } from '@/lib/logger';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
+import { messageBus } from '@/lib/sse';
 import { RATE_LIMITS, VALIDATION } from '@/lib/constants';
 
 const sendMessageSchema = z.object({
@@ -104,7 +105,11 @@ export async function POST(request: Request) {
       return { message, sender };
     });
 
-    return NextResponse.json({ ...result.message, sender: { id: result.sender.id, name: result.sender.name, avatar: result.sender.avatar } }, { status: 201 });
+    const responseData = { ...result.message, sender: { id: result.sender.id, name: result.sender.name, avatar: result.sender.avatar } };
+
+    messageBus.publish(`message:${matchId}`, responseData);
+
+    return NextResponse.json(responseData, { status: 201 });
   } catch (error) {
     if (isZodError(error)) {
       return NextResponse.json({ error: 'Validation failed', details: error.issues }, { status: 400 });

@@ -112,13 +112,13 @@ export function ChatView() {
   const [newMessageCount, setNewMessageCount] = useState(0);
   const hasFocusRef = useRef(true);
 
-  // Polling for real-time message updates — cursor-based incremental fetch
-  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  // SSE for real-time message updates — replaces polling
   const lastMessageIdRef = useRef<string | null>(null);
   const lastMessageCountRef = useRef<number>(0);
-  const isPollingRef = useRef(false);
-  const pollingRetryDelayRef = useRef(1000);
   const typingSignalTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const sseRef = useRef<EventSource | null>(null);
+  const reconnectTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const typingExpiryTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Send typing signal with debounce
   const signalTyping = useCallback(async (matchId: string) => {
@@ -145,34 +145,21 @@ export function ChatView() {
     if (!selectedMatch) return;
     const abortController = new AbortController();
     let cancelled = false;
-    lastMessageIdRef.current = null;
     let inFlightAbortController = abortController;
-    pollingRetryDelayRef.current = 1000;
 
-    const wrappedLoadMessages = async (isPoll = false) => {
-      if (isPoll && isPollingRef.current) return;
-      if (isPoll) isPollingRef.current = true;
-      if (!isPoll) setIsLoadingMessages(true);
+    const wrappedLoadMessages = async () => {
+      setIsLoadingMessages(true);
       const callAbortController = new AbortController();
       inFlightAbortController = callAbortController;
       try {
-        let url = `/api/messages?matchId=${selectedMatch.id}`;
-        if (isPoll && lastMessageIdRef.current) {
-          url += `&cursor=${lastMessageIdRef.current}&limit=50`;
-        }
+        const url = `/api/messages?matchId=${selectedMatch.id}`;
         const res = await fetchWithTimeout(url, { signal: callAbortController.signal });
         if (!res.ok) throw new Error('Failed to load messages');
         const data = await res.json();
         if (!cancelled) {
           const messageList: Message[] = data.messages ?? data;
           if (messageList.length === 0) return;
-          if (isPoll && lastMessageIdRef.current) {
-            for (const msg of messageList) {
-              addMessage(msg);
-            }
-          } else {
-            setMessages(messageList);
-          }
+          setMessages(messageList);
           lastMessageIdRef.current = messageList[messageList.length - 1]!.id;
           const currentUserId = currentUserRef.current?.id;
           const unreadIds = messageList
@@ -189,44 +176,91 @@ export function ChatView() {
             }
           }
         }
-        // Reset retry delay on success
-        pollingRetryDelayRef.current = 1000;
       } catch (error) {
         if ((error as Error).name === 'AbortError') return;
         if (!cancelled) appLogger.error('chat-view.loadMessages', 'Failed to load messages', error);
       } finally {
-        if (isPoll) isPollingRef.current = false;
-        if (!isPoll) setIsLoadingMessages(false);
+        if (!cancelled) setIsLoadingMessages(false);
       }
     };
 
-    wrappedLoadMessages(false);
+    wrappedLoadMessages();
 
-    // Set up polling for real-time updates — incremental fetch with auto-retry
-    pollingIntervalRef.current = setInterval(async () => {
+    // Connect SSE for real-time updates
+    const connectSSE = () => {
+      if (cancelled) return;
+      if (sseRef.current) sseRef.current.close();
+
+      const es = new EventSource(`/api/messages/stream?matchId=${selectedMatch.id}`);
+      sseRef.current = es;
+
+      es.addEventListener('message', (event) => {
+        try {
+          const msg = JSON.parse(event.data) as Message;
+          addMessage(msg);
+          if (msg.senderId !== currentUserRef.current?.id) {
+            markMessagesAsRead([msg.id]);
+            fetchWithCSRF('/api/messages/mark-read', { messageIds: [msg.id] }).catch(() => {});
+          }
+        } catch {
+          // Ignore parse errors
+        }
+      });
+
+      es.addEventListener('typing', (event) => {
+        try {
+          const data = JSON.parse(event.data) as { userId: string; typing: boolean };
+          setPartnerTyping(data.typing);
+          if (data.typing && typingExpiryTimerRef.current) {
+            clearTimeout(typingExpiryTimerRef.current);
+          }
+          if (data.typing) {
+            typingExpiryTimerRef.current = setTimeout(() => {
+              setPartnerTyping(false);
+            }, 6000);
+          }
+        } catch {
+          // Ignore parse errors
+        }
+      });
+
+      es.addEventListener('close', () => {
+        es.close();
+      });
+
+      es.onerror = () => {
+        es.close();
+        sseRef.current = null;
+        if (!cancelled) {
+          reconnectTimerRef.current = setTimeout(connectSSE, 3000);
+        }
+      };
+    };
+
+    connectSSE();
+
+    // Fallback polling for typing status only (SSE handles messages)
+    const fallbackPolling = setInterval(async () => {
       const currentMatchId = selectedMatchIdRef.current;
       if (currentMatchId && hasFocusRef.current) {
-        await wrappedLoadMessages(true);
-        // Also check if partner is typing
-        await checkPartnerTyping(currentMatchId);
-        pollingRetryDelayRef.current = 1000;
-      } else if (currentMatchId && !hasFocusRef.current) {
-        // Even without focus, check typing status for badge updates
         await checkPartnerTyping(currentMatchId);
       }
-    }, 5000);
+    }, 10000);
 
     return () => {
       cancelled = true;
       inFlightAbortController.abort();
+      if (sseRef.current) sseRef.current.close();
+      if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
       if (autoReplyTimerRef.current) clearTimeout(autoReplyTimerRef.current);
       if (innerTimerRef.current) clearTimeout(innerTimerRef.current);
-      if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
       if (typingSignalTimerRef.current) clearTimeout(typingSignalTimerRef.current);
+      if (typingExpiryTimerRef.current) clearTimeout(typingExpiryTimerRef.current);
+      clearInterval(fallbackPolling);
     };
     // selectedMatch is used as a guard — only the stable .id is needed for re-trigger
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedMatch?.id, checkPartnerTyping]);
+  }, [selectedMatch?.id]);
 
   // Track window focus to control polling
   useEffect(() => {

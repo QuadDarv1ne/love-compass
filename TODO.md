@@ -44,15 +44,15 @@
 - **lastSeenAt throttle** — Updates at most once per 5 minutes instead of every API call
 
 ## 🔥 Critical
-- [ ] **Real-time chat** — Replace polling with WebSockets or SSE for live messaging
+- [x] **Real-time chat** — SSE for live messaging (EventSource with auto-reconnect)
 - [ ] **Image upload** — Endpoint for profile photos + gallery support (multiple photos)
 - [x] **Profile verification** — Verification badge (email verified indicator in profile & browse cards)
-- [ ] **Connect more i18n languages** — Add English, Spanish, Chinese and other languages fully
+- [x] **Connect more i18n languages** — Added Spanish (es) locale with full translation
 
 ## 💡 UX
 - [x] **Skeleton loaders** — Loading placeholders for profiles, matches, messages
 - [x] **Empty states** — Improved illustrations and CTAs for matches, likes, messages
-- [ ] **"Typing..." indicator** — Show when the other person is typing (TypingIndicator component exists but not wired)
+- [x] **"Typing..." indicator** — Wired via SSE events + fallback polling
 - [x] **Search in messages** — Search message history by keywords
 
 ## 📊 Analytics & Monitoring
