@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAppStore } from '@/lib/store';
 import { appLogger } from '@/lib/logger';
+import { AVATAR_BASE_URL } from '@/lib/constants';
 import { FloatingHearts } from './shared';
 import { useTranslation } from '@/hooks/useTranslation';
 import { toast } from 'sonner';
@@ -26,26 +27,26 @@ const FEATURES = [
 // ─── Demo users (only in dev mode) ──────────────────────────────────────────
 interface DemoUser { name: string; email: string; avatar: string; }
 const DEMO_USERS: DemoUser[] = [
-  { name: 'Анна', email: 'anna@example.com', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Anastasia' },
-  { name: 'Дмитрий', email: 'dmitry@example.com', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Dmitry' },
-  { name: 'Екатерина', email: 'ekaterina@example.com', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Ekaterina' },
-  { name: 'Максим', email: 'maxim@example.com', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Maxim' },
-  { name: 'Ольга', email: 'olga@example.com', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Olga' },
-  { name: 'Артём', email: 'artem@example.com', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Artem' },
-  { name: 'Мария', email: 'maria@example.com', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Maria' },
-  { name: 'Никита', email: 'nikita@example.com', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Nikita' },
-  { name: 'Наташа', email: 'natasha@example.com', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Natalia' },
-  { name: 'Минджун', email: 'minjun@example.com', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Minjun' },
-  { name: 'София', email: 'sofia@example.com', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Sofia' },
-  { name: 'Радж', email: 'raj@example.com', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Raj' },
-  { name: 'Амара', email: 'amara@example.com', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Amara' },
-  { name: 'Эйдан', email: 'aidan@example.com', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Aidan' },
-  { name: 'Сакура', email: 'sakura@example.com', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Sakura' },
-  { name: 'Кваме', email: 'kwame@example.com', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Kwame' },
-  { name: 'Камилла', email: 'camille@example.com', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Camille' },
-  { name: 'Эрик', email: 'erik@example.com', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Erik' },
-  { name: 'Лейла', email: 'layla@example.com', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Layla' },
-  { name: 'Лукас', email: 'lucas@example.com', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=Lucas' },
+  { name: 'Анна', email: 'anna@example.com', avatar: `${AVATAR_BASE_URL}?seed=Anastasia` },
+  { name: 'Дмитрий', email: 'dmitry@example.com', avatar: `${AVATAR_BASE_URL}?seed=Dmitry` },
+  { name: 'Екатерина', email: 'ekaterina@example.com', avatar: `${AVATAR_BASE_URL}?seed=Ekaterina` },
+  { name: 'Максим', email: 'maxim@example.com', avatar: `${AVATAR_BASE_URL}?seed=Maxim` },
+  { name: 'Ольга', email: 'olga@example.com', avatar: `${AVATAR_BASE_URL}?seed=Olga` },
+  { name: 'Артём', email: 'artem@example.com', avatar: `${AVATAR_BASE_URL}?seed=Artem` },
+  { name: 'Мария', email: 'maria@example.com', avatar: `${AVATAR_BASE_URL}?seed=Maria` },
+  { name: 'Никита', email: 'nikita@example.com', avatar: `${AVATAR_BASE_URL}?seed=Nikita` },
+  { name: 'Наташа', email: 'natasha@example.com', avatar: `${AVATAR_BASE_URL}?seed=Natalia` },
+  { name: 'Минджун', email: 'minjun@example.com', avatar: `${AVATAR_BASE_URL}?seed=Minjun` },
+  { name: 'София', email: 'sofia@example.com', avatar: `${AVATAR_BASE_URL}?seed=Sofia` },
+  { name: 'Радж', email: 'raj@example.com', avatar: `${AVATAR_BASE_URL}?seed=Raj` },
+  { name: 'Амара', email: 'amara@example.com', avatar: `${AVATAR_BASE_URL}?seed=Amara` },
+  { name: 'Эйдан', email: 'aidan@example.com', avatar: `${AVATAR_BASE_URL}?seed=Aidan` },
+  { name: 'Сакура', email: 'sakura@example.com', avatar: `${AVATAR_BASE_URL}?seed=Sakura` },
+  { name: 'Кваме', email: 'kwame@example.com', avatar: `${AVATAR_BASE_URL}?seed=Kwame` },
+  { name: 'Камилла', email: 'camille@example.com', avatar: `${AVATAR_BASE_URL}?seed=Camille` },
+  { name: 'Эрик', email: 'erik@example.com', avatar: `${AVATAR_BASE_URL}?seed=Erik` },
+  { name: 'Лейла', email: 'layla@example.com', avatar: `${AVATAR_BASE_URL}?seed=Layla` },
+  { name: 'Лукас', email: 'lucas@example.com', avatar: `${AVATAR_BASE_URL}?seed=Lucas` },
 ];
 
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';

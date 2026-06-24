@@ -8,6 +8,7 @@ import {
   Search as SearchIcon, ChevronLeft, ChevronRight, Shield, Eye, EyeOff,
   Trash2, UserCog, TrendingUp, BadgeCheck,
 } from 'lucide-react';
+import { AVATAR_BASE_URL } from '@/lib/constants';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -231,7 +232,7 @@ export function AdminView() {
                     className="flex items-center gap-3 p-3 rounded-xl border border-rose-100 dark:border-rose-900/50 bg-card hover:shadow-md transition-shadow"
                   >
                     <Avatar className="h-10 w-10 border-2 border-rose-200 dark:border-rose-800 flex-shrink-0">
-                      <AvatarImage src={user.avatar || 'https://api.dicebear.com/9.x/notionists/svg?seed=Default'} alt={user.name} />
+                      <AvatarImage src={user.avatar || `${AVATAR_BASE_URL}?seed=Default`} alt={user.name} />
                       <AvatarFallback className="bg-rose-100 text-rose-600 dark:bg-rose-900 dark:text-rose-300 text-xs">{user.name[0]}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">

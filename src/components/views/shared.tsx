@@ -19,18 +19,18 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useAppStore } from '@/lib/store';
-import { FILTER } from '@/lib/constants';
+import { FILTER, AVATAR_BASE_URL } from '@/lib/constants';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useDebounce } from '@/hooks/useDebounce';
 
 // ─── Avatar Options ──────────────────────────────────────────────────────────
 export const ALL_AVATARS = [
-  'https://api.dicebear.com/9.x/notionists/svg?seed=Anastasia', 'https://api.dicebear.com/9.x/notionists/svg?seed=Viktoria', 'https://api.dicebear.com/9.x/notionists/svg?seed=Ekaterina', 'https://api.dicebear.com/9.x/notionists/svg?seed=Maria',
-  'https://api.dicebear.com/9.x/notionists/svg?seed=Olga', 'https://api.dicebear.com/9.x/notionists/svg?seed=Sofia', 'https://api.dicebear.com/9.x/notionists/svg?seed=Natalia', 'https://api.dicebear.com/9.x/notionists/svg?seed=Alina',
-  'https://api.dicebear.com/9.x/notionists/svg?seed=Diana', 'https://api.dicebear.com/9.x/notionists/svg?seed=Polina',
-  'https://api.dicebear.com/9.x/notionists/svg?seed=Alexander', 'https://api.dicebear.com/9.x/notionists/svg?seed=Dmitry', 'https://api.dicebear.com/9.x/notionists/svg?seed=Maxim', 'https://api.dicebear.com/9.x/notionists/svg?seed=Artem',
-  'https://api.dicebear.com/9.x/notionists/svg?seed=Ivan', 'https://api.dicebear.com/9.x/notionists/svg?seed=Nikita', 'https://api.dicebear.com/9.x/notionists/svg?seed=Andrey', 'https://api.dicebear.com/9.x/notionists/svg?seed=Sergey',
-  'https://api.dicebear.com/9.x/notionists/svg?seed=Kirill', 'https://api.dicebear.com/9.x/notionists/svg?seed=Roman',
+  `${AVATAR_BASE_URL}?seed=Anastasia`, `${AVATAR_BASE_URL}?seed=Viktoria`, `${AVATAR_BASE_URL}?seed=Ekaterina`, `${AVATAR_BASE_URL}?seed=Maria`,
+  `${AVATAR_BASE_URL}?seed=Olga`, `${AVATAR_BASE_URL}?seed=Sofia`, `${AVATAR_BASE_URL}?seed=Natalia`, `${AVATAR_BASE_URL}?seed=Alina`,
+  `${AVATAR_BASE_URL}?seed=Diana`, `${AVATAR_BASE_URL}?seed=Polina`,
+  `${AVATAR_BASE_URL}?seed=Alexander`, `${AVATAR_BASE_URL}?seed=Dmitry`, `${AVATAR_BASE_URL}?seed=Maxim`, `${AVATAR_BASE_URL}?seed=Artem`,
+  `${AVATAR_BASE_URL}?seed=Ivan`, `${AVATAR_BASE_URL}?seed=Nikita`, `${AVATAR_BASE_URL}?seed=Andrey`, `${AVATAR_BASE_URL}?seed=Sergey`,
+  `${AVATAR_BASE_URL}?seed=Kirill`, `${AVATAR_BASE_URL}?seed=Roman`,
 ];
 
 // ─── View Transition Variants ────────────────────────────────────────────────

@@ -7,6 +7,7 @@ import { Heart, MessageCircle, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAppStore } from '@/lib/store';
 import { appLogger } from '@/lib/logger';
+import { AVATAR_BASE_URL } from '@/lib/constants';
 import { useTranslation } from '@/hooks/useTranslation';
 
 export function MatchAnimationOverlay() {
@@ -94,13 +95,13 @@ export function MatchAnimationOverlay() {
           className="flex justify-center items-center gap-4 mb-8"
         >
           <div className="relative w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden border-4 border-white shadow-lg">
-            <SafeImage src={currentUser.avatar || 'https://api.dicebear.com/9.x/notionists/svg?seed=Default'} alt={currentUser.name} fill className="object-cover" />
+            <SafeImage src={currentUser.avatar || `${AVATAR_BASE_URL}?seed=Default`} alt={currentUser.name} fill className="object-cover" />
           </div>
           <div className="match-pulse">
             <Heart className="w-10 h-10 fill-white text-white" />
           </div>
           <div className="relative w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden border-4 border-white shadow-lg">
-            <SafeImage src={matchAnimationPartner.avatar || 'https://api.dicebear.com/9.x/notionists/svg?seed=Default'} alt={matchAnimationPartner.name} fill className="object-cover" />
+            <SafeImage src={matchAnimationPartner.avatar || `${AVATAR_BASE_URL}?seed=Default`} alt={matchAnimationPartner.name} fill className="object-cover" />
           </div>
         </motion.div>
 

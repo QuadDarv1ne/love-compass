@@ -14,7 +14,7 @@ import { useAppStore, type User } from '@/lib/store';
 import { OnlineIndicator } from './shared';
 import { fetchWithCSRF } from '@/lib/api';
 import { appLogger } from '@/lib/logger';
-import { MATCH_ANIMATION_DELAY } from '@/lib/constants';
+import { MATCH_ANIMATION_DELAY, AVATAR_BASE_URL } from '@/lib/constants';
 import { useTranslation } from '@/hooks/useTranslation';
 
 export function LikedYouView() {
@@ -101,7 +101,7 @@ export function LikedYouView() {
             >
               <Card className="overflow-hidden border-rose-100 dark:border-rose-900/50 shadow-md hover:shadow-xl transition-shadow rounded-2xl bg-card">
                 <div className="relative aspect-square">
-                  <SafeImage src={profile.avatar || 'https://api.dicebear.com/9.x/notionists/svg?seed=Default'} alt={profile.name} fill className="object-cover" />
+                  <SafeImage src={profile.avatar || `${AVATAR_BASE_URL}?seed=Default`} alt={profile.name} fill className="object-cover" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                   <OnlineIndicator userId={profile.id} size="md" />
                   {/* Heart icon */}

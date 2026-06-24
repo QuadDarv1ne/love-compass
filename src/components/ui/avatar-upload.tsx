@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { postWithCSRFFormData, deleteWithCSRF } from '@/lib/api';
 import { useAppStore } from '@/lib/store';
-import { UPLOAD } from '@/lib/constants';
+import { UPLOAD, AVATAR_BASE_URL } from '@/lib/constants';
 import { useTranslation } from '@/hooks/useTranslation';
 
 interface AvatarUploadProps {
@@ -82,7 +82,7 @@ export function AvatarUpload({ currentAvatar, userId: _userId, userName }: Avata
     }
   };
 
-  const avatarSrc = currentAvatar || `https://api.dicebear.com/9.x/notionists/svg?seed=${encodeURIComponent(userName)}&backgroundColor=ffd5dc`;
+  const avatarSrc = currentAvatar || `${AVATAR_BASE_URL}?seed=${encodeURIComponent(userName)}&backgroundColor=ffd5dc`;
   const isCustomAvatar = currentAvatar && currentAvatar.startsWith('/uploads/');
 
   return (

@@ -33,7 +33,8 @@ export async function GET(request: Request) {
       const heartbeatTimer = setInterval(() => {
         try {
           controller.enqueue(encoder.encode(`:heartbeat\n\n`));
-        } catch {
+        } catch (err) {
+          logger.warn('sse.stream', 'Heartbeat enqueue failed', err);
           clearInterval(heartbeatTimer);
         }
       }, HEARTBEAT_INTERVAL_MS);
@@ -53,7 +54,7 @@ export async function GET(request: Request) {
             controller.enqueue(encoder.encode(`event: message\ndata: ${JSON.stringify(data)}\n\n`));
           }
         } catch {
-          // Client may have disconnected
+          logger.warn('sse.stream', 'Message enqueue failed — client may have disconnected');
         }
       });
 
@@ -64,7 +65,7 @@ export async function GET(request: Request) {
             controller.enqueue(encoder.encode(`event: typing\ndata: ${JSON.stringify(data)}\n\n`));
           }
         } catch {
-          // Client may have disconnected
+          logger.warn('sse.stream', 'Typing enqueue failed — client may have disconnected');
         }
       });
 

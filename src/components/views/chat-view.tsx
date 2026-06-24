@@ -12,7 +12,7 @@ import { useAppStore, type Message, type MatchWithUsers } from '@/lib/store';
 import { OnlineIndicator, TypingIndicator } from './shared';
 import { fetchWithCSRF, fetchWithTimeout } from '@/lib/api';
 import { appLogger } from '@/lib/logger';
-import { AUTO_REPLY, EMOJI, ANIMATION } from '@/lib/constants';
+import { AUTO_REPLY, EMOJI, ANIMATION, AVATAR_BASE_URL } from '@/lib/constants';
 import { useTranslation } from '@/hooks/useTranslation';
 
 // ─── Popular Emojis ──────────────────────────────────────────────────────────
@@ -124,8 +124,8 @@ export function ChatView() {
   const signalTyping = useCallback(async (matchId: string) => {
     try {
       await fetchWithCSRF('/api/messages/typing', { matchId });
-    } catch {
-      // Silently fail — typing indicator is not critical
+    } catch (err) {
+      appLogger.warn('chat-view.signalTyping', 'Failed to send typing signal', err);
     }
   }, []);
 
@@ -136,8 +136,8 @@ export function ChatView() {
         const data = await res.json();
         setPartnerTyping(data.typing === true);
       }
-    } catch {
-      // Silently fail
+    } catch (err) {
+      appLogger.warn('chat-view.checkPartnerTyping', 'Failed to check partner typing', err);
     }
   }, []);
 
@@ -200,10 +200,10 @@ export function ChatView() {
           addMessage(msg);
           if (msg.senderId !== currentUserRef.current?.id) {
             markMessagesAsRead([msg.id]);
-            fetchWithCSRF('/api/messages/mark-read', { messageIds: [msg.id] }).catch(() => {});
+            fetchWithCSRF('/api/messages/mark-read', { messageIds: [msg.id] }).catch((err) => appLogger.warn('chat-view.markRead', 'Silent mark-read failed', err));
           }
-        } catch {
-          // Ignore parse errors
+        } catch (err) {
+          appLogger.warn('chat-view.sseMessage', 'Failed to parse SSE message', err);
         }
       });
 
@@ -219,8 +219,8 @@ export function ChatView() {
               setPartnerTyping(false);
             }, 6000);
           }
-        } catch {
-          // Ignore parse errors
+        } catch (err) {
+          appLogger.warn('chat-view.sseTyping', 'Failed to parse SSE typing event', err);
         }
       });
 
@@ -443,7 +443,7 @@ export function ChatView() {
         </Button>
         <div className="relative">
           <Avatar className="h-10 w-10 border-2 border-rose-200 dark:border-rose-800">
-            <AvatarImage src={partner.avatar || 'https://api.dicebear.com/9.x/notionists/svg?seed=Default'} alt={partner.name} />
+            <AvatarImage src={partner.avatar || `${AVATAR_BASE_URL}?seed=Default`} alt={partner.name} />
             <AvatarFallback className="bg-rose-100 text-rose-600 dark:bg-rose-900 dark:text-rose-300">{partner.name[0]}</AvatarFallback>
           </Avatar>
           <OnlineIndicator userId={partner.id} size="sm" />
@@ -542,7 +542,7 @@ export function ChatView() {
                   {!isMine && (
                     <div className="flex-shrink-0">
                       <Avatar className="h-7 w-7 border border-rose-200 dark:border-rose-800">
-                        <AvatarImage src={partner.avatar || 'https://api.dicebear.com/9.x/notionists/svg?seed=Default'} alt={partner.name} />
+                        <AvatarImage src={partner.avatar || `${AVATAR_BASE_URL}?seed=Default`} alt={partner.name} />
                         <AvatarFallback className="bg-rose-100 text-rose-600 dark:bg-rose-900 dark:text-rose-300 text-[10px]">{partner.name[0]}</AvatarFallback>
                       </Avatar>
                     </div>

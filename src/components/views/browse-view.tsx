@@ -14,7 +14,7 @@ import { appLogger } from '@/lib/logger';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { useAppStore, type User } from '@/lib/store';
-import { SUPER_LIKE_DAILY_LIMIT, SWIPE, MATCH_ANIMATION_DELAY, FILTER, SPRING, SWIPE_EXT, BLOCK_REASON, REPORT_REASON } from '@/lib/constants';
+import { SUPER_LIKE_DAILY_LIMIT, SWIPE, MATCH_ANIMATION_DELAY, FILTER, SPRING, SWIPE_EXT, BLOCK_REASON, REPORT_REASON, AVATAR_BASE_URL } from '@/lib/constants';
 import { FilterPanel } from './shared';
 import { useTranslation } from '@/hooks/useTranslation';
 
@@ -65,7 +65,7 @@ function ProfileDetailModal({
 
         {/* Photo */}
         <div className="relative w-full aspect-[4/3] overflow-hidden rounded-t-3xl md:rounded-t-3xl">
-          <SafeImage src={profile.avatar || 'https://api.dicebear.com/9.x/notionists/svg?seed=Default'} alt={profile.name} fill className="object-cover" priority />
+          <SafeImage src={profile.avatar || `${AVATAR_BASE_URL}?seed=Default`} alt={profile.name} fill className="object-cover" priority />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
           <div className="absolute bottom-4 left-4">
             <h2 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-2">
@@ -642,7 +642,7 @@ export function BrowseView() {
               <Card className="overflow-hidden border-0 bg-card">
                 <div className="relative aspect-[3/4]">
                   <SafeImage
-                    src={filteredProfiles[1]!.avatar || 'https://api.dicebear.com/9.x/notionists/svg?seed=Default'}
+                    src={filteredProfiles[1]!.avatar || `${AVATAR_BASE_URL}?seed=Default`}
                     alt=""
                     fill
                     className="object-cover"
@@ -683,7 +683,7 @@ export function BrowseView() {
         >
           <Card className="overflow-hidden border-0 shadow-2xl rounded-3xl bg-card">
             <div className="relative aspect-[3/4] overflow-hidden rounded-3xl">
-              <SafeImage src={currentProfile.avatar || 'https://api.dicebear.com/9.x/notionists/svg?seed=Default'} alt={currentProfile.name} fill className="object-cover" priority />
+              <SafeImage src={currentProfile.avatar || `${AVATAR_BASE_URL}?seed=Default`} alt={currentProfile.name} fill className="object-cover" priority />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
               {/* Swipe labels during drag */}
               {dragX > SWIPE.LABEL_THRESHOLD && (

@@ -14,10 +14,11 @@ import { validatePasswordStrength } from '@/lib/auth/password';
 import { appLogger } from '@/lib/logger';
 import { toast } from 'sonner';
 import { Eye, EyeOff } from 'lucide-react';
+import { AVATAR_BASE_URL } from '@/lib/constants';
 import { useTranslation } from '@/hooks/useTranslation';
 
 const AVATARS: readonly string[] = Array.from({ length: 20 }, (_, i) =>
-  `https://api.dicebear.com/9.x/notionists/svg?seed=${i + 1}`
+  `${AVATAR_BASE_URL}?seed=${i + 1}`
 );
 
 export default function RegisterPage() {

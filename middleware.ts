@@ -3,6 +3,32 @@ import type { NextRequest } from 'next/server';
 import { createRateLimiter } from '@/lib/rate-limit';
 import { RATE_LIMITS, LOGIN_LIMITS, REGISTRATION_LIMITS } from '@/lib/constants';
 
+function validateOrigin(request: NextRequest): string | NextResponse {
+  const origin = request.headers.get('origin');
+  if (!origin) return '';
+  try {
+    const originUrl = new URL(origin);
+    if (process.env.NODE_ENV === 'production') {
+      const allowedOrigins = process.env.ALLOWED_ORIGINS
+        ? process.env.ALLOWED_ORIGINS.split(',')
+        : [];
+      if (allowedOrigins.length === 0) {
+        const host = request.headers.get('host');
+        const proto = request.headers.get('x-forwarded-proto') || 'https';
+        const requestOrigin = `${proto}://${host}`;
+        if (originUrl.origin !== requestOrigin) {
+          return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
+      } else if (!allowedOrigins.includes(originUrl.origin)) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+    }
+    return origin;
+  } catch {
+    return NextResponse.json({ error: 'Bad Request' }, { status: 400 });
+  }
+}
+
 // ─── Rate limiters ──────────────────────────────────────────────────────────
 const rateLimiters = {
   api: createRateLimiter({ max: 100, windowMs: 60_000 }),          // 100 req/min per IP
@@ -108,7 +134,12 @@ export async function middleware(request: NextRequest) {
 
   // Handle CORS preflight requests
   if (method === 'OPTIONS') {
-    const origin = request.headers.get('origin') || '*';
+    const originResult = validateOrigin(request);
+    if (originResult instanceof NextResponse) {
+      logRequest(method, pathname, 403, Date.now() - startTime, ip);
+      return originResult;
+    }
+    const origin = originResult || '*';
     return new NextResponse(null, {
       status: 204,
       headers: {
@@ -188,40 +219,10 @@ export async function middleware(request: NextRequest) {
   }
 
   // Security: Validate origin header in production
-  const origin = request.headers.get('origin');
-  if (origin) {
-    try {
-      const originUrl = new URL(origin);
-      if (process.env.NODE_ENV === 'production') {
-        const allowedOrigins = process.env.ALLOWED_ORIGINS
-          ? process.env.ALLOWED_ORIGINS.split(',')
-          : [];
-        if (allowedOrigins.length === 0) {
-          const host = request.headers.get('host');
-          const proto = request.headers.get('x-forwarded-proto') || 'https';
-          const requestOrigin = `${proto}://${host}`;
-          if (originUrl.origin !== requestOrigin) {
-            logRequest(method, pathname, 403, Date.now() - startTime, ip);
-            return NextResponse.json(
-              { error: 'Forbidden' },
-              { status: 403 }
-            );
-          }
-        } else if (!allowedOrigins.includes(originUrl.origin)) {
-          logRequest(method, pathname, 403, Date.now() - startTime, ip);
-          return NextResponse.json(
-            { error: 'Forbidden' },
-            { status: 403 }
-          );
-        }
-      }
-    } catch {
-      logRequest(method, pathname, 400, Date.now() - startTime, ip);
-      return NextResponse.json(
-        { error: 'Bad Request' },
-        { status: 400 }
-      );
-    }
+  const originResult = validateOrigin(request);
+  if (originResult instanceof NextResponse) {
+    logRequest(method, pathname, 403, Date.now() - startTime, ip);
+    return originResult;
   }
 
   // Security headers are already set globally via next.config.ts headers()

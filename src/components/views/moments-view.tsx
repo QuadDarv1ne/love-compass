@@ -23,7 +23,7 @@ import { fetchWithCSRF, patchWithCSRF } from '@/lib/api';
 import { useAppStore, type Moment, type MomentComment } from '@/lib/store';
 import { OnlineIndicator } from './shared';
 import { appLogger } from '@/lib/logger';
-import { MOMENTS as MOMENTS_CONST, ANIMATION, TIME } from '@/lib/constants';
+import { MOMENTS as MOMENTS_CONST, ANIMATION, TIME, AVATAR_BASE_URL } from '@/lib/constants';
 import { useTranslation } from '@/hooks/useTranslation';
 
 // ─── Gradient Presets ────────────────────────────────────────────────────────
@@ -758,7 +758,7 @@ export function MomentsView() {
           id: data.id,
           userId: data.userId,
           userName: currentUser.name,
-          userAvatar: currentUser.avatar || 'https://api.dicebear.com/9.x/notionists/svg?seed=Default',
+          userAvatar: currentUser.avatar || `${AVATAR_BASE_URL}?seed=Default`,
           content: data.content,
           gradient: data.gradient,
           createdAt: data.createdAt,

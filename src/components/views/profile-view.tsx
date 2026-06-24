@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { AVATAR_BASE_URL } from '@/lib/constants';
 import { putWithCSRF, postWithCSRFFormData, deleteWithCSRFHeader } from '@/lib/api';
 import {
   Select,
@@ -243,7 +244,7 @@ export function ProfileView() {
         <h2 className="text-xl font-bold text-rose-700 dark:text-rose-300 mb-6 md:mb-8">{t('profile.title')}</h2>
         <Card className="border-rose-100 dark:border-rose-900/50 shadow-lg overflow-hidden rounded-2xl mb-6 bg-card">
           <div className="relative h-48 md:h-56">
-            <SafeImage src={currentUser.avatar || 'https://api.dicebear.com/9.x/notionists/svg?seed=Default'} alt={currentUser.name} fill className="object-cover" />
+            <SafeImage src={currentUser.avatar || `${AVATAR_BASE_URL}?seed=Default`} alt={currentUser.name} fill className="object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
             {/* Avatar upload overlay */}
             <input
