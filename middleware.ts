@@ -24,6 +24,9 @@ function validateOrigin(request: NextRequest): string | NextResponse {
           if (originUrl.origin !== requestOrigin) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
           }
+        } else {
+          // No host header — reject to prevent origin spoofing
+          return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
       }
     }
