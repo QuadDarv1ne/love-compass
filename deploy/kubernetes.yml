@@ -38,13 +38,13 @@ spec:
               cpu: "500m"
           livenessProbe:
             httpGet:
-              path: /
+              path: /api/health
               port: 3000
             initialDelaySeconds: 30
             periodSeconds: 10
           readinessProbe:
             httpGet:
-              path: /
+              path: /api/health
               port: 3000
             initialDelaySeconds: 15
             periodSeconds: 5
@@ -86,7 +86,7 @@ metadata:
   name: love-compass-secret
 type: Opaque
 stringData:
-  database-url: "file:/app/db/custom.db"
+  database-url: "file:./db/custom.db"
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress

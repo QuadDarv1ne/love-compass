@@ -232,7 +232,7 @@ export function BrowseView() {
     loadSuperLikeStatus();
   }, []);
 
-  // Build a popularity map from likedYouProfiles (users who liked you are "popular")
+  // Build a popularity map from likedYouProfiles
   const likedYouProfiles = useAppStore(useShallow((s) => s.likedYouProfiles));
   const popularityMap = useMemo(() => {
     const map: Record<string, number> = {};
@@ -241,6 +241,29 @@ export function BrowseView() {
     }
     return map;
   }, [likedYouProfiles]);
+
+  const setProfiles = useAppStore((s) => s.setProfiles);
+
+  // Refetch profiles when sort changes to 'recommended'
+  useEffect(() => {
+    if (sortBy !== 'recommended') return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/profiles?sort=recommended&limit=100`);
+        if (!res.ok) throw new Error('Failed to fetch recommended profiles');
+        const body = await res.json();
+        const recommended: User[] = Array.isArray(body.data) ? body.data : [];
+        if (!cancelled) {
+          setProfiles(recommended.filter((p) => p.id !== currentUser?.id));
+          setProfilesCursor(body.nextCursor ?? null);
+        }
+      } catch (error) {
+        appLogger.error('browse-view.recommended', 'Failed to fetch recommendations', error);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [sortBy, currentUser?.id, setProfiles, setProfilesCursor]);
 
   // Filter and sort profiles
   const filteredProfiles = useMemo(() => {
@@ -255,13 +278,14 @@ export function BrowseView() {
       return true;
     });
 
-    // Sort
+    if (sortBy === 'recommended') {
+      return result;
+    }
     if (sortBy === 'name') {
       result.sort((a, b) => a.name.localeCompare(b.name));
     } else if (sortBy === 'popular') {
       result.sort((a, b) => (popularityMap[b.id] || 0) - (popularityMap[a.id] || 0));
     } else {
-      // 'new' — sort by createdAt descending
       result.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
     }
 
@@ -272,7 +296,8 @@ export function BrowseView() {
     if (!profilesCursor || loadingMore) return;
     setLoadingMore(true);
     try {
-      const res = await fetch(`/api/profiles?cursor=${encodeURIComponent(profilesCursor)}&limit=100`);
+      const sortParam = sortBy === 'recommended' ? 'sort=recommended&' : '';
+      const res = await fetch(`/api/profiles?${sortParam}cursor=${encodeURIComponent(profilesCursor)}&limit=100`);
       if (!res.ok) throw new Error('Failed to load more profiles');
       const body = await res.json();
       const newProfiles: User[] = Array.isArray(body.data) ? body.data : [];
@@ -288,7 +313,7 @@ export function BrowseView() {
     } finally {
       setLoadingMore(false);
     }
-  }, [profilesCursor, loadingMore, currentUser, dislikedUserIds, blockedUserIds, addProfiles, setProfilesCursor]);
+  }, [profilesCursor, loadingMore, currentUser, dislikedUserIds, blockedUserIds, addProfiles, setProfilesCursor, sortBy]);
 
   // Auto-load more profiles when running low (less than 3 remaining)
   useEffect(() => {

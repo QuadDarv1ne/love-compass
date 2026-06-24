@@ -161,7 +161,7 @@ interface AppState {
 
   // Search filters
   searchQuery: string;
-  sortBy: 'new' | 'name' | 'popular';
+  sortBy: 'new' | 'name' | 'popular' | 'recommended';
   filterGender: 'all' | 'male' | 'female';
   filterAgeMin: number;
   filterAgeMax: number;
@@ -240,7 +240,7 @@ interface AppState {
 
   // Filter actions
   setSearchQuery: (query: string) => void;
-  setSortBy: (sort: 'new' | 'name' | 'popular') => void;
+  setSortBy: (sort: 'new' | 'name' | 'popular' | 'recommended') => void;
   setFilterGender: (gender: 'all' | 'male' | 'female') => void;
   setFilterAgeMin: (age: number) => void;
   setFilterAgeMax: (age: number) => void;

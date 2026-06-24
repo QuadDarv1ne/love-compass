@@ -15,9 +15,7 @@
 
 ## О проекте
 
-`Love Compass` — это веб-приложение для знакомств, позволяющее пользователям находить пары, обмениваться симпатиями и общаться в реальном времени. Проект разработан как полноценный продукт с современным стеком технологий, включающий систему профилей, алгоритм подбора пар, механизм лайков, систему совпадений (мэтчей) и встроенный чат.
-
-Приложение предоставляет интуитивный интерфейс с карточками профилей, анимацией совпадений, системой достижений и разделами «Моменты», «Топ» и «Настройки». Все данные хранятся в базе данных через `Prisma ORM`
+`Love Compass` — полнофункциональное веб-приложение для знакомств с современным стеком технологий. Реализованы система профилей, алгоритм рекомендаций на основе интересов, лайки/дизлайки/суперлайки, система мэтчей, real-time чат (SSE), моменты, достижения, рейтинг, админ-панель, двухфакторная аутентификация, интернационализация (4 языка) и защита от атак.
 
 ---
 
@@ -27,75 +25,126 @@
 
 | Раздел | Описание |
 |--------|----------|
-| **Обзор профилей** | Просмотр карточек пользователей с возможностью лайка/дизлайка |
-| **Совпадения** | Список совпавших пар с возможностью начала диалога |
-| **Чат** | Обмен сообщениями с совпавшими пользователями |
-| **Мои лайки** | Просмотр пользователей, которым вы понравились |
-| **Моменты** | Публикация и просмотр моментов (фото/контент) |
-| **Топ** | Рейтинг популярных профилей |
-| **Достижения** | Система геймификации с разблокируемыми достижениями |
-| **Профиль** | Редактирование личной информации и настроек |
+| **Обзор профилей** | Карточки с drag-to-swipe, лайк/дизлайк/суперлайк, undo, детальный просмотр, блокировка/жалоба |
+| **Совпадения (Matches)** | Список мэтчей с последним сообщением, статус онлайн, индикатор новых сообщений |
+| **Чат (Real-time)** | SSE-based обмен сообщениями, индикатор печатания, эмодзи-пикер, поиск по истории |
+| **Кто лайкнул** | Просмотр входящих лайков с возможностью ответить взаимностью |
+| **Моменты** | Публикация текстовых моментов, лайки, комментарии, реакции (эмодзи) |
+| **Топ** | Три вкладки: популярные (по лайкам), активные (по мэтчам), новые пользователи |
+| **Достижения** | 10 достижений в 4 категориях с прогрессом и анимацией |
+| **Профиль** | Редактирование данных, аватар, загрузка фото, верификация |
+| **Настройки** | 4 темы, уведомления, приватность, 2FA, смена пароля, удаление аккаунта, 4 языка |
+| **Админ-панель** | Список пользователей с поиском/фильтром, статистика платформы, управление ролями |
 
-### API-маршруты
+### Безопасность
 
-- **`/api/profile`** — управление профилем пользователя
-- **`/api/profiles`** — получение списка профилей для просмотра
-- **`/api/like`** — отправка лайков
-- **`/api/likes/received`** — получение входящих лайков
-- **`/api/matches`** — управление совпадениями
-- **`/api/messages`** — отправка и получение сообщений
+| Механизм | Описание |
+|----------|----------|
+| **Сессии** | httpOnly cookies + sliding expiration |
+| **CSRF** | Double-submit cookie pattern (__csrf cookie + x-csrf-token header) |
+| **2FA/TOTP** | Google Authenticator, резервные коды, защита от replay |
+| **Rate Limiting** | In-memory (middleware) + DB-backed для каждого эндпоинта |
+| **Блокировка аккаунта** | После N неудачных попыток входа |
+| **Валидация** | Zod на каждом API-маршруте |
+| **CORS** | Проверка Origin в production |
+| **Security Headers** | CSP, HSTS, X-Frame-Options, X-Content-Type-Options |
+| **Пароли** | bcryptjs (12 раундов), проверка сложности |
 
 ---
 
 ## Технологический стек
 
-- **Backend:** Next.js 16, React 19, TypeScript
-- **Стилизация:** Tailwind CSS 4, shadcn/ui
-- **Анимации:** Framer Motion
-- **База данных:** Multi-DB Adapter (SQLite, PostgreSQL, MongoDB)
-- **Аутентификация:** Custom JWT/session-based auth с 2FA (TOTP)
-- **Управление состоянием:** Zustand
-- **Формы:** React Hook Form + Zod
-- **Иконки:** Lucide React
-- **Сборщик:** Bun
-- **Интерфейс:** Radix UI (50+ компонентов)
+- **Frontend:** Next.js 16, React 19, TypeScript 5 (strict)
+- **Стилизация:** Tailwind CSS 4, shadcn/ui, Framer Motion
+- **Состояние:** Zustand 5 (атомарные обновления, без race conditions)
+- **База данных:** Multi-DB Adapter — SQLite / PostgreSQL / MongoDB
+- **ORM:** Prisma 6.11 + нативный MongoDB драйвер
+- **Аутентификация:** Session-based + JWT (temp tokens для 2FA), bcryptjs
+- **Real-time:** Server-Sent Events (EventSource) с auto-reconnect
+- **i18n:** Собственная лёгкая система (ru, en, zh, es) — ~320 ключей
+- **Формы:** React Hook Form + Zod 4
+- **Тесты:** Vitest (unit) + Playwright (E2E)
+- **Инфраструктура:** Docker, Docker Swarm, Kubernetes, Caddy, GitHub Actions
 
 ---
 
-## Поддержка баз данных
+## Архитектура
 
-Приложение поддерживает **3 базы данных** с автоматическим определением типа по `DATABASE_URL`:
-
-| База данных | Формат DATABASE_URL | DB_PROVIDER | Где работает |
-|-------------|---------------------|-------------|--------------|
-| **SQLite** | `file:./db/custom.db` | `sqlite` | Локальная разработка, VPS, Docker |
-| **PostgreSQL** | `postgresql://user:pass@host/db` | `postgresql` | Vercel, Railway, Neon, Supabase |
-| **MongoDB** | `mongodb://host/db` или `mongodb+srv://...` | _(авто)_ | Vercel, MongoDB Atlas, любой cloud |
-
-### Автоопределение
-
-Файл `src/lib/db.ts` автоматически определяет тип базы данных по формату URL:
-- `file:` или `sqlite:` → SQLite (через Prisma)
-- `postgresql://` или `postgres://` → PostgreSQL (через Prisma)
-- `mongodb://` или `mongodb+srv://` → MongoDB (через нативный драйвер)
-
-### Настройка для деплоя
-
-**Vercel / Cloud платформы (рекомендуется PostgreSQL):**
-```env
-DATABASE_URL=postgresql://user:password@db.neon.tech/love_compass
-DB_PROVIDER=postgresql
+```
+                    ┌──────────────────────────┐
+                    │     Next.js 16 App        │
+                    │  (Edge + Node Runtime)     │
+                    └──────────┬───────────────┘
+                               │
+          ┌────────────────────┼────────────────────┐
+          │                    │                    │
+  ┌───────▼───────┐   ┌───────▼───────┐    ┌───────▼───────┐
+  │ Middleware     │   │ API Routes    │    │ Client Pages  │
+  │ Rate Limiting │   │ 38 endpoints  │    │ 12 views      │
+  │ Auth Check    │   │ JWT/Sessions  │    │ Lazy loaded   │
+  │ CORS/Security │   │ Zod validation│    │ Zustand store │
+  └───────┬───────┘   └───────┬───────┘    └───────┬───────┘
+          │                    │                    │
+          │         ┌──────────▼──────────┐         │
+          │         │  Message Bus (SSE)   │         │
+          │         │  (src/lib/sse.ts)    │         │
+          │         └──────────┬──────────┘         │
+          │                    │                    │
+          └────────────────────┼────────────────────┘
+                               │
+                    ┌──────────▼──────────┐
+                    │  Database Adapter   │
+                    │  (Prisma / MongoDB) │
+                    └─────────────────────┘
 ```
 
-**MongoDB Atlas:**
-```env
-DATABASE_URL=mongodb+srv://user:password@cluster.mongodb.net/love_compass
-```
+### Ключевые модули
 
-**Локальная разработка (SQLite):**
+| Модуль | Назначение |
+|--------|------------|
+| `src/lib/sse.ts` | In-memory pub/sub для real-time событий (чат, печатание) |
+| `src/lib/scoring.ts` | Алгоритм рекомендаций — Jaccard similarity по интересам + совместимость по возрасту |
+| `src/lib/store.ts` | Zustand store с атомарными обновлениями и factory-сеттерами |
+| `src/lib/auth/` | Guard, CSRF, JWT, TOTP, rate-limit, session management |
+| `src/lib/db/` | Multi-adapter: PrismaAdapter (SQLite/PG), MongoDBAdapter |
+| `src/lib/i18n.ts` | 4 языка, auto-detect браузера, fallback на русский |
+| `middleware.ts` | Edge middleware: rate limiting, auth, CORS, request logging |
+
+---
+
+## API Эндпоинты
+
+### Auth (14 эндпоинтов)
+`/api/auth/login`, `/api/auth/register`, `/api/auth/logout`, `/api/auth/session`,
+`/api/auth/forgot-password`, `/api/auth/reset-password`, `/api/auth/verify-email`,
+`/api/auth/change-password`, `/api/auth/csrf-token`, `/api/auth/demo-login`,
+`/api/auth/2fa/setup`, `/api/auth/2fa/enable`, `/api/auth/2fa/disable`, `/api/auth/2fa/verify`
+
+### Core (18 эндпоинтов)
+`/api/profiles`, `/api/profile`, `/api/profile/avatar`, `/api/profile/photos`,
+`/api/like`, `/api/dislike`, `/api/likes/received`, `/api/likes/sent`,
+`/api/matches`, `/api/messages`, `/api/messages/stream` (SSE), `/api/messages/typing`,
+`/api/messages/mark-read`, `/api/messages/auto-reply`, `/api/superlike/status`,
+`/api/moments`, `/api/block`, `/api/report`
+
+### Platform (6 эндпоинтов)
+`/api/account`, `/api/settings`, `/api/achievements`, `/api/leaderboard`,
+`/api/admin/stats`, `/api/admin/users/[userId]`, `/api/health`
+
+---
+
+## Переменные окружения
+
 ```env
-DATABASE_URL=file:./db/custom.db
-DB_PROVIDER=sqlite
+# Обязательные
+DATABASE_URL=file:./db/custom.db       # SQLite / PostgreSQL / MongoDB
+JWT_SECRET=<случайная строка 32+ символов>
+
+# Опциональные
+RESEND_API_KEY=                        # Для отправки email (регистрация, сброс пароля)
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_DEMO_MODE=true             # Включает авто-ответы в чате
+ALLOWED_ORIGINS=http://localhost:3000  # CORS в production
 ```
 
 ---
@@ -106,135 +155,75 @@ DB_PROVIDER=sqlite
 love-compass/
 ├── src/
 │   ├── app/
-│   │   ├── layout.tsx              # Корневой layout приложения
-│   │   ├── page.tsx                # Главная страница
-│   │   ├── globals.css             # Глобальные стили
-│   │   └── api/
-│   │       ├── profile/route.ts    # API профиля
-│   │       ├── profiles/route.ts   # API списка профилей
-│   │       ├── like/route.ts       # API лайков
-│   │       ├── likes/received/     # Входящие лайки
-│   │       ├── matches/route.ts    # API совпадений
-│   │       └── messages/route.ts   # API сообщений
+│   │   ├── layout.tsx              # Корневой layout (ThemeProvider, ErrorBoundary, Toaster)
+│   │   ├── page.tsx                # SPA shell: ленивые view, навигация, хоткеи
+│   │   ├── globals.css             # Tailwind v4 + кастомные анимации
+│   │   ├── login/register/...      # Страницы авторизации (6 страниц)
+│   │   └── api/                    # 40 route files (auth, core, admin)
 │   ├── components/
-│   │   ├── views/
-│   │   │   ├── browse-view.tsx         # Просмотр профилей
-│   │   │   ├── matches-view.tsx        # Совпадения
-│   │   │   ├── chat-view.tsx           # Чат
-│   │   │   ├── liked-you-view.tsx      # Лайки
-│   │   │   ├── moments-view.tsx        # Моменты
-│   │   │   ├── top-view.tsx            # Топ
-│   │   │   ├── achievements-view.tsx   # Достижения
-│   │   │   ├── profile-view.tsx        # Профиль
-│   │   │   ├── settings-view.tsx       # Настройки
-│   │   │   ├── landing-view.tsx        # Лендинг
-│   │   │   ├── match-animation-overlay.tsx # Анимация мэтча
-│   │   │   └── shared.tsx              # Общие компоненты
-│   │   └── ui/                     # Библиотека shadcn/ui компонентов
+│   │   ├── views/                  # 12 view компонентов (browse, chat, moments, ...)
+│   │   ├── ui/                     # shadcn/ui (button, card, input, dialog, ...)
+│   │   ├── auth/                   # auth-layout.tsx
+│   │   └── error-boundary.tsx
 │   ├── lib/
-│   │   ├── db.ts                   # Prisma клиент
-│   │   ├── store.ts                # Zustand store
-│   │   └── utils.ts                # Утилиты
+│   │   ├── auth/                   # guard, csrf, jwt, totp, session, rate-limit, password, crypto
+│   │   ├── db/                     # prisma-adapter, mongo-adapter, types, detect
+│   │   ├── store.ts                # Zustand (все состояние приложения)
+│   │   ├── api.ts                  # fetch helpers (CSRF, timeout, hydrate)
+│   │   ├── sse.ts                  # Event pub/sub
+│   │   ├── scoring.ts              # Рекомендательный алгоритм
+│   │   ├── i18n.ts                 # Переводы ru/en/zh/es
+│   │   ├── constants.ts            # Все magic numbers
+│   │   ├── db.ts                   # Адаптер БД (авто-определение)
+│   │   ├── logger.ts               # Структурированное логирование
+│   │   └── utils.ts                # Вспомогательные функции
 │   └── hooks/
-│       ├── use-mobile.ts           # Хук определения мобильного устройства
-│       └── use-toast.ts            # Хук уведомлений
+│       ├── useTranslation.ts       # React-хук для i18n
+│       ├── useDebounce.ts          # Дебаунс значений и функций
+│       └── use-mobile.ts           # Определение мобильного устройства
 ├── prisma/
-│   └── schema.prisma               # Схема базы данных
-├── public/
-│   ├── logo.png                    # Логотип
-│   ├── logo.svg                    # Логотип (SVG)
-│   └── robots.txt
-├── LICENSE                         # Лицензия
-├── README.md                       # Документация проекта
-├── seed.ts                         # Начальные данные
-├── Caddyfile                       # Конфигурация Caddy
-├── package.json                    # Зависимости и скрипты
-├── tsconfig.json                   # Конфигурация TypeScript
-├── next.config.ts                  # Конфигурация Next.js
-├── tailwind.config.ts              # Конфигурация Tailwind CSS
-└── eslint.config.mjs               # Конфигурация ESLint
+│   └── schema.prisma               # 18 моделей (User, Session, Match, Message, ...)
+├── deploy/                         # Docker, Kubernetes, Railway, Render
+├── e2e/                            # Playwright E2E тесты
+├── seed.ts                         # Начальные данные (20 профилей + админ)
+├── middleware.ts                   # Edge middleware
+└── TODO.md                         # Статус разработки
 ```
 
 ---
 
-## Установка и запуск
-
-### Требования
-
-- **Node.js** 18.17 или выше
-- **Bun** 1.0 или выше (рекомендуется)
-- **База данных:** SQLite (локально), PostgreSQL или MongoDB (для деплоя)
-
-### Установка
+## Быстрый старт
 
 ```bash
-# Клонирование репозитория
-git clone <repository-url>
+git clone <repo-url>
 cd love-compass
-
-# Установка зависимостей
 bun install
-
-# Генерация Prisma клиента (для SQLite/PostgreSQL)
 bun run db:generate
-
-# Применение схемы базы данных
 bun run db:push
-
-# Заполнение начальными данными (опционально)
-bun run seed
+bun run seed      # заполнить демо-данными
+bun run dev       # http://localhost:3000
 ```
 
-### Деплой на Vercel
+### Демо-доступ
 
-1. Создайте базу данных PostgreSQL (Neon, Supabase, Railway)
-2. В настройках Vercel добавьте переменные окружения:
-   - `DATABASE_URL` — строка подключения PostgreSQL
-   - `DB_PROVIDER=postgresql`
-   - `JWT_SECRET` — случайная строка (генерация: `openssl rand -base64 32`)
-   - `RESEND_API_KEY` — ключ от Resend для email
-   - `NEXT_PUBLIC_APP_URL` — URL вашего приложения
-3. Подключите репозиторий к Vercel и деплой запустится автоматически
-
-### Деплой на VPS (Docker)
-
-```bash
-# В .env файле настройте SQLite или PostgreSQL
-DATABASE_URL=file:./db/custom.db
-DB_PROVIDER=sqlite
-
-# Сборка и запуск
-docker build -t love-compass -f deploy/Dockerfile .
-docker run -p 3000:3000 --env-file .env love-compass
-```
-
-### Запуск в режиме разработки
-
-```bash
-bun run dev
-```
-
-Приложение будет доступно по адресу: [http://localhost:3000](http://localhost:3000)
-
-### Сборка для продакшена
-
-```bash
-bun run build
-bun run start
-```
+После `bun run seed`:
+- **Email:** `admin@lovecompass.com` (роль admin)
+- **Пароль:** выводится в консоль при сидировании
+- На лендинге доступен вход через 20 демо-профилей
 
 ---
 
-## Использование
+## Скрипты
 
-1. Откройте приложение в браузере
-2. Создайте или войдите в свой профиль
-3. Просматривайте карточки пользователей в разделе **Обзор**
-4. Ставьте лайки понравившимся профилям
-5. При совпадении лайков открывается возможность начать **чат**
-6. Просматривайте входящие лайки в разделе **Лайки**
-7. Публикуйте и просматривайте **моменты**
-8. Отслеживайте **достижения** и настраивайте профиль
+| Команда | Описание |
+|---------|----------|
+| `bun run dev` | Dev-сервер (порт 3000) |
+| `bun run build` | Production сборка |
+| `bun run lint` | ESLint (zero warnings policy) |
+| `bun test` | Vitest unit-тесты |
+| `bun run test:e2e` | Playwright E2E |
+| `bun run seed` | Заполнение БД демо-данными |
+| `bun run db:studio` | Prisma Studio |
 
 ---
 
@@ -242,8 +231,7 @@ bun run start
 
 Проект распространяется под лицензией `MIT` с сохранением интеллектуальной собственности.
 
-- **Владелец:** Дуплей Максим Игоревич (Dupley Maxim Igorevich)
-- См. файл [LICENSE](./LICENSE) для подробностей.
+**Владелец:** Дуплей Максим Игоревич (Dupley Maxim Igorevich)
 
 ---
 

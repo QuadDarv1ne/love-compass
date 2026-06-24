@@ -7,14 +7,15 @@ services:
       context: .
       dockerfile: deploy/Dockerfile
     env:
-      DATABASE_URL: "file:/app/db/custom.db"
+      DATABASE_URL: "file:./db/custom.db"
+      DB_PROVIDER: "sqlite"
       NODE_ENV: "production"
     ports:
       - 3000:3000
     volumes:
       - db_data:/app/db
     healthcheck:
-      path: /
+      path: /api/health
       port: 3000
 
 volumes:

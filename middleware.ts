@@ -194,11 +194,10 @@ export async function middleware(request: NextRequest) {
         const allowedOrigins = process.env.ALLOWED_ORIGINS
           ? process.env.ALLOWED_ORIGINS.split(',')
           : [];
-        // If ALLOWED_ORIGINS is not set, fall back to verifying the origin
-        // matches the request's own host (same-origin check)
         if (allowedOrigins.length === 0) {
           const host = request.headers.get('host');
-          const requestOrigin = `https://${host}`;
+          const proto = request.headers.get('x-forwarded-proto') || 'https';
+          const requestOrigin = `${proto}://${host}`;
           if (originUrl.origin !== requestOrigin) {
             logRequest(method, pathname, 403, Date.now() - startTime, ip);
             return NextResponse.json(
@@ -215,7 +214,6 @@ export async function middleware(request: NextRequest) {
         }
       }
     } catch {
-      // Invalid origin header
       logRequest(method, pathname, 400, Date.now() - startTime, ip);
       return NextResponse.json(
         { error: 'Bad Request' },

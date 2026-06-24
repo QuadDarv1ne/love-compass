@@ -296,6 +296,7 @@ export function FilterPanel() {
                 ['new', t('filter.sortNew')],
                 ['name', t('filter.sortName')],
                 ['popular', t('filter.sortPopular')],
+                ['recommended', t('filter.sortRecommended')],
               ] as const).map(([value, label]) => (
                 <button
                   key={value}

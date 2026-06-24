@@ -387,6 +387,7 @@ export async function hydrateAppData(user?: User) {
                 soundEnabled: settings.soundEnabled ?? true,
                 matchNotifications: settings.matchNotifications ?? true,
                 likeNotifications: settings.likeNotifications ?? true,
+                emailNotifications: settings.emailNotifications ?? true,
               });
             }
           }

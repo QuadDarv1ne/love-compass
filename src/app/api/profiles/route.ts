@@ -4,6 +4,7 @@ import type { DbUser } from '@/lib/db/types';
 import { z } from 'zod';
 import { requireAuth, isZodError } from '@/lib/auth/guard';
 import { sanitizeUser } from '@/lib/auth/projections';
+import { computeCompatibilityScore } from '@/lib/scoring';
 import { PAGINATION, RATE_LIMITS } from '@/lib/constants';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
 
@@ -27,9 +28,11 @@ export async function GET(request: Request) {
     const pagination = z.object({
       cursor: z.string().optional(),
       limit: z.coerce.number().min(1).max(PAGINATION.PROFILES_MAX_LIMIT).default(PAGINATION.PROFILES_DEFAULT_LIMIT),
+      sort: z.enum(['new', 'recommended']).default('new'),
     }).parse({
       cursor: searchParams.get('cursor') || undefined,
       limit: parseInt(searchParams.get('limit') || String(PAGINATION.PROFILES_DEFAULT_LIMIT)),
+      sort: searchParams.get('sort') || 'new',
     });
 
     // Fetch blocked and disliked IDs so we can exclude them
@@ -45,50 +48,63 @@ export async function GET(request: Request) {
       ...disliked.map(d => d.toUserId),
     ]);
 
+    if (pagination.sort === 'recommended') {
+      // Fetch a larger batch for scoring, then sort by compatibility
+      const fetchLimit = Math.min(pagination.limit * 3, PAGINATION.PROFILES_MAX_LIMIT);
+      const allProfiles: DbUser[] = [];
+      let recCursor = pagination.cursor;
+      for (let iteration = 0; iteration < 5 && allProfiles.length < fetchLimit; iteration++) {
+        const skip = recCursor ? 1 : 0;
+        const profiles = await db.user.findMany(
+          { profileVisible: true },
+          { take: fetchLimit - allProfiles.length + (recCursor ? 1 : 0), skip, orderBy: { createdAt: 'desc' }, cursor: recCursor ? { id: recCursor } : undefined }
+        );
+        if (profiles.length === 0) break;
+        for (const p of profiles) {
+          if (!blockedIds.has(p.id)) allProfiles.push(p);
+        }
+        recCursor = profiles[profiles.length - 1]!.id;
+      }
+
+      const scored = allProfiles
+        .map((p) => ({ profile: p, score: computeCompatibilityScore(user, p) }))
+        .sort((a, b) => b.score - a.score);
+
+      const results = scored.slice(0, pagination.limit);
+      const nextCursor = results.length < pagination.limit ? null : (results[results.length - 1]!.profile.id);
+
+      return NextResponse.json({
+        data: results.map((r) => sanitizeUser(r.profile)),
+        nextCursor,
+      });
+    }
+
     // Collect exactly `limit` unblocked profiles by looping DB fetches
-    // Safety cap of 5 iterations prevents infinite loops on edge cases
     const results: DbUser[] = [];
     let cursor = pagination.cursor;
     for (let iteration = 0; iteration < 5 && results.length < pagination.limit; iteration++) {
       const skip = cursor ? 1 : 0;
       const remaining = pagination.limit - results.length + (cursor ? 1 : 0);
       const profiles = await db.user.findMany(
-        {
-          profileVisible: true,
-        },
-        {
-          take: remaining,
-          skip,
-          orderBy: { createdAt: 'desc' },
-          cursor: cursor ? { id: cursor } : undefined,
-        }
+        { profileVisible: true },
+        { take: remaining, skip, orderBy: { createdAt: 'desc' }, cursor: cursor ? { id: cursor } : undefined }
       );
 
       if (profiles.length === 0) break;
 
       for (const p of profiles) {
-        if (!blockedIds.has(p.id)) {
-          results.push(p);
-        }
+        if (!blockedIds.has(p.id)) results.push(p);
       }
 
       const lastProfile = profiles[profiles.length - 1]!;
       cursor = lastProfile.id;
     }
 
-    // Determine next cursor by fetching one extra profile
     let nextCursor: string | undefined = undefined;
     if (results.length >= pagination.limit && cursor) {
       const [extra] = await db.user.findMany(
-        {
-          profileVisible: true,
-        },
-        {
-          take: 1,
-          skip: 1,
-          orderBy: { createdAt: 'desc' },
-          cursor: { id: cursor },
-        }
+        { profileVisible: true },
+        { take: 1, skip: 1, orderBy: { createdAt: 'desc' }, cursor: { id: cursor } }
       );
       if (extra && !blockedIds.has(extra.id)) {
         nextCursor = extra.id;
