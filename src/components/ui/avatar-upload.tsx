@@ -82,7 +82,7 @@ export function AvatarUpload({ currentAvatar, userId: _userId, userName }: Avata
     }
   };
 
-  const avatarSrc = currentAvatar || `${AVATAR_BASE_URL}?seed=${encodeURIComponent(userName)}&backgroundColor=ffd5dc`;
+  const avatarSrc = currentAvatar || `${AVATAR_BASE_URL}?seed=${encodeURIComponent(userName)}`;
   const isCustomAvatar = currentAvatar && currentAvatar.startsWith('/uploads/');
 
   return (

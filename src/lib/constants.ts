@@ -240,7 +240,7 @@ export const ONLINE_PRESENCE = {
   ACTIVE_THRESHOLD_MS: 5 * 60 * 1000, // 5 minutes
 } as const;
 
-export const AVATAR_BASE_URL = 'https://api.dicebear.com/9.x/notionists/svg' as const;
+export const AVATAR_BASE_URL = 'https://api.dicebear.com/9.x/lorelei/svg' as const;
 
 export const BLOCK_REASON = 'Blocked from profile detail' as const;
 export const REPORT_REASON = 'Inappropriate behavior' as const;
