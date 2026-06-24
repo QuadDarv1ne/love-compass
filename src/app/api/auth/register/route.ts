@@ -98,12 +98,9 @@ export async function POST(request: Request) {
     );
   } catch (error) {
     // Handle unique constraint violation from TOCTOU race
-    if (
-      error instanceof Error &&
-      'code' in error
-    ) {
-      const code = (error as Error & { code: unknown }).code;
-      if (code === 'P2002' || code === 11000) {
+    if (error instanceof Error) {
+      const code = (error as { code?: unknown }).code;
+      if (code === 'P2002' || code === '11000') {
         return NextResponse.json(
           {
             success: true,

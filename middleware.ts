@@ -10,17 +10,21 @@ function validateOrigin(request: NextRequest): string | NextResponse {
     const originUrl = new URL(origin);
     if (process.env.NODE_ENV === 'production') {
       const allowedOrigins = process.env.ALLOWED_ORIGINS
-        ? process.env.ALLOWED_ORIGINS.split(',')
+        ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
         : [];
-      if (allowedOrigins.length === 0) {
-        const host = request.headers.get('host');
-        const proto = request.headers.get('x-forwarded-proto') || 'https';
-        const requestOrigin = `${proto}://${host}`;
-        if (originUrl.origin !== requestOrigin) {
+      if (allowedOrigins.length > 0) {
+        if (!allowedOrigins.includes(originUrl.origin)) {
           return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
-      } else if (!allowedOrigins.includes(originUrl.origin)) {
-        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      } else {
+        // Fallback: validate against Host header (set by reverse proxy, not client)
+        const host = request.headers.get('host');
+        if (host) {
+          const requestOrigin = `${originUrl.protocol}//${host}`;
+          if (originUrl.origin !== requestOrigin) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+          }
+        }
       }
     }
     return origin;
