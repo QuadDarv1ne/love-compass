@@ -692,7 +692,7 @@ export function MomentsView() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [dialogKey, setDialogKey] = useState(0);
   const [likedMomentIds, setLikedMomentIds] = useState<Set<string>>(new Set());
-  const [, setMyReactions] = useState<Set<string>>(new Set());
+  const myReactionsRef = useRef<Set<string>>(new Set());
 
   // Fetch moments from API — fall back to store data if already hydrated
   useEffect(() => {
@@ -721,7 +721,7 @@ export function MomentsView() {
             }
           }
           setLikedMomentIds(liked);
-          setMyReactions(reacted);
+          myReactionsRef.current = reacted;
         }
       } catch (error) {
         appLogger.error('moments-view.fetch', 'Failed to fetch moments', error);
@@ -831,13 +831,13 @@ export function MomentsView() {
   const handleFeedReaction = async (momentId: string, emoji: string) => {
     const key = `${momentId}:${emoji}`;
     let wasAdding = false;
-    setMyReactions((prev) => {
-      const next = new Set(prev);
+    {
+      const next = new Set(myReactionsRef.current);
       wasAdding = !next.has(key);
       if (wasAdding) next.add(key);
       else next.delete(key);
-      return next;
-    });
+      myReactionsRef.current = next;
+    }
     setMoments((prev) =>
       prev.map((m) => {
         if (m.id !== momentId) return m;
@@ -858,12 +858,12 @@ export function MomentsView() {
         const wasRemoved = body?.data?.removed === true;
         if (wasRemoved !== wasAdding) {
           // Server toggled the opposite direction — reconcile
-          setMyReactions((prev) => {
-            const next = new Set(prev);
+          {
+            const next = new Set(myReactionsRef.current);
             if (wasRemoved) next.delete(key);
             else next.add(key);
-            return next;
-          });
+            myReactionsRef.current = next;
+          }
           setMoments((prev) =>
             prev.map((m) => {
               if (m.id !== momentId) return m;
@@ -881,12 +881,12 @@ export function MomentsView() {
       }
     } catch (error) {
       appLogger.error('moments-view.feedReaction', 'Failed to sync feed reaction', error);
-      setMyReactions((prev) => {
-        const next = new Set(prev);
+      {
+        const next = new Set(myReactionsRef.current);
         if (wasAdding) next.delete(key);
         else next.add(key);
-        return next;
-      });
+        myReactionsRef.current = next;
+      }
       setMoments((prev) =>
         prev.map((m) => {
           if (m.id !== momentId) return m;

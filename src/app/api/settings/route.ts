@@ -9,7 +9,7 @@ const updateSettingsSchema = z.object({
   notificationsEnabled: z.boolean().optional(),
   profileVisible: z.boolean().optional(),
   showOnlineStatus: z.boolean().optional(),
-  language: z.string().max(10).optional(),
+  language: z.enum(['ru', 'en', 'zh', 'es'] as const).optional(),
   showDistance: z.boolean().optional(),
   soundEnabled: z.boolean().optional(),
   matchNotifications: z.boolean().optional(),
