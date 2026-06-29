@@ -1,14 +1,12 @@
----
 meta:
   environment: node
   toolchain:
     name: npm
     version: 20
+
 build:
-  requirementsPath: package.json
-  useCache: true
+  additionalCommands: npm run build
+
 run:
-  scriptName: package.json
-  command: npm run build && npm run start
-  persistenceMount: /data
+  command: npm run start
   containerPort: 3000
