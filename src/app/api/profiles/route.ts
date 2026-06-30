@@ -49,15 +49,15 @@ export async function GET(request: Request) {
     ]);
 
     if (pagination.sort === 'recommended') {
-      // Fetch a larger batch for scoring, then sort by compatibility
       const fetchLimit = Math.min(pagination.limit * 3, PAGINATION.PROFILES_MAX_LIMIT);
       const allProfiles: DbUser[] = [];
       let recCursor = pagination.cursor;
-      for (let iteration = 0; iteration < 5 && allProfiles.length < fetchLimit; iteration++) {
+      while (allProfiles.length < fetchLimit) {
         const skip = recCursor ? 1 : 0;
+        const needed = fetchLimit - allProfiles.length + (recCursor ? 1 : 0);
         const profiles = await db.user.findMany(
           { profileVisible: true },
-          { take: fetchLimit - allProfiles.length + (recCursor ? 1 : 0), skip, orderBy: { createdAt: 'desc' }, cursor: recCursor ? { id: recCursor } : undefined }
+          { take: Math.min(needed, 100), skip, orderBy: { createdAt: 'desc' }, cursor: recCursor ? { id: recCursor } : undefined }
         );
         if (profiles.length === 0) break;
         for (const p of profiles) {
@@ -79,15 +79,14 @@ export async function GET(request: Request) {
       });
     }
 
-    // Collect exactly `limit` unblocked profiles by looping DB fetches
     const results: DbUser[] = [];
     let cursor = pagination.cursor;
-    for (let iteration = 0; iteration < 5 && results.length < pagination.limit; iteration++) {
+    while (results.length < pagination.limit) {
       const skip = cursor ? 1 : 0;
       const remaining = pagination.limit - results.length + (cursor ? 1 : 0);
       const profiles = await db.user.findMany(
         { profileVisible: true },
-        { take: remaining, skip, orderBy: { createdAt: 'desc' }, cursor: cursor ? { id: cursor } : undefined }
+        { take: Math.min(remaining, 100), skip, orderBy: { createdAt: 'desc' }, cursor: cursor ? { id: cursor } : undefined }
       );
 
       if (profiles.length === 0) break;

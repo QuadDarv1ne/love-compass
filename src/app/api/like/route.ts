@@ -37,25 +37,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unable to interact with this user' }, { status: 403 });
     }
 
-    // Check super-like daily limit BEFORE rate-limit to avoid burning general slots
-    if (isSuperLike) {
-      const now = new Date();
-      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const endOfDay = new Date(startOfDay);
-      endOfDay.setDate(endOfDay.getDate() + 1);
-      const count = await db.like.count({
-        fromUserId,
-        isSuperLike: true,
-        createdAt: { gte: startOfDay, lt: endOfDay },
-      });
-      if (count >= SUPER_LIKE_DAILY_LIMIT) {
-        return NextResponse.json(
-          { error: 'Daily super like limit reached', limit: SUPER_LIKE_DAILY_LIMIT, current: count },
-          { status: 429 }
-        );
-      }
-    }
-
     // Rate limit likes to prevent spam
     const rateLimit = await checkRateLimit(`like:${fromUserId}`, LIKE_RATE_LIMIT.MAX_LIKES, LIKE_RATE_LIMIT.WINDOW_SECONDS);
     if (!rateLimit.allowed) {

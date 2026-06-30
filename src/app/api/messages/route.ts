@@ -96,13 +96,7 @@ export async function POST(request: Request) {
       }
 
       const message = await tx.message.create({ matchId, senderId: user.id, content });
-      const sender = await tx.user.findUnique({ id: user.id });
-
-      if (!sender) {
-        throw Object.assign(new Error('User not found'), { status: 500 });
-      }
-
-      return { message, sender };
+      return { message, sender: user };
     });
 
     const responseData = { ...result.message, sender: { id: result.sender.id, name: result.sender.name, avatar: result.sender.avatar } };
