@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { requireAdminWithCSRF, isZodError } from '@/lib/auth/guard';
+import { requireAdmin, requireAdminWithCSRF, isZodError } from '@/lib/auth/guard';
 import { sanitizeUser } from '@/lib/auth/projections';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
@@ -91,8 +91,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ userId: string }> }) {
   try {
-    const auth = await requireAdminWithCSRF(request);
+    const auth = await requireAdmin();
     if (auth instanceof NextResponse) return auth;
+
     const { userId } = await params;
 
     const bodySchema = z.object({

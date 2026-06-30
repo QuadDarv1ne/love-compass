@@ -138,14 +138,15 @@ export async function GET(request: Request) {
 
     const paged = ranked.slice(skip, skip + limit);
 
+    const cappedTotal = Math.min(totalUsers, LEADERBOARD_MAX_USERS);
     return NextResponse.json({
       data: paged,
       sort,
       pagination: {
         page,
         limit,
-        total: totalUsers,
-        totalPages: Math.ceil(totalUsers / limit),
+        total: cappedTotal,
+        totalPages: Math.ceil(cappedTotal / limit),
       },
     });
   } catch (error) {

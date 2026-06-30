@@ -88,10 +88,12 @@ export async function GET(request: Request) {
       db.message.groupBy({ by: ['senderId'], where: { senderId: { in: userIds } }, _count: { senderId: true } }),
       db.moment.groupBy({ by: ['userId'], where: { userId: { in: userIds } }, _count: { userId: true } }),
       // Last activity = most recent message createdAt per sender
-      // Fetch without take limit; with default 20 users per page, this is negligible
-      db.message.findMany({ senderId: { in: userIds } }, {
-        orderBy: { createdAt: 'desc' },
-      }),
+      // Use per-user findFirst instead of unbounded findMany
+      Promise.all(
+        userIds.map((id) =>
+          db.message.findFirst({ senderId: id }, { orderBy: { createdAt: 'desc' } })
+        )
+      ),
     ]);
 
     type GroupCountResult = {
@@ -120,8 +122,9 @@ export async function GET(request: Request) {
     const momentCountsMap = toMap(momentCounts as GroupCountResult[], 'userId', 'userId');
 
     const lastActivity: Record<string, string> = {};
-    for (const msg of lastActivityMap) {
-      if (!lastActivity[msg.senderId]) {
+    const lastMessages = lastActivityMap as Array<{ senderId: string; createdAt: Date } | null>;
+    for (const msg of lastMessages) {
+      if (msg && !lastActivity[msg.senderId]) {
         lastActivity[msg.senderId] = msg.createdAt.toISOString();
       }
     }

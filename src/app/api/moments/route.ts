@@ -284,6 +284,10 @@ export async function PATCH(request: Request) {
     if (isZodError(error)) {
       return NextResponse.json({ error: 'Invalid input', details: error.issues }, { status: 400 });
     }
+    // Handle concurrent unique constraint violation on momentLike/momentReaction
+    if (error instanceof Error && 'code' in error && (error as Error & { code: string }).code === 'P2002') {
+      return NextResponse.json({ data: { liked: true, added: true } });
+    }
     logger.error('/api/moments', 'PATCH error', error);
     return NextResponse.json({ error: 'Failed to update moment' }, { status: 500 });
   }

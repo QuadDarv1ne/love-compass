@@ -302,7 +302,7 @@ async function main() {
   ];
 
   for (const user of users) {
-    await db.user.upsert({ email: user.email }, user, {});
+    await db.user.upsert({ email: user.email }, user, { updatedAt: new Date() });
   }
 
   const totalUsers = await db.user.count();

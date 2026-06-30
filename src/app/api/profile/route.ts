@@ -34,7 +34,7 @@ export async function GET(request: Request) {
       where.profileVisible = true;
     }
 
-    const user = await db.user.findUnique(where);
+    const user = await db.user.findFirst(where);
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
