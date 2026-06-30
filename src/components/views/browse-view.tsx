@@ -9,7 +9,7 @@ import {
   Heart, X, Star, MapPin, SlidersHorizontal, Undo2, ShieldAlert, Flag, BadgeCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { fetchWithCSRF, deleteWithCSRF } from '@/lib/api';
+import { fetchWithCSRF, deleteWithCSRF, fetchWithTimeout } from '@/lib/api';
 import { appLogger } from '@/lib/logger';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
@@ -218,7 +218,7 @@ export function BrowseView() {
   useEffect(() => {
     const loadSuperLikeStatus = async () => {
       try {
-        const res = await fetch('/api/superlike/status');
+        const res = await fetchWithTimeout('/api/superlike/status');
         if (res.ok) {
           const data = await res.json();
           setSuperLikeRemaining(data.remaining);
@@ -248,7 +248,7 @@ export function BrowseView() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(`/api/profiles?sort=recommended&limit=100`);
+        const res = await fetchWithTimeout(`/api/profiles?sort=recommended&limit=100`);
         if (!res.ok) throw new Error('Failed to fetch recommended profiles');
         const body = await res.json();
         const recommended: User[] = Array.isArray(body.data) ? body.data : [];
@@ -295,7 +295,7 @@ export function BrowseView() {
     setLoadingMore(true);
     try {
       const sortParam = sortBy === 'recommended' ? 'sort=recommended&' : '';
-      const res = await fetch(`/api/profiles?${sortParam}cursor=${encodeURIComponent(profilesCursor)}&limit=100`);
+      const res = await fetchWithTimeout(`/api/profiles?${sortParam}cursor=${encodeURIComponent(profilesCursor)}&limit=100`);
       if (!res.ok) throw new Error('Failed to load more profiles');
       const body = await res.json();
       const newProfiles: User[] = Array.isArray(body.data) ? body.data : [];

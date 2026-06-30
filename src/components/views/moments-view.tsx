@@ -19,8 +19,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { fetchWithCSRF, patchWithCSRF } from '@/lib/api';
+import { fetchWithCSRF, patchWithCSRF, fetchWithTimeout } from '@/lib/api';
 import { useAppStore, type Moment, type MomentComment } from '@/lib/store';
+import { useShallow } from 'zustand/react/shallow';
 import { OnlineIndicator } from './shared';
 import { appLogger } from '@/lib/logger';
 import { MOMENTS as MOMENTS_CONST, ANIMATION, TIME, AVATAR_BASE_URL } from '@/lib/constants';
@@ -675,7 +676,14 @@ function MomentFeedCard({
 }
 
 export function MomentsView() {
-  const { currentUser, moments: storeMoments, setMoments: setStoreMoments, addMoment: addStoreMoment } = useAppStore();
+  const { currentUser, moments: storeMoments, setMoments: setStoreMoments, addMoment: addStoreMoment } = useAppStore(
+    useShallow((s) => ({
+      currentUser: s.currentUser,
+      moments: s.moments,
+      setMoments: s.setMoments,
+      addMoment: s.addMoment,
+    }))
+  );
   const { t } = useTranslation();
   const [moments, setMoments] = useState<Moment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -696,7 +704,7 @@ export function MomentsView() {
     let cancelled = false;
     (async () => {
       try {
-        const r = await fetch('/api/moments');
+        const r = await fetchWithTimeout('/api/moments');
         const { data } = await r.json();
         if (!cancelled && data) {
           setMoments(data);

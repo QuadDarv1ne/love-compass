@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import dynamic from 'next/dynamic';
 import { motion } from 'framer-motion';
 import { useShallow } from 'zustand/react/shallow';
 import { useTheme } from 'next-themes';
@@ -48,11 +49,12 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useAppStore } from '@/lib/store';
 import { TOTP } from '@/lib/constants';
-import { QRCodeCanvas } from 'qrcode.react';
 import { fetchWithCSRF, deleteWithCSRF } from '@/lib/api';
 import { AvatarUpload } from '@/components/ui/avatar-upload';
 import { useTranslation } from '@/hooks/useTranslation';
 import { LOCALE_FLAGS, LOCALE_NAMES, SUPPORTED_LOCALES, type Locale } from '@/lib/i18n';
+
+const QRCode = dynamic(() => import('qrcode.react').then((m) => ({ default: m.QRCodeCanvas })), { ssr: false });
 
 /* ─── shared animation ────────────────────────────────────────── */
 const fadeUp = {
@@ -199,7 +201,7 @@ function TwoFASetupDialog({
             ) : (
               <>
                 <div className="flex justify-center p-4 bg-white rounded-xl">
-                  {uri && <QRCodeCanvas value={uri} size={200} />}
+                  {uri && <QRCode value={uri} size={200} />}
                 </div>
                 <div className="text-xs text-muted-foreground text-center">
                   {t('settings.2faManualEntry')}

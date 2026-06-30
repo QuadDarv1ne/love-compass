@@ -192,52 +192,6 @@
   animation: heart-burst 0.8s ease-out forwards;
 }
 
-/* Card swipe animation */
-@keyframes card-enter {
-  from {
-    transform: translateX(100px) rotate(5deg);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0) rotate(0deg);
-    opacity: 1;
-  }
-}
-
-.card-enter {
-  animation: card-enter 0.4s ease-out forwards;
-}
-
-@keyframes card-exit-left {
-  from {
-    transform: translateX(0) rotate(0deg);
-    opacity: 1;
-  }
-  to {
-    transform: translateX(-200px) rotate(-15deg);
-    opacity: 0;
-  }
-}
-
-.card-exit-left {
-  animation: card-exit-left 0.4s ease-in forwards;
-}
-
-@keyframes card-exit-right {
-  from {
-    transform: translateX(0) rotate(0deg);
-    opacity: 1;
-  }
-  to {
-    transform: translateX(200px) rotate(15deg);
-    opacity: 0;
-  }
-}
-
-.card-exit-right {
-  animation: card-exit-right 0.4s ease-in forwards;
-}
-
 /* Typing indicator bouncing dots */
 @keyframes typing-bounce {
   0%, 60%, 100% { transform: translateY(0); }
