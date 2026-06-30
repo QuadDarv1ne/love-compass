@@ -203,20 +203,21 @@ export class MongoDBAdapter implements DatabaseAdapter {
         pipeline.push({ $match: cleanWhere(params.where) });
       }
 
-      const _id: Record<string, unknown> = {};
+      const groupKey: Record<string, unknown> = {};
       for (const field of params.by) {
-        _id[field] = `$${field}`;
+        groupKey[field] = `$${field}`;
       }
+      const groupStage: Record<string, unknown> = { _id: groupKey };
       if (params._count) {
-        _id._count = { $sum: 1 };
+        groupStage._count = { $sum: 1 };
       }
       if (params._sum) {
         for (const field of Object.keys(params._sum)) {
-          _id[`_sum_${field}`] = { $sum: `$${field}` };
+          groupStage[`_sum_${field}`] = { $sum: `$${field}` };
         }
       }
 
-      pipeline.push({ $group: _id });
+      pipeline.push({ $group: groupStage });
 
       if (params.orderBy) {
         const sort: Record<string, 1 | -1> = {};
@@ -329,12 +330,15 @@ export class MongoDBAdapter implements DatabaseAdapter {
     groupBy: async (params: { by: string[]; where?: Record<string, unknown>; _count?: Record<string, boolean> }): Promise<Document[]> => {
       const pipeline: Document[] = [];
       if (params.where) pipeline.push({ $match: cleanWhere(params.where) });
-      const _id: Record<string, unknown> = {};
-      for (const field of params.by) _id[field] = `$${field}`;
+      const groupKey: Record<string, unknown> = {};
+      for (const field of params.by) groupKey[field] = `$${field}`;
+      const groupStage: Record<string, unknown> = { _id: groupKey };
       if (params._count) {
-        for (const field of Object.keys(params._count)) _id[`_count_${field}`] = { $sum: 1 };
+        const countFields: Record<string, unknown> = {};
+        for (const field of Object.keys(params._count)) countFields[field] = { $sum: 1 };
+        groupStage._count = countFields;
       }
-      pipeline.push({ $group: _id });
+      pipeline.push({ $group: groupStage });
       return this.db.collection(COLLECTIONS.likes).aggregate(pipeline).toArray();
     },
   };
@@ -410,12 +414,15 @@ export class MongoDBAdapter implements DatabaseAdapter {
     groupBy: async (params: { by: string[]; where?: Record<string, unknown>; _count?: Record<string, boolean> }): Promise<Document[]> => {
       const pipeline: Document[] = [];
       if (params.where) pipeline.push({ $match: cleanWhere(params.where) });
-      const _id: Record<string, unknown> = {};
-      for (const field of params.by) _id[field] = `$${field}`;
+      const groupKey: Record<string, unknown> = {};
+      for (const field of params.by) groupKey[field] = `$${field}`;
+      const groupStage: Record<string, unknown> = { _id: groupKey };
       if (params._count) {
-        for (const field of Object.keys(params._count)) _id[`_count_${field}`] = { $sum: 1 };
+        const countFields: Record<string, unknown> = {};
+        for (const field of Object.keys(params._count)) countFields[field] = { $sum: 1 };
+        groupStage._count = countFields;
       }
-      pipeline.push({ $group: _id });
+      pipeline.push({ $group: groupStage });
       return this.db.collection(COLLECTIONS.matches).aggregate(pipeline).toArray();
     },
   };
@@ -473,12 +480,15 @@ export class MongoDBAdapter implements DatabaseAdapter {
     groupBy: async (params: { by: string[]; where?: Record<string, unknown>; _count?: Record<string, boolean> }): Promise<Document[]> => {
       const pipeline: Document[] = [];
       if (params.where) pipeline.push({ $match: cleanWhere(params.where) });
-      const _id: Record<string, unknown> = {};
-      for (const field of params.by) _id[field] = `$${field}`;
+      const groupKey: Record<string, unknown> = {};
+      for (const field of params.by) groupKey[field] = `$${field}`;
+      const groupStage: Record<string, unknown> = { _id: groupKey };
       if (params._count) {
-        for (const field of Object.keys(params._count)) _id[`_count_${field}`] = { $sum: 1 };
+        const countFields: Record<string, unknown> = {};
+        for (const field of Object.keys(params._count)) countFields[field] = { $sum: 1 };
+        groupStage._count = countFields;
       }
-      pipeline.push({ $group: _id });
+      pipeline.push({ $group: groupStage });
       return this.db.collection(COLLECTIONS.messages).aggregate(pipeline).toArray();
     },
   };
@@ -614,12 +624,15 @@ export class MongoDBAdapter implements DatabaseAdapter {
     groupBy: async (params: { by: string[]; where?: Record<string, unknown>; _count?: Record<string, boolean> }): Promise<Document[]> => {
       const pipeline: Document[] = [];
       if (params.where) pipeline.push({ $match: cleanWhere(params.where) });
-      const _id: Record<string, unknown> = {};
-      for (const field of params.by) _id[field] = `$${field}`;
+      const groupKey: Record<string, unknown> = {};
+      for (const field of params.by) groupKey[field] = `$${field}`;
+      const groupStage: Record<string, unknown> = { _id: groupKey };
       if (params._count) {
-        for (const field of Object.keys(params._count)) _id[`_count_${field}`] = { $sum: 1 };
+        const countFields: Record<string, unknown> = {};
+        for (const field of Object.keys(params._count)) countFields[field] = { $sum: 1 };
+        groupStage._count = countFields;
       }
-      pipeline.push({ $group: _id });
+      pipeline.push({ $group: groupStage });
       return this.db.collection(COLLECTIONS.moments).aggregate(pipeline).toArray();
     },
   };
