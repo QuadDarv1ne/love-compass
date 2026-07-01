@@ -24,8 +24,8 @@ On save failure, refetches actual server state from GET /api/settings instead of
 ## 8. ~~Replace raw fetch with fetchWithTimeout~~ ✅
 top-view and chat-view now use fetchWithTimeout to prevent indefinite loading on server stalls.
 
-## 9. Fix admin-view double-fetch on mount
-`src/components/views/admin-view.tsx` — two useEffects both call `fetchAdminData()` on mount, creating redundant API calls and potential stale-data race.
+## 9. ~~Fix admin-view double-fetch on mount~~ ✅
+Removed redundant useEffect — the second one already covers mount via its dependency array.
 
 ## 10. Fix browse-view super-like count drift
 `src/components/views/browse-view.tsx:231` — empty dependency array means super-like count is never refreshed if initial fetch fails, allowing excess super likes.

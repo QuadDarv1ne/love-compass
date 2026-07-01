@@ -136,10 +136,6 @@ export function AdminView() {
     }))
   );
 
-  useEffect(() => {
-    fetchAdminData();
-  }, [fetchAdminData]);
-
   const totalPages = Math.max(1, Math.ceil(adminTotal / adminLimit));
 
   const handleSearchChange = useCallback((value: string) => {
