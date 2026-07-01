@@ -194,7 +194,7 @@ export async function DELETE(request: Request) {
       });
 
       if (match) {
-        await tx.match.delete({ id: match.id });
+        await tx.match.deleteMany({ id: match.id });
       }
     });
 

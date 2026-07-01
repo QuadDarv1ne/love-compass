@@ -28,13 +28,12 @@ export async function GET(request: Request) {
     const targetId = id || sessionUser.id;
     const isOwnProfile = targetId === sessionUser.id;
 
-    const where: Record<string, unknown> = { id: targetId };
-    // Only visible profiles can be viewed (users can always see their own)
-    if (!isOwnProfile) {
-      where.profileVisible = true;
-    }
+    const user = await db.user.findUnique({ id: targetId });
 
-    const user = await db.user.findFirst(where);
+    // Reject if profile is hidden and not own profile
+    if (!isOwnProfile && user && !user.profileVisible) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });

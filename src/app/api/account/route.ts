@@ -47,19 +47,13 @@ export async function DELETE(request: Request) {
       await tx.momentLike.deleteMany({ userId: id });
       await tx.userAchievement.deleteMany({ userId: id });
 
-      // Fetch email before deletion to clean up email-based rate limits
-      const user = await tx.user.findUnique({ id });
-      const userEmail = user?.email;
-
       // Delete rate limit entries for all known prefixes
       await tx.rateLimit.deleteMany({ key: { startsWith: `auto-reply:${id}` } });
       await tx.rateLimit.deleteMany({ key: { startsWith: `report:${id}` } });
       await tx.rateLimit.deleteMany({ key: { startsWith: `like:${id}` } });
       // Email-based rate limits
-      if (userEmail) {
-        await tx.rateLimit.deleteMany({ key: { startsWith: `login:${userEmail}` } });
-        await tx.rateLimit.deleteMany({ key: { startsWith: `verify:${userEmail}` } });
-      }
+      await tx.rateLimit.deleteMany({ key: { startsWith: `login:${user.email}` } });
+      await tx.rateLimit.deleteMany({ key: { startsWith: `verify:${user.email}` } });
 
       // Invalidate sessions before deleting user (FK constraint requires sessions deleted first)
       await tx.session.deleteMany({ userId: id });

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
 import { db } from '@/lib/db';
 import { requireAdmin, requireAdminWithCSRF, isZodError } from '@/lib/auth/guard';
 import { sanitizeUser } from '@/lib/auth/projections';
@@ -199,7 +200,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ u
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    if (error instanceof Error && error.message.includes('Record to delete')) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
       return NextResponse.json({ error: 'Failed to delete user: related data exists' }, { status: 409 });
     }
     logger.error('/api/admin/users/[userId]', 'Failed to delete user', error);
