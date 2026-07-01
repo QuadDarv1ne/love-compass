@@ -67,6 +67,7 @@ export async function PUT(request: Request) {
     if (isZodError(error)) {
       return NextResponse.json({ error: 'Validation failed', details: error.issues }, { status: 400 });
     }
+    logger.error('/api/settings', 'Failed to update settings', error);
     return NextResponse.json({ error: 'Failed to update settings' }, { status: 500 });
   }
 }

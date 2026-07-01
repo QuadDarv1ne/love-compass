@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { createRateLimiter } from '@/lib/rate-limit';
 import { RATE_LIMITS, LOGIN_LIMITS, REGISTRATION_LIMITS } from '@/lib/constants';
+import { logger } from '@/lib/logger';
 
 function validateOrigin(request: NextRequest): string | NextResponse {
   const origin = request.headers.get('origin');
@@ -70,22 +71,11 @@ function applyRateLimit(request: NextRequest, limiter: ReturnType<typeof createR
 }
 
 function logRequest(method: string, pathname: string, status: number, duration: number, ip: string) {
+  const data = { duration: `${duration}ms`, ip };
   if (status >= 500) {
-    console.error(JSON.stringify({
-      level: 'error',
-      timestamp: new Date().toISOString(),
-      context: 'middleware',
-      message: `${method} ${pathname} ${status}`,
-      data: { duration: `${duration}ms`, ip },
-    }));
+    logger.error('middleware', `${method} ${pathname} ${status}`, data);
   } else if (status >= 400) {
-    console.warn(JSON.stringify({
-      level: 'warn',
-      timestamp: new Date().toISOString(),
-      context: 'middleware',
-      message: `${method} ${pathname} ${status}`,
-      data: { duration: `${duration}ms`, ip },
-    }));
+    logger.warn('middleware', `${method} ${pathname} ${status}`, data);
   }
 }
 
