@@ -12,7 +12,7 @@ import { useAppStore, type Message, type MatchWithUsers } from '@/lib/store';
 import { OnlineIndicator, TypingIndicator } from './shared';
 import { fetchWithCSRF, fetchWithTimeout } from '@/lib/api';
 import { appLogger } from '@/lib/logger';
-import { AUTO_REPLY, EMOJI, ANIMATION, AVATAR_BASE_URL } from '@/lib/constants';
+import { AUTO_REPLY, EMOJI, ANIMATION, AVATAR_BASE_URL, CHAT } from '@/lib/constants';
 import { useTranslation } from '@/hooks/useTranslation';
 
 const POPULAR_EMOJIS = [
@@ -214,7 +214,7 @@ export function ChatView() {
           if (data.typing) {
             typingExpiryTimerRef.current = setTimeout(() => {
               setPartnerTyping(false);
-            }, 6000);
+            }, CHAT.TYPING_EXPIRY_MS);
           }
         } catch (err) {
           appLogger.warn('chat-view.sseTyping', 'Failed to parse SSE typing event', err);
@@ -229,7 +229,7 @@ export function ChatView() {
         es.close();
         sseRef.current = null;
         if (!cancelled) {
-          reconnectTimerRef.current = setTimeout(connectSSE, 3000);
+          reconnectTimerRef.current = setTimeout(connectSSE, CHAT.SSE_RECONNECT_MS);
         }
       };
     };
@@ -242,7 +242,7 @@ export function ChatView() {
       if (currentMatchId && hasFocusRef.current) {
         await checkPartnerTyping(currentMatchId);
       }
-    }, 10000);
+    }, CHAT.FALLBACK_POLL_MS);
 
     return () => {
       cancelled = true;

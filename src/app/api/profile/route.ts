@@ -68,6 +68,7 @@ export async function PUT(request: Request) {
     if (isZodError(error)) {
       return NextResponse.json({ error: 'Validation failed', details: error.issues }, { status: 400 });
     }
+    logger.error('/api/profile', 'Failed to update profile', error);
     return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 });
   }
 }

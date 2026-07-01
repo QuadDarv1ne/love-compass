@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { randomBytes } from 'crypto';
 import { detectAvailableDatabases, recommendDatabase, type AvailableDBs } from './auto-detect';
+import { PORT } from '@/lib/constants';
 
 export function parseEnvFile(content: string): Map<string, string> {
   const map = new Map<string, string>();
@@ -31,7 +32,7 @@ export async function generateDefaultEnv(
   port?: number
 ): Promise<Map<string, string>> {
   const rec = recommendDatabase(availableDBs);
-  const appPort = port || 3000;
+  const appPort = port || PORT.DEFAULT;
 
   const env = new Map<string, string>();
   env.set('DATABASE_URL', rec.url);

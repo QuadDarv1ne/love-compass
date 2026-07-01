@@ -113,6 +113,7 @@ export async function POST(request: Request) {
       const status = (error as Error & { status: number }).status;
       return NextResponse.json({ error: error.message }, { status });
     }
+    logger.error('/api/messages', 'Failed to send message', error);
     return NextResponse.json({ error: 'Failed to send message' }, { status: 500 });
   }
 }

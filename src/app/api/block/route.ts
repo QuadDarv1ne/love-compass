@@ -96,6 +96,7 @@ export async function DELETE(request: Request) {
     if (isZodError(error)) {
       return NextResponse.json({ error: 'Validation failed', details: error.issues }, { status: 400 });
     }
+    logger.error('/api/block', 'Failed to unblock user', error);
     return NextResponse.json({ error: 'Failed to unblock user' }, { status: 500 });
   }
 }

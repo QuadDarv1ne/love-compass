@@ -1,4 +1,5 @@
 import net from 'net';
+import { DB } from '@/lib/constants';
 
 export interface AvailableDBs {
   sqlite: boolean;
@@ -29,11 +30,11 @@ function checkPort(host: string, port: number, timeoutMs = 2000): Promise<boolea
   });
 }
 
-export async function checkPostgreSQL(host = 'localhost', port = 5432): Promise<boolean> {
+export async function checkPostgreSQL(host = 'localhost', port: number = DB.PG_PORT): Promise<boolean> {
   return checkPort(host, port);
 }
 
-export async function checkMongoDB(host = 'localhost', port = 27017): Promise<boolean> {
+export async function checkMongoDB(host = 'localhost', port: number = DB.MONGO_PORT): Promise<boolean> {
   return checkPort(host, port);
 }
 
@@ -43,9 +44,9 @@ export async function checkSQLite(): Promise<boolean> {
 
 export async function detectAvailableDatabases(): Promise<AvailableDBs> {
   const pgHost = process.env.PG_HOST || 'localhost';
-  const pgPort = parseInt(process.env.PG_PORT || '5432', 10);
+  const pgPort = parseInt(process.env.PG_PORT || String(DB.PG_PORT), 10);
   const mongoHost = process.env.MONGO_HOST || 'localhost';
-  const mongoPort = parseInt(process.env.MONGO_PORT || '27017', 10);
+  const mongoPort = parseInt(process.env.MONGO_PORT || String(DB.MONGO_PORT), 10);
 
   const [sqlite, postgresql, mongodb] = await Promise.all([
     checkSQLite(),

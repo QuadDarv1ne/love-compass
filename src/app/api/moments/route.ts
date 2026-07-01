@@ -304,8 +304,8 @@ export async function PATCH(request: Request) {
           });
           return NextResponse.json({ data: existing ? { added: true } : { removed: true } });
         }
-      } catch {
-        // Fall through to generic response
+      } catch (innerError) {
+        logger.warn('/api/moments', 'P2002 recovery query failed', innerError);
       }
       return NextResponse.json({ data: { liked: true, added: true } });
     }

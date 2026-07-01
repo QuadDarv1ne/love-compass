@@ -244,3 +244,9 @@ export const AVATAR_BASE_URL = 'https://api.dicebear.com/9.x/lorelei/svg' as con
 
 export const BLOCK_REASON = 'Blocked from profile detail' as const;
 export const REPORT_REASON = 'Inappropriate behavior' as const;
+
+export const CHAT = {
+  TYPING_EXPIRY_MS: 6000,
+  SSE_RECONNECT_MS: 3000,
+  FALLBACK_POLL_MS: 10000,
+} as const;

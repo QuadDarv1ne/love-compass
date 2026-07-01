@@ -533,7 +533,7 @@ export class MongoDBAdapter implements DatabaseAdapter {
     },
 
     findMany: async (where?: Record<string, unknown>): Promise<DbReport[]> => {
-      return this.db.collection<DbReport>(COLLECTIONS.reports).find(cleanWhere(where || {})).toArray();
+      return stripMany(await this.db.collection<DbReport>(COLLECTIONS.reports).find(cleanWhere(where || {})).toArray());
     },
 
     deleteMany: async (where: Record<string, unknown>): Promise<number> => {

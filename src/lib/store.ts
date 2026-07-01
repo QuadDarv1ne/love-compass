@@ -291,7 +291,7 @@ interface AppState {
   }) => Promise<void>;
 
   // Achievements
-  unlockAchievement: (id: string) => void;
+  unlockAchievement: (id: string) => Promise<void>;
 
   // Custom setView with direction tracking
   navigateTo: (view: ViewType) => void;
@@ -384,9 +384,7 @@ export const useAppStore = create<AppState>((set, get) => {
             }
           }
         } catch {
-          if (get()[key] === value) {
-            set({ [key]: get()[key] } as Partial<AppState>);
-          }
+          // Server fetch also failed — can't revert, leave client value as-is
         }
         const t = createTranslatorForLanguage(get().language);
         toast.error(t('settings.saveError'));
@@ -400,6 +398,7 @@ export const useAppStore = create<AppState>((set, get) => {
 
   navigateTo: (view) => {
     const currentView = get().currentView;
+    if (view === currentView) return;
     const viewOrder: ViewType[] = ['landing', 'browse', 'matches', 'likedYou', 'profile', 'chat', 'moments', 'top', 'achievements', 'admin', 'settings'];
     const currentIdx = viewOrder.indexOf(currentView);
     const nextIdx = viewOrder.indexOf(view);
@@ -525,9 +524,11 @@ export const useAppStore = create<AppState>((set, get) => {
   removeProfile: (userId) => set((state) => ({
     profiles: state.profiles.filter((p) => p.id !== userId),
   })),
-  addProfiles: (newProfiles) => set((state) => ({
-    profiles: [...state.profiles, ...newProfiles],
-  })),
+  addProfiles: (newProfiles) => set((state) => {
+    const existingIds = new Set(state.profiles.map(p => p.id));
+    const fresh = newProfiles.filter(p => !existingIds.has(p.id));
+    return { profiles: [...state.profiles, ...fresh] };
+  }),
   setProfilesCursor: (cursor) => set({ profilesCursor: cursor }),
   setIsLoading: (loading) => set({ isLoading: loading }),
   setChatListMatchId: (matchId) => set({ chatListMatchId: matchId }),
@@ -652,7 +653,7 @@ export const useAppStore = create<AppState>((set, get) => {
         set({ adminUsers: data ?? [], adminTotal: total ?? 0 });
       } else {
         const t = createTranslatorForLanguage(get().language);
-        toast.error(t('admin.deleteError'));
+        toast.error(t('error.server'));
       }
       if (statsRes.ok) {
         const { data } = await statsRes.json();
@@ -693,7 +694,7 @@ export const useAppStore = create<AppState>((set, get) => {
         set((state) => ({
           adminUsers: state.adminUsers.filter((u) => u.id !== userId),
           adminSelectedUser: state.adminSelectedUser?.id === userId ? null : state.adminSelectedUser,
-          adminTotal: state.adminTotal - 1,
+          adminTotal: Math.max(0, state.adminTotal - 1),
         }));
         const t = createTranslatorForLanguage(get().language);
         toast.success(t('admin.userDeleted'));

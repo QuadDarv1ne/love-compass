@@ -25,8 +25,8 @@ export function generateTOTPURI(
     issuer,
     label: email,
     algorithm: 'SHA1',
-    digits: 6,
-    period: 30,
+    digits: TOTP_CONST.TOKEN_LENGTH,
+    period: TOTP_CONST.PERIOD,
     secret,
   });
   return totp.toString();
@@ -40,16 +40,16 @@ export function verifyTOTP(
     issuer: 'Love Compass',
     label: '',
     algorithm: 'SHA1',
-    digits: 6,
-    period: 30,
+    digits: TOTP_CONST.TOKEN_LENGTH,
+    period: TOTP_CONST.PERIOD,
     secret,
   });
   // Allow 1 step tolerance (30-second window)
-  const delta = totp.validate({ token, window: 1 });
+  const delta = totp.validate({ token, window: TOTP_CONST.VALIDATE_WINDOW });
   return delta !== null;
 }
 
-export function generateBackupCodes(count = 8): string[] {
+export function generateBackupCodes(count = TOTP_CONST.BACKUP_CODE_COUNT): string[] {
   const codes: string[] = [];
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   const maxValid = 256 - (256 % chars.length);
