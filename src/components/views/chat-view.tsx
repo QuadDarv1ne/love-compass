@@ -128,7 +128,7 @@ export function ChatView() {
 
   const checkPartnerTyping = useCallback(async (matchId: string) => {
     try {
-      const res = await fetch(`/api/messages/typing?matchId=${encodeURIComponent(matchId)}`);
+      const res = await fetchWithTimeout(`/api/messages/typing?matchId=${encodeURIComponent(matchId)}`);
       if (res.ok) {
         const data = await res.json();
         setPartnerTyping(data.typing === true);

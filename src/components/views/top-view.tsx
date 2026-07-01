@@ -11,6 +11,7 @@ import { Progress } from '@/components/ui/progress';
 import Skeleton from '@/components/ui/skeleton';
 import { useShallow } from 'zustand/react/shallow';
 import { useAppStore, type User } from '@/lib/store';
+import { fetchWithTimeout } from '@/lib/api';
 import { OnlineIndicator } from './shared';
 import { appLogger } from '@/lib/logger';
 import { toast } from 'sonner';
@@ -260,7 +261,7 @@ export function TopView() {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    fetch(`/api/leaderboard?sort=${activeTab}`)
+    fetchWithTimeout(`/api/leaderboard?sort=${activeTab}`)
       .then(async (r) => {
         if (!r.ok) {
           const errorData = await r.json().catch(() => ({}));

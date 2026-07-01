@@ -21,8 +21,8 @@ P2002 handler now queries DB for actual match state and returns `{ isMutual }` f
 ## 7. ~~Fix settingSetter rollback desync~~ ✅
 On save failure, refetches actual server state from GET /api/settings instead of rolling back to stale captured `prev`.
 
-## 8. Replace raw fetch with fetchWithTimeout
-`src/components/views/top-view.tsx:263` and `src/components/views/chat-view.tsx:131` use raw `fetch` without timeout, causing indefinite loading spinners on server stalls.
+## 8. ~~Replace raw fetch with fetchWithTimeout~~ ✅
+top-view and chat-view now use fetchWithTimeout to prevent indefinite loading on server stalls.
 
 ## 9. Fix admin-view double-fetch on mount
 `src/components/views/admin-view.tsx` — two useEffects both call `fetchAdminData()` on mount, creating redundant API calls and potential stale-data race.
