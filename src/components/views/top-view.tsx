@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import Skeleton from '@/components/ui/skeleton';
+import { useShallow } from 'zustand/react/shallow';
 import { useAppStore, type User } from '@/lib/store';
 import { OnlineIndicator } from './shared';
 import { appLogger } from '@/lib/logger';
@@ -249,7 +250,7 @@ function RankedListRow({
 }
 
 export function TopView() {
-  const { currentUser } = useAppStore();
+  const currentUser = useAppStore(useShallow((s) => s.currentUser));
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<SortKey>('popular');
   const [leaderboardData, setLeaderboardData] = useState<RankedUser[]>([]);

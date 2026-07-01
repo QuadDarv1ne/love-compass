@@ -11,6 +11,7 @@ import {
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { useShallow } from 'zustand/react/shallow';
 import { useAppStore, type User, type MatchWithUsers } from '@/lib/store';
 import { useTranslation } from '@/hooks/useTranslation';
 
@@ -166,7 +167,12 @@ export function AchievementsView() {
     dislikedUserIds,
     unlockedAchievements,
     unlockAchievement,
-  } = useAppStore();
+  } = useAppStore(useShallow((s) => ({
+    currentUser: s.currentUser, likedUserIds: s.likedUserIds,
+    matches: s.matches, superLikedUserIds: s.superLikedUserIds,
+    dislikedUserIds: s.dislikedUserIds, unlockedAchievements: s.unlockedAchievements,
+    unlockAchievement: s.unlockAchievement,
+  })));
   const { t } = useTranslation();
 
   // Track which achievements were already unlocked when we first mounted,

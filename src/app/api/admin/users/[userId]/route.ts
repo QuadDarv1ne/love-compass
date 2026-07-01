@@ -8,7 +8,7 @@ import { logger } from '@/lib/logger';
 
 export async function GET(request: Request, { params }: { params: Promise<{ userId: string }> }) {
   try {
-    const auth = await requireAdminWithCSRF(request);
+    const auth = await requireAdmin();
     if (auth instanceof NextResponse) return auth;
 
     const { userId } = await params;
@@ -92,7 +92,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ userId: string }> }) {
   try {
-    const auth = await requireAdmin();
+    const auth = await requireAdminWithCSRF(request);
     if (auth instanceof NextResponse) return auth;
 
     const { userId } = await params;

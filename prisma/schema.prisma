@@ -66,8 +66,8 @@ model User {
   @@index([lastSeenAt])
   @@index([emailVerified])
   @@index([profileVisible])
+  @@index([profileVisible, createdAt])
   @@index([gender, age, lookingFor])
-  @@index([gender])
   @@index([age])
 }
 

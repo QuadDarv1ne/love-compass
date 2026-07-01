@@ -5,6 +5,7 @@ import { Camera, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { postWithCSRFFormData, deleteWithCSRF } from '@/lib/api';
+import { useShallow } from 'zustand/react/shallow';
 import { useAppStore } from '@/lib/store';
 import { UPLOAD, AVATAR_BASE_URL } from '@/lib/constants';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -19,7 +20,7 @@ export function AvatarUpload({ currentAvatar, userId: _userId, userName }: Avata
   const { t } = useTranslation();
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { refreshUser } = useAppStore();
+  const refreshUser = useAppStore(useShallow((s) => s.refreshUser));
 
   const handleClick = () => {
     fileInputRef.current?.click();

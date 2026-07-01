@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useShallow } from 'zustand/react/shallow';
 import { useAppStore } from '@/lib/store';
 import { FILTER, AVATAR_BASE_URL } from '@/lib/constants';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -51,7 +52,7 @@ export const viewTransitionVariants: Variants = {
 };
 
 export function OnlineIndicator({ userId, size = 'sm' }: { userId: string; size?: 'sm' | 'md' }) {
-  const { onlineUserIds } = useAppStore();
+  const onlineUserIds = useAppStore(useShallow((s) => s.onlineUserIds));
   const isOnline = onlineUserIds.includes(userId);
   if (!isOnline) return null;
   const dotSize = size === 'sm' ? 'w-2.5 h-2.5' : 'w-3 h-3';
@@ -235,7 +236,13 @@ export function FilterPanel() {
   const {
     searchQuery, sortBy, filterGender, filterAgeMin, filterAgeMax, filterCity,
     setSearchQuery, setSortBy, setFilterGender, setFilterAgeMin, setFilterAgeMax, setFilterCity,
-  } = useAppStore();
+  } = useAppStore(useShallow((s) => ({
+    searchQuery: s.searchQuery, sortBy: s.sortBy, filterGender: s.filterGender,
+    filterAgeMin: s.filterAgeMin, filterAgeMax: s.filterAgeMax, filterCity: s.filterCity,
+    setSearchQuery: s.setSearchQuery, setSortBy: s.setSortBy,
+    setFilterGender: s.setFilterGender, setFilterAgeMin: s.setFilterAgeMin,
+    setFilterAgeMax: s.setFilterAgeMax, setFilterCity: s.setFilterCity,
+  })));
   const { t } = useTranslation();
 
   const clearFilters = () => {

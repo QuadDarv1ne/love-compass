@@ -5,6 +5,7 @@ import { SafeImage } from '@/components/ui/safe-image';
 import { motion } from 'framer-motion';
 import { Heart, MessageCircle, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useShallow } from 'zustand/react/shallow';
 import { useAppStore } from '@/lib/store';
 import { appLogger } from '@/lib/logger';
 import { AVATAR_BASE_URL } from '@/lib/constants';
@@ -12,7 +13,11 @@ import { useTranslation } from '@/hooks/useTranslation';
 
 export function MatchAnimationOverlay() {
   const { t } = useTranslation();
-  const { showMatchAnimation, matchAnimationPartner, setShowMatchAnimation, navigateTo, setSelectedMatch, currentUser } = useAppStore();
+  const { showMatchAnimation, matchAnimationPartner, setShowMatchAnimation, navigateTo, setSelectedMatch, currentUser } = useAppStore(useShallow((s) => ({
+    showMatchAnimation: s.showMatchAnimation, matchAnimationPartner: s.matchAnimationPartner,
+    setShowMatchAnimation: s.setShowMatchAnimation, navigateTo: s.navigateTo,
+    setSelectedMatch: s.setSelectedMatch, currentUser: s.currentUser,
+  })));
 
   if (!showMatchAnimation || !matchAnimationPartner || !currentUser) return null;
 
