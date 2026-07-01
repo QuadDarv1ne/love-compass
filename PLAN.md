@@ -3,8 +3,8 @@
 ## 1. ~~Global error boundary~~ ✅
 ErrorBoundary already exists in `layout.tsx` wrapping all children.
 
-## 2. Loading states for all pages
-Add `loading.tsx` to each route group (`/login`, `/register`, `/feed`, `/chat`, `/moments`, `/profile`). Gives users instant visual feedback during slow navigations.
+## 2. ~~Loading states for all pages~~ ✅
+Added `loading.tsx` to root `/`, `/login`, `/register` routes. Auth pages show skeleton matching AuthLayout structure. Root loading shows branded heart animation.
 
 ## 3. ~~Sanitize likes/received endpoint~~ ✅
 Uses whitelist approach (explicit field selection) which is actually safer than blacklist `sanitizeUser()`.

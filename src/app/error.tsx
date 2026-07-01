@@ -1,0 +1,46 @@
+'use client';
+
+import { useEffect } from 'react';
+import { Heart, RefreshCw } from 'lucide-react';
+import { appLogger } from '@/lib/logger';
+
+export default function Error({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  useEffect(() => {
+    appLogger.error('route-error', 'Unhandled route error', {
+      message: error.message,
+      stack: error.stack,
+      digest: error.digest,
+    });
+  }, [error]);
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-rose-50 via-white to-pink-50 dark:from-gray-900 dark:via-gray-800 dark:to-rose-950 p-4">
+      <div className="text-center space-y-6 max-w-md">
+        <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-rose-100 dark:bg-rose-900/30">
+          <Heart className="w-10 h-10 text-rose-500" />
+        </div>
+        <div className="space-y-2">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            Что-то пошло не так
+          </h1>
+          <p className="text-gray-500 dark:text-gray-400">
+            Произошла непредвиденная ошибка. Попробуйте обновить страницу.
+          </p>
+        </div>
+        <button
+          onClick={reset}
+          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-500 px-6 py-3 text-sm font-semibold text-white hover:from-rose-600 hover:to-pink-600 transition-all shadow-lg"
+        >
+          <RefreshCw className="w-4 h-4" />
+          Попробовать снова
+        </button>
+      </div>
+    </div>
+  );
+}

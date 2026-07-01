@@ -51,6 +51,9 @@
 
 ## 💡 UX
 - [x] **Skeleton loaders** — Loading placeholders for profiles, matches, messages
+- [x] **Loading states** — Route-level loading.tsx for root, login, register pages
+- [x] **Not found page** — Custom 404 with branded design and navigation back
+- [x] **Error page** — Route-level error.tsx with error logging and retry
 - [x] **Empty states** — Improved illustrations and CTAs for matches, likes, messages
 - [x] **"Typing..." indicator** — Wired via SSE events + fallback polling
 - [x] **Search in messages** — Search message history by keywords

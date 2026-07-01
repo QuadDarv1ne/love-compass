@@ -29,9 +29,21 @@ function createPrismaClient(): PrismaClient {
   });
 }
 
-export const prisma = globalForPrisma.prisma ?? createPrismaClient();
+let _prisma: PrismaClient | null = null;
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+export function getPrisma(): PrismaClient {
+  if (!_prisma) {
+    _prisma = globalForPrisma.prisma ?? createPrismaClient();
+    if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = _prisma;
+  }
+  return _prisma;
+}
+
+export const prisma = new Proxy({} as PrismaClient, {
+  get(_, prop) {
+    return Reflect.get(getPrisma(), prop);
+  },
+});
 
 export const profileSelect = {
   id: true,

@@ -13,6 +13,8 @@ export type {
 } from './db/types';
 
 
+let _adapter: DatabaseAdapter | null = null;
+
 function createAdapter(): DatabaseAdapter {
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) {
@@ -32,9 +34,28 @@ function createAdapter(): DatabaseAdapter {
   }
 }
 
-export const db: DatabaseAdapter = createAdapter();
+function getAdapter(): DatabaseAdapter {
+  if (!_adapter) _adapter = createAdapter();
+  return _adapter;
+}
 
-export const dbType = db.dbType;
+export const db: DatabaseAdapter = new Proxy({} as DatabaseAdapter, {
+  get(_, prop, receiver) {
+    return Reflect.get(getAdapter(), prop, receiver);
+  },
+});
+
+export function getDbType(): DbType {
+  return detectDbType(process.env.DATABASE_URL || '');
+}
+
+export const dbType: DbType = (() => {
+  try {
+    return detectDbType(process.env.DATABASE_URL || '');
+  } catch {
+    return 'sqlite' as DbType;
+  }
+})();
 
 export async function getDbInfo() {
   return {
