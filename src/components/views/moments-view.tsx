@@ -779,10 +779,9 @@ export function MomentsView() {
   };
 
   const toggleFeedLike = async (momentId: string) => {
-    let wasAdding = false;
+    const wasAdding = !likedMomentIds.has(momentId);
     setLikedMomentIds((prev) => {
       const next = new Set(prev);
-      wasAdding = !next.has(momentId);
       if (wasAdding) next.add(momentId);
       else next.delete(momentId);
       return next;
