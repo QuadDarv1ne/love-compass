@@ -286,6 +286,27 @@ export async function PATCH(request: Request) {
     }
     // Handle concurrent unique constraint violation on momentLike/momentReaction
     if (error instanceof Error && 'code' in error && (error as Error & { code: string }).code === 'P2002') {
+      try {
+        const raw = await request.clone().json();
+        const parsed = actionSchema.safeParse(raw);
+        if (parsed.success && parsed.data.action === 'like') {
+          const auth = await requireAuth();
+          if (auth instanceof NextResponse) return auth;
+          const existing = await db.momentLike.findUnique({ momentId: parsed.data.id, userId: auth.user.id });
+          const moment = await db.moment.findUnique({ id: parsed.data.id });
+          return NextResponse.json({ data: { liked: !!existing, likes: moment?.likes ?? 0 } });
+        }
+        if (parsed.success && parsed.data.action === 'react' && parsed.data.emoji) {
+          const auth = await requireAuth();
+          if (auth instanceof NextResponse) return auth;
+          const existing = await db.momentReaction.findUnique({
+            momentId: parsed.data.id, userId: auth.user.id, emoji: parsed.data.emoji,
+          });
+          return NextResponse.json({ data: existing ? { added: true } : { removed: true } });
+        }
+      } catch {
+        // Fall through to generic response
+      }
       return NextResponse.json({ data: { liked: true, added: true } });
     }
     logger.error('/api/moments', 'PATCH error', error);
