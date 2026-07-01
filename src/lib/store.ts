@@ -374,7 +374,8 @@ export const useAppStore = create<AppState>((set, get) => {
       const prev = get()[key];
       const prevLanguage = get().language;
       set({ [key]: value } as Partial<AppState>);
-      get().saveSettings({ [key]: value } as Partial<AppState>).catch(() => {
+      get().saveSettings({ [key]: value } as Partial<AppState>).catch((err) => {
+        appLogger.error('store.settingSetter', `Failed to save ${String(key)}`, err);
         if (get()[key] === value) set({ [key]: prev } as Partial<AppState>);
         const t = createTranslatorForLanguage(prevLanguage);
         toast.error(t('settings.saveError'));
