@@ -371,13 +371,24 @@ export const useAppStore = create<AppState>((set, get) => {
   // Factory for settings setters — eliminates 7+ lines of duplication per setting
   const settingSetter = <K extends keyof AppState>(key: K) =>
     (value: AppState[K]) => {
-      const prev = get()[key];
-      const prevLanguage = get().language;
       set({ [key]: value } as Partial<AppState>);
-      get().saveSettings({ [key]: value } as Partial<AppState>).catch((err) => {
+      get().saveSettings({ [key]: value } as Partial<AppState>).catch(async (err) => {
         appLogger.error('store.settingSetter', `Failed to save ${String(key)}`, err);
-        if (get()[key] === value) set({ [key]: prev } as Partial<AppState>);
-        const t = createTranslatorForLanguage(prevLanguage);
+        try {
+          const { fetchWithTimeout } = await import('@/lib/api');
+          const res = await fetchWithTimeout('/api/settings');
+          if (res.ok) {
+            const server = await res.json();
+            if (key in server) {
+              set({ [key]: server[key] } as Partial<AppState>);
+            }
+          }
+        } catch {
+          if (get()[key] === value) {
+            set({ [key]: get()[key] } as Partial<AppState>);
+          }
+        }
+        const t = createTranslatorForLanguage(get().language);
         toast.error(t('settings.saveError'));
       });
     };

@@ -18,8 +18,8 @@ Dislike model already has `@@index([fromUserId])` and `@@index([toUserId])`. No 
 ## 6. ~~Fix like/route.ts match animation race condition~~ ✅
 P2002 handler now queries DB for actual match state and returns `{ isMutual }` flag so clients show the animation correctly.
 
-## 7. Fix settingSetter rollback desync
-`src/lib/store.ts` — rapid toggles cause client/server divergence when the last save fails, because rollback uses captured `prev` instead of server truth.
+## 7. ~~Fix settingSetter rollback desync~~ ✅
+On save failure, refetches actual server state from GET /api/settings instead of rolling back to stale captured `prev`.
 
 ## 8. Replace raw fetch with fetchWithTimeout
 `src/components/views/top-view.tsx:263` and `src/components/views/chat-view.tsx:131` use raw `fetch` without timeout, causing indefinite loading spinners on server stalls.
