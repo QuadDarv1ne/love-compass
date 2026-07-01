@@ -15,8 +15,8 @@ Dislike model already has `@@index([fromUserId])` and `@@index([toUserId])`. No 
 ## 5. Fix P2002 race condition in moments PATCH ✅
 `src/app/api/moments/route.ts` — P2002 catch block now re-queries actual DB state instead of always returning `{ liked: true }`.
 
-## 6. Fix like/route.ts match animation race condition
-When two users simultaneously like each other, one user silently misses the match animation. The P2002 handler returns HTTP 200 with no `isMutual` field.
+## 6. ~~Fix like/route.ts match animation race condition~~ ✅
+P2002 handler now queries DB for actual match state and returns `{ isMutual }` flag so clients show the animation correctly.
 
 ## 7. Fix settingSetter rollback desync
 `src/lib/store.ts` — rapid toggles cause client/server divergence when the last save fails, because rollback uses captured `prev` instead of server truth.

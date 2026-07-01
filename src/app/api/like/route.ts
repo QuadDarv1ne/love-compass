@@ -12,14 +12,18 @@ const likeSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  let fromUserId = '';
+  let toUserId = '';
   try {
     const auth = await requireAuthWithCSRF(request);
     if (auth instanceof NextResponse) return auth;
 
     const { user } = auth;
     const body = await request.json();
-    const { toUserId, isSuperLike } = likeSchema.parse(body);
-    const fromUserId = user.id;
+    const parsed = likeSchema.parse(body);
+    toUserId = parsed.toUserId;
+    const { isSuperLike } = parsed;
+    fromUserId = user.id;
 
     if (fromUserId === toUserId) {
       return NextResponse.json({ error: 'Cannot like yourself' }, { status: 400 });
@@ -153,8 +157,14 @@ export async function POST(request: Request) {
     // and both transactions tried to create a match (unique constraint violation)
     if (error instanceof Error && 'code' in error) {
       const prismaError = error as Error & { code: string };
-      if (prismaError.code === 'P2002') {
-        return NextResponse.json({ error: 'Match already exists', raceHandled: true }, { status: 200 });
+      if (prismaError.code === 'P2002' && fromUserId && toUserId) {
+        const existingMatch = await db.match.findFirst({
+          OR: [
+            { user1Id: fromUserId, user2Id: toUserId },
+            { user1Id: toUserId, user2Id: fromUserId },
+          ],
+        });
+        return NextResponse.json({ isMutual: !!existingMatch, match: existingMatch });
       }
     }
     logger.error('/api/like', 'Failed to create like', error);
