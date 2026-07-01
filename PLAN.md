@@ -27,5 +27,5 @@ top-view and chat-view now use fetchWithTimeout to prevent indefinite loading on
 ## 9. ~~Fix admin-view double-fetch on mount~~ ✅
 Removed redundant useEffect — the second one already covers mount via its dependency array.
 
-## 10. Fix browse-view super-like count drift
-`src/components/views/browse-view.tsx:231` — empty dependency array means super-like count is never refreshed if initial fetch fails, allowing excess super likes.
+## 10. ~~Fix browse-view super-like count drift~~ ✅
+On fetch failure, sets superLikeRemaining to 0 (conservative) instead of leaving default — prevents UI showing wrong count.

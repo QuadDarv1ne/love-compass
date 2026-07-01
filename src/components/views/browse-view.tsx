@@ -225,6 +225,7 @@ export function BrowseView() {
         }
       } catch (error) {
         appLogger.warn('browse-view.superlike-status', 'Failed to load super-like status', error);
+        setSuperLikeRemaining(0);
       }
     };
     loadSuperLikeStatus();
