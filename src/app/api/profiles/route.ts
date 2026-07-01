@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import type { DbUser } from '@/lib/db/types';
 import { z } from 'zod';
 import { requireAuth, isZodError } from '@/lib/auth/guard';
+import { logger } from '@/lib/logger';
 import { sanitizeUser } from '@/lib/auth/projections';
 import { computeCompatibilityScore } from '@/lib/scoring';
 import { PAGINATION, RATE_LIMITS } from '@/lib/constants';
@@ -118,6 +119,7 @@ export async function GET(request: Request) {
     if (isZodError(error)) {
       return NextResponse.json({ error: 'Invalid query parameters', details: error.issues }, { status: 400 });
     }
+    logger.error('/api/profiles', 'GET error', error);
     return NextResponse.json({ error: 'Failed to fetch profiles' }, { status: 500 });
   }
 }

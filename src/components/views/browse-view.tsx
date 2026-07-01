@@ -271,7 +271,7 @@ export function BrowseView() {
       if (filterGender !== 'all' && p.gender !== filterGender) return false;
       if (p.age < filterAgeMin) return false;
       if (p.age > filterAgeMax) return false;
-      if (filterCity && !p.city.toLowerCase().includes(filterCity.toLowerCase())) return false;
+      if (filterCity && (!p.city || !p.city.toLowerCase().includes(filterCity.toLowerCase()))) return false;
       if (searchQuery && !p.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
       return true;
     });
