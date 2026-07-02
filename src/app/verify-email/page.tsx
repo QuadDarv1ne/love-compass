@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { AuthLayout } from '@/components/auth/auth-layout';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 function VerifyEmailContent() {
   const { t } = useTranslation();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const token = searchParams.get('token') || '';
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>(token ? 'loading' : 'error');
   const [email, setEmail] = useState('');
@@ -45,6 +46,13 @@ function VerifyEmailContent() {
     };
   }, [token]);
 
+  useEffect(() => {
+    if (status === 'success') {
+      const timer = setTimeout(() => router.push('/'), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [status, router]);
+
   return (
     <AuthLayout
       title={
@@ -70,8 +78,8 @@ function VerifyEmailContent() {
             <p className="text-gray-600 dark:text-gray-300">
               {t('verifyEmail.emailConfirmed', { email })}
             </p>
-            <Link href="/login">
-              <Button className="w-full">{t('verifyEmail.login')}</Button>
+            <Link href="/">
+              <Button className="w-full">{t('verifyEmail.continue')}</Button>
             </Link>
           </>
         )}

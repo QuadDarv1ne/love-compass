@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { validatePasswordStrength } from '@/lib/auth/password-strength';
+import { getCSRFToken } from '@/lib/api';
 import { appLogger } from '@/lib/logger';
 import { toast } from 'sonner';
 import { Eye, EyeOff } from 'lucide-react';
@@ -46,9 +47,13 @@ function ResetPasswordContent() {
     setLoading(true);
 
     try {
+      const csrfToken = await getCSRFToken();
       const res = await fetch('/api/auth/reset-password', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-csrf-token': csrfToken,
+        },
         body: JSON.stringify({ token, newPassword: password }),
       });
 

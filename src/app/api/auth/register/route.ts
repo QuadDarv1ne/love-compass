@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { hashPassword, validatePasswordStrength } from '@/lib/auth/password';
 import { generateRandomToken, hashToken, getClientIp } from '@/lib/auth/crypto';
 import { sendVerificationEmail } from '@/lib/email';
+import { validateCSRFToken } from '@/lib/auth/csrf';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';
 import { REGISTRATION_LIMITS, VALIDATION, TOKEN } from '@/lib/constants';
@@ -23,6 +24,14 @@ const registerSchema = z.object({
 
 export async function POST(request: Request) {
   try {
+    const csrfValid = await validateCSRFToken(request);
+    if (!csrfValid) {
+      return NextResponse.json(
+        { error: 'CSRF validation failed' },
+        { status: 403 }
+      );
+    }
+
     // Rate limiting: 5 registrations per IP per hour
     const ip = getClientIp(request);
     const rateLimit = await checkRateLimit(`register:${ip}`, REGISTRATION_LIMITS.MAX_PER_HOUR, REGISTRATION_LIMITS.WINDOW_SECONDS);

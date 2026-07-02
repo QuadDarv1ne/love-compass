@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { AuthLayout } from '@/components/auth/auth-layout';
 import { Button } from '@/components/ui/button';
 import { Mail, AlertCircle } from 'lucide-react';
+import { getCSRFToken } from '@/lib/api';
 import { appLogger } from '@/lib/logger';
 import { toast } from 'sonner';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -27,9 +28,13 @@ function VerifyEmailPendingContent() {
   const handleResend = async () => {
     setSending(true);
     try {
+      const csrfToken = await getCSRFToken();
       const res = await fetch('/api/auth/verify-email', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-csrf-token': csrfToken,
+        },
         body: JSON.stringify({ email }),
       });
 

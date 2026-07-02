@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { AvatarPicker } from '@/components/views/shared';
 import { validatePasswordStrength } from '@/lib/auth/password-strength';
+import { getCSRFToken } from '@/lib/api';
 import { appLogger } from '@/lib/logger';
 import { toast } from 'sonner';
 import { Eye, EyeOff } from 'lucide-react';
@@ -66,9 +67,13 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
+      const csrfToken = await getCSRFToken();
       const res = await fetch('/api/auth/register', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-csrf-token': csrfToken,
+        },
         body: JSON.stringify({
           name: form.name,
           email: form.email,

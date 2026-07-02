@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { hashPassword, validatePasswordStrength } from '@/lib/auth/password';
 import { invalidateAllUserSessions } from '@/lib/auth/session-server';
 import { hashToken } from '@/lib/auth/crypto';
+import { validateCSRFToken } from '@/lib/auth/csrf';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';
 import { RATE_LIMITS } from '@/lib/constants';
@@ -15,6 +16,14 @@ const resetSchema = z.object({
 
 export async function POST(request: Request) {
   try {
+    const csrfValid = await validateCSRFToken(request);
+    if (!csrfValid) {
+      return NextResponse.json(
+        { error: 'CSRF validation failed' },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
     const result = resetSchema.safeParse(body);
 

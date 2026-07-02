@@ -6,6 +6,7 @@ import { AuthLayout } from '@/components/auth/auth-layout';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { getCSRFToken } from '@/lib/api';
 import { appLogger } from '@/lib/logger';
 import { toast } from 'sonner';
 import { Mail } from 'lucide-react';
@@ -22,9 +23,13 @@ export default function ForgotPasswordPage() {
     setLoading(true);
 
     try {
+      const csrfToken = await getCSRFToken();
       const res = await fetch('/api/auth/forgot-password', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-csrf-token': csrfToken,
+        },
         body: JSON.stringify({ email }),
       });
 
