@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { validatePasswordStrength } from '../password';
+import { validatePasswordStrength } from '../password-strength';
 
 describe('validatePasswordStrength', () => {
   it('rejects password shorter than 8 characters', () => {

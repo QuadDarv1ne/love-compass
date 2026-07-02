@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { AvatarPicker } from '@/components/views/shared';
-import { validatePasswordStrength } from '@/lib/auth/password';
+import { validatePasswordStrength } from '@/lib/auth/password-strength';
 import { appLogger } from '@/lib/logger';
 import { toast } from 'sonner';
 import { Eye, EyeOff } from 'lucide-react';

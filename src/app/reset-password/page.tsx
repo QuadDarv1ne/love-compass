@@ -6,7 +6,7 @@ import { AuthLayout } from '@/components/auth/auth-layout';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { validatePasswordStrength } from '@/lib/auth/password';
+import { validatePasswordStrength } from '@/lib/auth/password-strength';
 import { appLogger } from '@/lib/logger';
 import { toast } from 'sonner';
 import { Eye, EyeOff } from 'lucide-react';

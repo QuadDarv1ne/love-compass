@@ -1,5 +1,19 @@
 import type { NextConfig } from "next";
 
+const isDev = process.env.NODE_ENV !== "production";
+
+const cspValue = [
+  "default-src 'self'",
+  `script-src 'self'${isDev ? " 'unsafe-eval' 'unsafe-inline'" : " 'unsafe-inline'"}`,
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "img-src 'self' https://api.dicebear.com data: blob:",
+  "font-src 'self' https://fonts.gstatic.com data:",
+  `connect-src 'self'${isDev ? " ws: wss:" : ""}`,
+  "frame-ancestors 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+].join("; ");
+
 const nextConfig: NextConfig = {
   output: "standalone",
   reactStrictMode: true,
@@ -37,7 +51,7 @@ const nextConfig: NextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' https://api.dicebear.com data: blob:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
+            value: cspValue,
           },
           {
             key: 'Referrer-Policy',

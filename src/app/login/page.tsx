@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useAppStore } from '@/lib/store';
-import { hydrateAppData } from '@/lib/api';
+import { hydrateAppData, getCSRFToken } from '@/lib/api';
 import { appLogger } from '@/lib/logger';
 import { toast } from 'sonner';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
@@ -41,9 +41,13 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
+      const csrfToken = await getCSRFToken();
       const res = await fetch('/api/auth/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-csrf-token': csrfToken,
+        },
         body: JSON.stringify({ email, password }),
       });
 
