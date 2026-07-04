@@ -80,19 +80,6 @@ export const UPLOAD = {
 
 export const LEADERBOARD_MAX_USERS = 500;
 
-export const ACHIEVEMENT_THRESHOLDS = {
-  FIRST_LIKE: 1,
-  HEART_HUNTER: 10,
-  SUPER_STAR: 5,
-  FIRST_MATCH: 1,
-  POPULAR: 5,
-  BELOVED: 10,
-  START_OF_JOURNEY: 1,
-  PRO: 50,
-  SUPER_LIKE_MASTER: 3,
-  COLLECTOR: 25,
-} as const;
-
 export const MOMENTS = {
   CHARACTER_LIMIT: 200,
   CHARACTER_WARN_THRESHOLD: 20,
@@ -196,20 +183,6 @@ export const SWIPE_EXT = {
   SUPER_LIKE_BURST_DURATION: 1,
 } as const;
 
-export const HEARTS = {
-  PRNG_ITERATIONS: 105,
-  COUNT: 15,
-  MIN_SIZE: 12,
-  SIZE_RANGE: 20,
-  MIN_DURATION: 6,
-  DURATION_RANGE: 8,
-  DELAY_MULTIPLIER: 10,
-  DRIFT_RANGE: 200,
-  SPIN_RANGE: 360,
-  MIN_OPACITY: 0.15,
-  OPACITY_RANGE: 0.25,
-} as const;
-
 export const PORT = {
   MAX_ATTEMPTS: 20,
   MAX_PORT: 65536,
@@ -250,3 +223,5 @@ export const CHAT = {
   SSE_RECONNECT_MS: 3000,
   FALLBACK_POLL_MS: 10000,
 } as const;
+
+export const REACTION_EMOJIS = ['❤️', '🔥', '😂', '😍'] as const;

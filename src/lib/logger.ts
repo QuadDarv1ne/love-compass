@@ -1,8 +1,3 @@
-/**
- * Simple structured logger for consistent error reporting.
- * Works in both server and client environments.
- */
-
 type LogLevel = 'error' | 'warn' | 'info';
 
 interface LogEntry {
@@ -11,6 +6,14 @@ interface LogEntry {
   context?: string;
   message: string;
   data?: unknown;
+}
+
+const IS_DEV = process.env.NODE_ENV !== 'production';
+
+const LEVEL_PRIORITY: Record<LogLevel, number> = { error: 0, warn: 1, info: 2 };
+
+function shouldLog(level: LogLevel): boolean {
+  return IS_DEV ? true : LEVEL_PRIORITY[level] <= LEVEL_PRIORITY.warn;
 }
 
 function safeParseError(data: unknown): unknown {
@@ -24,39 +27,30 @@ function formatEntry(entry: LogEntry): string {
   return JSON.stringify(entry);
 }
 
-export const logger = {
-  error(context: string, message: string, data?: unknown) {
-    const entry: LogEntry = {
-      level: 'error',
-      timestamp: new Date().toISOString(),
-      context,
-      message,
-      data: safeParseError(data),
-    };
-    console.error(formatEntry(entry));
-  },
+function log(level: LogLevel, context: string, message: string, data?: unknown) {
+  if (!shouldLog(level)) return;
+  const entry: LogEntry = {
+    level,
+    timestamp: new Date().toISOString(),
+    context,
+    message,
+    data: safeParseError(data),
+  };
+  const formatted = formatEntry(entry);
+  switch (level) {
+    case 'error': console.error(formatted); break;
+    case 'warn': console.warn(formatted); break;
+    case 'info': console.info(formatted); break;
+  }
+}
 
-  warn(context: string, message: string, data?: unknown) {
-    const entry: LogEntry = {
-      level: 'warn',
-      timestamp: new Date().toISOString(),
-      context,
-      message,
-      data: safeParseError(data),
-    };
-    console.warn(formatEntry(entry));
-  },
+function createLogger() {
+  return {
+    error: (context: string, message: string, data?: unknown) => log('error', context, message, data),
+    warn: (context: string, message: string, data?: unknown) => log('warn', context, message, data),
+    info: (context: string, message: string, data?: unknown) => log('info', context, message, data),
+  };
+}
 
-  info(context: string, message: string, data?: unknown) {
-    const entry: LogEntry = {
-      level: 'info',
-      timestamp: new Date().toISOString(),
-      context,
-      message,
-      data: safeParseError(data),
-    };
-    console.info(formatEntry(entry));
-  },
-};
-
+export const logger = createLogger();
 export const appLogger = logger;

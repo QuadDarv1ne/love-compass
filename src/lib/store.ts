@@ -278,17 +278,7 @@ interface AppState {
   setLikeNotifications: (enabled: boolean) => void;
   setEmailNotifications: (enabled: boolean) => void;
   loadSettings: () => Promise<void>;
-  saveSettings: (settings: {
-    notificationsEnabled?: boolean;
-    profileVisible?: boolean;
-    showOnlineStatus?: boolean;
-    language?: string;
-    showDistance?: boolean;
-    soundEnabled?: boolean;
-    matchNotifications?: boolean;
-    likeNotifications?: boolean;
-    emailNotifications?: boolean;
-  }) => Promise<void>;
+  saveSettings: (settings: Partial<SettingsState>) => Promise<void>;
 
   // Achievements
   unlockAchievement: (id: string) => Promise<void>;
@@ -311,6 +301,11 @@ interface AppState {
   toggleUserRole: (userId: string) => Promise<void>;
   toggleUserProfileVisible: (userId: string) => Promise<void>;
 }
+
+export type SettingsState = Pick<AppState,
+  'notificationsEnabled' | 'profileVisible' | 'showOnlineStatus' | 'language'
+  | 'showDistance' | 'soundEnabled' | 'matchNotifications' | 'likeNotifications' | 'emailNotifications'
+>;
 
 const clearState = {
   currentUser: null,
@@ -369,10 +364,10 @@ const clearState = {
 
 export const useAppStore = create<AppState>((set, get) => {
   // Factory for settings setters — eliminates 7+ lines of duplication per setting
-  const settingSetter = <K extends keyof AppState>(key: K) =>
-    (value: AppState[K]) => {
+  const settingSetter = <K extends keyof SettingsState>(key: K) =>
+    (value: SettingsState[K]) => {
       set({ [key]: value } as Partial<AppState>);
-      get().saveSettings({ [key]: value } as Partial<AppState>).catch(async (err) => {
+      get().saveSettings({ [key]: value } as unknown as Partial<SettingsState>).catch(async (err) => {
         appLogger.error('store.settingSetter', `Failed to save ${String(key)}`, err);
         try {
           const { fetchWithTimeout } = await import('@/lib/api');

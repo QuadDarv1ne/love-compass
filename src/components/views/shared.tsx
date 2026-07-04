@@ -5,7 +5,7 @@ import { SafeImage } from '@/components/ui/safe-image';
 import { motion, type Variants } from 'framer-motion';
 import { useTheme } from 'next-themes';
 import {
-  Heart, Moon, Sun, SlidersHorizontal,
+  Heart, Moon, Sun,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,7 +24,7 @@ import { FILTER, AVATAR_BASE_URL } from '@/lib/constants';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useDebounce } from '@/hooks/useDebounce';
 
-export const ALL_AVATARS = [
+const ALL_AVATARS = [
   `${AVATAR_BASE_URL}?seed=Anastasia`, `${AVATAR_BASE_URL}?seed=Viktoria`, `${AVATAR_BASE_URL}?seed=Ekaterina`, `${AVATAR_BASE_URL}?seed=Maria`,
   `${AVATAR_BASE_URL}?seed=Olga`, `${AVATAR_BASE_URL}?seed=Sofia`, `${AVATAR_BASE_URL}?seed=Natalia`, `${AVATAR_BASE_URL}?seed=Alina`,
   `${AVATAR_BASE_URL}?seed=Diana`, `${AVATAR_BASE_URL}?seed=Polina`,
@@ -368,4 +368,4 @@ export function FilterPanel() {
   );
 }
 
-export { SlidersHorizontal };
+

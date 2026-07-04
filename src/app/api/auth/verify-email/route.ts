@@ -112,7 +112,7 @@ export async function POST(request: Request) {
 
     if (!user || user.emailVerified) {
       // Don't reveal if email exists or is verified
-    return NextResponse.json({ success: true, email: result.email });
+    return NextResponse.json({ success: true, email: result.data.email });
     }
 
     // Server-side cooldown: prevent resend if last request was within cooldown window
