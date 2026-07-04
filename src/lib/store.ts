@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { toast } from 'sonner';
-import { appLogger } from '@/lib/logger';
+import { logger } from '@/lib/logger';
 import { createTranslatorForLanguage } from '@/lib/i18n';
 
 // Monotonic counter to prevent stale checkAuth results from overwriting newer ones
@@ -368,7 +368,7 @@ export const useAppStore = create<AppState>((set, get) => {
     (value: SettingsState[K]) => {
       set({ [key]: value } as Partial<AppState>);
       get().saveSettings({ [key]: value } as unknown as Partial<SettingsState>).catch(async (err) => {
-        appLogger.error('store.settingSetter', `Failed to save ${String(key)}`, err);
+        logger.error('store.settingSetter', `Failed to save ${String(key)}`, err);
         try {
           const { fetchWithTimeout } = await import('@/lib/api');
           const res = await fetchWithTimeout('/api/settings');
@@ -430,7 +430,7 @@ export const useAppStore = create<AppState>((set, get) => {
         return false;
       }
     } catch (error) {
-      appLogger.error('store.logout', 'Logout API call failed', error);
+      logger.error('store.logout', 'Logout API call failed', error);
       const t = createTranslatorForLanguage(get().language);
       toast.error(t('settings.logoutError'));
       return false;
@@ -468,7 +468,7 @@ export const useAppStore = create<AppState>((set, get) => {
       }));
     } catch (error) {
       if (checkAuthGeneration !== generation) return;
-      appLogger.error('store.checkAuth', 'checkAuth failed', error);
+      logger.error('store.checkAuth', 'checkAuth failed', error);
       set({ authStatus: 'unauthenticated', currentView: 'landing' });
     }
   },
@@ -481,7 +481,7 @@ export const useAppStore = create<AppState>((set, get) => {
         set({ currentUser: user });
       }
     } catch (error) {
-      appLogger.error('store.refreshUser', 'refreshUser failed', error);
+      logger.error('store.refreshUser', 'refreshUser failed', error);
     }
   },
 
@@ -592,7 +592,7 @@ export const useAppStore = create<AppState>((set, get) => {
         });
       }
     } catch (error) {
-      appLogger.error('store.loadSettings', 'Failed to load settings', error);
+      logger.error('store.loadSettings', 'Failed to load settings', error);
     }
   },
   saveSettings: async (settings) => {
@@ -614,7 +614,7 @@ export const useAppStore = create<AppState>((set, get) => {
         return { unlockedAchievements: [...state.unlockedAchievements, id] };
       });
     } catch (error) {
-      appLogger.error('store.unlockAchievement', 'Failed to unlock achievement', error);
+      logger.error('store.unlockAchievement', 'Failed to unlock achievement', error);
     }
   },
 
@@ -655,7 +655,7 @@ export const useAppStore = create<AppState>((set, get) => {
         set({ adminStats: data ?? null });
       }
     } catch (error) {
-      appLogger.error('store.fetchAdminData', 'Failed to fetch admin data', error);
+      logger.error('store.fetchAdminData', 'Failed to fetch admin data', error);
       const t = createTranslatorForLanguage(get().language);
       toast.error(t('error.server'));
     } finally {
@@ -675,7 +675,7 @@ export const useAppStore = create<AppState>((set, get) => {
         toast.error(t('error.server'));
       }
     } catch (error) {
-      appLogger.error('store.fetchUserDetail', 'Failed to fetch user detail', error);
+      logger.error('store.fetchUserDetail', 'Failed to fetch user detail', error);
     } finally {
       set({ adminUserDetailLoading: false });
     }
@@ -699,7 +699,7 @@ export const useAppStore = create<AppState>((set, get) => {
         toast.error(data.error || t('admin.deleteError'));
       }
     } catch (error) {
-      appLogger.error('store.deleteUser', 'Failed to delete user', error);
+      logger.error('store.deleteUser', 'Failed to delete user', error);
       const t = createTranslatorForLanguage(get().language);
       toast.error(t('admin.deleteError'));
     }
@@ -726,7 +726,7 @@ export const useAppStore = create<AppState>((set, get) => {
         toast.error(data.error || t('admin.roleError'));
       }
     } catch (error) {
-      appLogger.error('store.toggleUserRole', 'Failed to toggle user role', error);
+      logger.error('store.toggleUserRole', 'Failed to toggle user role', error);
       const t = createTranslatorForLanguage(get().language);
       toast.error(t('admin.roleError'));
     }
@@ -753,7 +753,7 @@ export const useAppStore = create<AppState>((set, get) => {
         toast.error(data.error || t('admin.visibilityError'));
       }
     } catch (error) {
-      appLogger.error('store.toggleProfileVisible', 'Failed to toggle profile visible', error);
+      logger.error('store.toggleProfileVisible', 'Failed to toggle profile visible', error);
       const t = createTranslatorForLanguage(get().language);
       toast.error(t('admin.visibilityError'));
     }

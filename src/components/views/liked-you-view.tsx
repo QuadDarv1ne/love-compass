@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { useAppStore, type User } from '@/lib/store';
 import { OnlineIndicator } from './shared';
 import { fetchWithCSRF } from '@/lib/api';
-import { appLogger } from '@/lib/logger';
+import { logger } from '@/lib/logger';
 import { MATCH_ANIMATION_DELAY, AVATAR_BASE_URL } from '@/lib/constants';
 import { useTranslation } from '@/hooks/useTranslation';
 
@@ -67,7 +67,7 @@ export function LikedYouView() {
       }));
     } catch (error) {
       toast.error(t('likedYou.likeBackError'), { description: t('likedYou.likeBackErrorDesc') });
-      appLogger.error('liked-you-view.likeBack', 'Like back failed', error);
+      logger.error('liked-you-view.likeBack', 'Like back failed', error);
     }
   };
 

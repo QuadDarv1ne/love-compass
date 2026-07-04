@@ -252,6 +252,7 @@ model Dislike {
   @@unique([fromUserId, toUserId])
   @@index([fromUserId])
   @@index([toUserId])
+  @@index([createdAt])
 }
 
 

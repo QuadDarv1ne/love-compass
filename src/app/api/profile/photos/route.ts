@@ -6,7 +6,6 @@ import { UPLOAD } from '@/lib/constants';
 import { validateAndProcessImage, cleanupFile } from '@/lib/upload';
 
 const UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads', 'photos');
-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 export async function POST(request: Request) {
   try {
@@ -34,7 +33,7 @@ export async function POST(request: Request) {
       const result = await validateAndProcessImage(file, {
         uploadDir: UPLOAD_DIR,
         urlPrefix: '/uploads/photos/',
-        allowedMimeTypes: ALLOWED_TYPES,
+        allowedMimeTypes: UPLOAD.ALLOWED_MIME_TYPES,
         maxSize: UPLOAD.MAX_FILE_SIZE,
         userId: _user.id,
       });

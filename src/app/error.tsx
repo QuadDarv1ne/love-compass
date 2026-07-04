@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { Heart, RefreshCw } from 'lucide-react';
-import { appLogger } from '@/lib/logger';
+import { logger } from '@/lib/logger';
 
 export default function Error({
   error,
@@ -12,7 +12,7 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    appLogger.error('route-error', 'Unhandled route error', {
+    logger.error('route-error', 'Unhandled route error', {
       message: error.message,
       stack: error.stack,
       digest: error.digest,

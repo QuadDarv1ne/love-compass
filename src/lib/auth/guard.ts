@@ -4,17 +4,16 @@ import { validateCSRFToken } from './csrf';
 import { db } from '@/lib/db';
 import type { DbUser } from '@/lib/db';
 import { logger } from '@/lib/logger';
-import { ONLINE_PRESENCE } from '@/lib/constants';
+import { ONLINE_PRESENCE, GUARD_CACHE_MAX_AGE } from '@/lib/constants';
 
 const lastSeenCache = new Map<string, number>();
-const MAX_CACHE_AGE = 10 * 60 * 1000; // 10 minutes — entries expire soon after user goes idle
 
 // Periodic cache cleanup to prevent unbounded memory growth
 const globalScope = globalThis as { __lastSeenCacheTimerSet?: boolean };
 if (typeof globalThis !== 'undefined' && !globalScope.__lastSeenCacheTimerSet) {
   globalScope.__lastSeenCacheTimerSet = true;
   setInterval(() => {
-    const cutoff = Date.now() - MAX_CACHE_AGE;
+    const cutoff = Date.now() - GUARD_CACHE_MAX_AGE;
     for (const [id, ts] of lastSeenCache) {
       if (ts < cutoff) lastSeenCache.delete(id);
     }

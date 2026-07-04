@@ -1,5 +1,5 @@
 import { MongoClient, ObjectId, ClientSession, type Document, type OptionalId } from 'mongodb';
-import { appLogger } from '@/lib/logger';
+import { logger } from '@/lib/logger';
 import type {
   DatabaseAdapter,
   DbUser,
@@ -40,7 +40,7 @@ function toObjectId(id: string): ObjectId {
   try {
     return new ObjectId(id);
   } catch {
-    appLogger.error('MongoDB', 'Invalid ObjectId', `Value "${id}" is not a valid 24-character hex string or 12-byte binary`);
+    logger.error('MongoDB', 'Invalid ObjectId', `Value "${id}" is not a valid 24-character hex string or 12-byte binary`);
     throw new Error(`Invalid MongoDB ObjectId: "${id}"`);
   }
 }
@@ -118,7 +118,7 @@ export class MongoDBAdapter implements DatabaseAdapter {
     } catch (error) {
       // Already connected — safe to ignore
       if (error instanceof Error && !error.message.includes('already connected')) {
-        appLogger.error('MongoDB', 'Connection error', error.message);
+        logger.error('MongoDB', 'Connection error', error.message);
       }
     }
   }

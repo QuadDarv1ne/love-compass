@@ -60,6 +60,7 @@ export const VALIDATION = {
   BLOCK_REASON_MAX_LENGTH: 500,
   REPORT_REASON_MAX_LENGTH: 500,
   REPORT_DETAILS_MAX_LENGTH: 2000,
+  PASSWORD_MIN_LENGTH: 8,
 } as const;
 
 export const FILTER = {
@@ -76,6 +77,7 @@ export const TOKEN = {
 export const UPLOAD = {
   MAX_FILE_SIZE: 5 * 1024 * 1024,
   MAX_PHOTOS: 6,
+  ALLOWED_MIME_TYPES: ['image/jpeg', 'image/png', 'image/webp'],
 } as const;
 
 export const LEADERBOARD_MAX_USERS = 500;
@@ -225,3 +227,9 @@ export const CHAT = {
 } as const;
 
 export const REACTION_EMOJIS = ['❤️', '🔥', '😂', '😍'] as const;
+
+export const CSRF_TOKEN_TTL = 5 * 60 * 1000;
+
+export const FETCH_TIMEOUT_MS = 15_000;
+
+export const GUARD_CACHE_MAX_AGE = 10 * 60 * 1000;

@@ -1,14 +1,13 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import {
-  Heart, MessageCircle, X, Plus, Send, Clock,
+  Heart, MessageCircle, Plus, Clock,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -20,11 +19,11 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { fetchWithCSRF, patchWithCSRF, fetchWithTimeout } from '@/lib/api';
-import { useAppStore, type Moment, type MomentComment } from '@/lib/store';
+import { useAppStore, type Moment } from '@/lib/store';
 import { useShallow } from 'zustand/react/shallow';
 import { OnlineIndicator } from './shared';
-import { appLogger } from '@/lib/logger';
-import { MOMENTS as MOMENTS_CONST, ANIMATION, TIME, AVATAR_BASE_URL, REACTION_EMOJIS } from '@/lib/constants';
+import { logger } from '@/lib/logger';
+import { MOMENTS as MOMENTS_CONST, ANIMATION, AVATAR_BASE_URL, REACTION_EMOJIS } from '@/lib/constants';
 import { useTranslation } from '@/hooks/useTranslation';
 import { StoryViewer } from './story-viewer';
 import { timeAgo, getUniqueUsersFromMoments } from './moments-utils';
@@ -310,7 +309,7 @@ export function MomentsView() {
           myReactionsRef.current = reacted;
         }
       } catch (error) {
-        appLogger.error('moments-view.fetch', 'Failed to fetch moments', error);
+        logger.error('moments-view.fetch', 'Failed to fetch moments', error);
         if (!cancelled) setMoments([]);
       } finally {
         if (!cancelled) setIsLoading(false);
@@ -359,7 +358,7 @@ export function MomentsView() {
         toast.success(t('moments.published'));
       }
     } catch (error) {
-      appLogger.error('moments-view.create', 'Failed to create moment', error);
+      logger.error('moments-view.create', 'Failed to create moment', error);
       toast.error(t('moments.publishError'));
     }
   };
@@ -397,7 +396,7 @@ export function MomentsView() {
         );
       }
     } catch (error) {
-      appLogger.error('moments-view.toggleLike', 'Failed to toggle like on moment', error);
+      logger.error('moments-view.toggleLike', 'Failed to toggle like on moment', error);
       setLikedMomentIds((prev) => {
         const next = new Set(prev);
         if (wasAdding) next.delete(momentId);
@@ -465,7 +464,7 @@ export function MomentsView() {
         }
       }
     } catch (error) {
-      appLogger.error('moments-view.feedReaction', 'Failed to sync feed reaction', error);
+      logger.error('moments-view.feedReaction', 'Failed to sync feed reaction', error);
       {
         const next = new Set(myReactionsRef.current);
         if (wasAdding) next.delete(key);

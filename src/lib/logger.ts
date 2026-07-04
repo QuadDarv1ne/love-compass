@@ -53,4 +53,3 @@ function createLogger() {
 }
 
 export const logger = createLogger();
-export const appLogger = logger;

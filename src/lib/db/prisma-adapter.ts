@@ -45,25 +45,6 @@ export const prisma = new Proxy({} as PrismaClient, {
   },
 });
 
-export const profileSelect = {
-  id: true,
-  name: true,
-  age: true,
-  gender: true,
-  bio: true,
-  interests: true,
-  avatar: true,
-  photos: true,
-  city: true,
-  lookingFor: true,
-  profileVisible: true,
-  showOnlineStatus: true,
-  language: true,
-  lastSeenAt: true,
-  createdAt: true,
-  updatedAt: true,
-};
-
 function toDbUser(u: Prisma.UserGetPayload<Record<string, never>>): DbUser {
   return u as unknown as DbUser;
 }

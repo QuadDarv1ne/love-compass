@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { getCSRFToken } from '@/lib/api';
-import { appLogger } from '@/lib/logger';
+import { logger } from '@/lib/logger';
 import { toast } from 'sonner';
 import { Mail } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -43,7 +43,7 @@ export default function ForgotPasswordPage() {
       // Always show success (timing-safe)
       setSent(true);
     } catch (error) {
-      appLogger.error('forgot-password.submit', 'Forgot password request failed', error);
+      logger.error('forgot-password.submit', 'Forgot password request failed', error);
       toast.error(t('forgotPassword.error'));
     } finally {
       setLoading(false);

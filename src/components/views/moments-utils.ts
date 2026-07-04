@@ -1,4 +1,3 @@
-import { MOMENTS as MOMENTS_CONST } from '@/lib/constants';
 import type { Moment } from '@/lib/store';
 
 export function timeAgo(dateStr: string, t: (key: string, params?: Record<string, string | number>) => string): string {

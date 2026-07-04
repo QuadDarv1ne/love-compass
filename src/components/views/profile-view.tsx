@@ -15,7 +15,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { AVATAR_BASE_URL } from '@/lib/constants';
+import { AVATAR_BASE_URL, VALIDATION, UPLOAD } from '@/lib/constants';
 import { putWithCSRF, postWithCSRFFormData, deleteWithCSRFHeader } from '@/lib/api';
 import {
   Select,
@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useAppStore } from '@/lib/store';
-import { appLogger } from '@/lib/logger';
+import { logger } from '@/lib/logger';
 import { useTranslation } from '@/hooks/useTranslation';
 
 export function ProfileView() {
@@ -92,19 +92,19 @@ export function ProfileView() {
       toast.error(t('profile.nameRequired'));
       return;
     }
-    if (name.trim().length > 100) {
+    if (name.trim().length > VALIDATION.NAME_MAX_LENGTH) {
       toast.error(t('profile.nameTooLong'));
       return;
     }
-    if (bio.length > 500) {
+    if (bio.length > VALIDATION.BIO_MAX_LENGTH) {
       toast.error(t('profile.bioTooLong'));
       return;
     }
-    if (city.length > 100) {
+    if (city.length > VALIDATION.CITY_MAX_LENGTH) {
       toast.error(t('profile.cityTooLong'));
       return;
     }
-    if (interests.length > 500) {
+    if (interests.length > VALIDATION.INTERESTS_MAX_LENGTH) {
       toast.error(t('profile.interestsTooLong'));
       return;
     }
@@ -141,7 +141,7 @@ export function ProfileView() {
         }
       }
     } catch (error) {
-      appLogger.error('profile-view.update', 'Failed to update profile', error);
+      logger.error('profile-view.update', 'Failed to update profile', error);
       toast.error(t('profile.saveErrorGeneric'));
       // Rollback form state
       setName(prevFormState.name);
@@ -162,14 +162,12 @@ export function ProfileView() {
     if (!file) return;
 
     // Validate file type
-    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
-    if (!validTypes.includes(file.type)) {
+    if (!(UPLOAD.ALLOWED_MIME_TYPES as readonly string[]).includes(file.type)) {
       toast.error(t('profile.invalidFormat'), { description: t('profile.allowedFormats') });
       return;
     }
 
-    // Validate file size (5MB max)
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > UPLOAD.MAX_FILE_SIZE) {
       toast.error(t('profile.fileTooLarge'), { description: t('profile.maxFileSize') });
       return;
     }
@@ -195,7 +193,7 @@ export function ProfileView() {
       }
       toast.success(t('profile.avatarUpdated'), { description: t('profile.avatarUpdatedDesc') });
     } catch (error) {
-      appLogger.error('profile-view.avatar', 'Failed to upload avatar', error);
+      logger.error('profile-view.avatar', 'Failed to upload avatar', error);
       toast.error(t('profile.avatarUploadError'), { description: t('common.retry') });
       // Rollback avatar
       if (currentUser) {
@@ -225,7 +223,7 @@ export function ProfileView() {
       }
       toast.success(t('profile.avatarDeleted'), { description: t('profile.avatarDeletedDesc') });
     } catch (error) {
-      appLogger.error('profile-view.avatar', 'Failed to delete avatar', error);
+      logger.error('profile-view.avatar', 'Failed to delete avatar', error);
       toast.error(t('profile.avatarDeleteError'), { description: t('common.retry') });
       // Rollback avatar
       if (currentUser) {

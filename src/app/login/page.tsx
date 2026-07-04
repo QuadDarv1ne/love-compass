@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useAppStore } from '@/lib/store';
 import { hydrateAppData, getCSRFToken } from '@/lib/api';
-import { appLogger } from '@/lib/logger';
+import { logger } from '@/lib/logger';
 import { toast } from 'sonner';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -72,13 +72,13 @@ export default function LoginPage() {
       try {
         await hydrateAppData();
       } catch (hydrateError) {
-        appLogger.error('login.hydrate', 'Failed to hydrate app data after login', hydrateError);
+        logger.error('login.hydrate', 'Failed to hydrate app data after login', hydrateError);
         // Continue — user is logged in, data will load on next navigation
       }
       toast.success(t('login.welcome'));
       router.push('/');
     } catch (error) {
-      appLogger.error('login.submit', 'Login failed', error);
+      logger.error('login.submit', 'Login failed', error);
       toast.error(t('login.serverError'));
     } finally {
       setLoading(false);

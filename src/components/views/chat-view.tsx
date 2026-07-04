@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAppStore, type Message, type MatchWithUsers } from '@/lib/store';
 import { OnlineIndicator, TypingIndicator } from './shared';
 import { fetchWithCSRF, fetchWithTimeout } from '@/lib/api';
-import { appLogger } from '@/lib/logger';
+import { logger } from '@/lib/logger';
 import { AUTO_REPLY, ANIMATION, AVATAR_BASE_URL, CHAT } from '@/lib/constants';
 import { useTranslation } from '@/hooks/useTranslation';
 import { EmojiPicker } from './emoji-picker';
@@ -70,7 +70,7 @@ export function ChatView() {
     try {
       await fetchWithCSRF('/api/messages/typing', { matchId });
     } catch (err) {
-      appLogger.warn('chat-view.signalTyping', 'Failed to send typing signal', err);
+      logger.warn('chat-view.signalTyping', 'Failed to send typing signal', err);
     }
   }, []);
 
@@ -82,7 +82,7 @@ export function ChatView() {
         setPartnerTyping(data.typing === true);
       }
     } catch (err) {
-      appLogger.warn('chat-view.checkPartnerTyping', 'Failed to check partner typing', err);
+      logger.warn('chat-view.checkPartnerTyping', 'Failed to check partner typing', err);
     }
   }, []);
 
@@ -116,14 +116,14 @@ export function ChatView() {
               if (!markRes.ok) throw new Error('Failed to mark as read');
               markMessagesAsRead(unreadIds);
             } catch (error) {
-              appLogger.error('chat-view.markRead', 'Failed to mark messages as read', error);
+              logger.error('chat-view.markRead', 'Failed to mark messages as read', error);
               toast.error(t('chat.markReadError'));
             }
           }
         }
       } catch (error) {
         if ((error as Error).name === 'AbortError') return;
-        if (!cancelled) appLogger.error('chat-view.loadMessages', 'Failed to load messages', error);
+        if (!cancelled) logger.error('chat-view.loadMessages', 'Failed to load messages', error);
       } finally {
         if (!cancelled) setIsLoadingMessages(false);
       }
@@ -145,10 +145,10 @@ export function ChatView() {
           addMessage(msg);
           if (msg.senderId !== currentUserRef.current?.id) {
             markMessagesAsRead([msg.id]);
-            fetchWithCSRF('/api/messages/mark-read', { messageIds: [msg.id] }).catch((err) => appLogger.warn('chat-view.markRead', 'Silent mark-read failed', err));
+            fetchWithCSRF('/api/messages/mark-read', { messageIds: [msg.id] }).catch((err) => logger.warn('chat-view.markRead', 'Silent mark-read failed', err));
           }
         } catch (err) {
-          appLogger.warn('chat-view.sseMessage', 'Failed to parse SSE message', err);
+          logger.warn('chat-view.sseMessage', 'Failed to parse SSE message', err);
         }
       });
 
@@ -165,7 +165,7 @@ export function ChatView() {
             }, CHAT.TYPING_EXPIRY_MS);
           }
         } catch (err) {
-          appLogger.warn('chat-view.sseTyping', 'Failed to parse SSE typing event', err);
+          logger.warn('chat-view.sseTyping', 'Failed to parse SSE typing event', err);
         }
       });
 
@@ -271,7 +271,7 @@ export function ChatView() {
             if (msg) addMessage(msg);
           }
         } catch (error) {
-          appLogger.error('chat-view.autoReply', 'Failed to send auto-reply', error);
+          logger.error('chat-view.autoReply', 'Failed to send auto-reply', error);
         }
       }, replyDelay - typingDelay);
     }, typingDelay);
@@ -302,7 +302,7 @@ export function ChatView() {
       const msg = await res.json();
       if (msg.id) addMessage(msg);
     } catch (error) {
-      appLogger.error('chat-view.sendMessage', 'Failed to send message', error);
+      logger.error('chat-view.sendMessage', 'Failed to send message', error);
       toast.error(t('chat.sendError'), { description: t('chat.sendRetry') });
       setNewMessage(content);
     }

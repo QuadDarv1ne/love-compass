@@ -7,7 +7,7 @@ import { Heart, MessageCircle, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useShallow } from 'zustand/react/shallow';
 import { useAppStore } from '@/lib/store';
-import { appLogger } from '@/lib/logger';
+import { logger } from '@/lib/logger';
 import { AVATAR_BASE_URL } from '@/lib/constants';
 import { useTranslation } from '@/hooks/useTranslation';
 
@@ -35,7 +35,7 @@ export function MatchAnimationOverlay() {
       try {
         await refreshMatches();
       } catch (error) {
-        appLogger.error('match-animation.refresh', 'Failed to refresh matches', error);
+        logger.error('match-animation.refresh', 'Failed to refresh matches', error);
       }
     }
     navigateTo('matches');
@@ -52,7 +52,7 @@ export function MatchAnimationOverlay() {
           navigateTo('chat');
         }
       } catch (error) {
-        appLogger.error('match-animation.refresh', 'Failed to refresh matches', error);
+        logger.error('match-animation.refresh', 'Failed to refresh matches', error);
       }
     }
   };

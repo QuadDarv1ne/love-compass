@@ -1,14 +1,12 @@
 import { useAppStore, type User, type MatchWithUsers } from '@/lib/store';
-import { appLogger } from '@/lib/logger';
-import { PAGINATION, ONLINE_PRESENCE } from '@/lib/constants';
+import { logger } from '@/lib/logger';
+import { PAGINATION, ONLINE_PRESENCE, CSRF_TOKEN_TTL, FETCH_TIMEOUT_MS } from '@/lib/constants';
 import { detectBrowserLocale, SUPPORTED_LOCALES, createTranslatorForLanguage, type Locale } from '@/lib/i18n';
 import { toast } from 'sonner';
 
 let csrfToken: string | null = null;
 let csrfTokenFetchedAt: number | null = null;
 let csrfTokenPromise: Promise<string> | null = null;
-const CSRF_TOKEN_TTL = 5 * 60 * 1000; // 5 minutes
-const FETCH_TIMEOUT_MS = 15_000; // 15 seconds
 let hydrateGeneration = 0;
 
 /**
@@ -166,11 +164,11 @@ function hydrateSection(
         if (hydrateGeneration === generation) onOk(body);
       } else {
         errors.push(name);
-        appLogger.error('api.hydrate', `Failed to hydrate ${name}`, new Error(`HTTP ${res.status}`));
+        logger.error('api.hydrate', `Failed to hydrate ${name}`, new Error(`HTTP ${res.status}`));
       }
     } catch (e) {
       errors.push(name);
-      appLogger.error('api.hydrate', `Failed to hydrate ${name}`, e);
+      logger.error('api.hydrate', `Failed to hydrate ${name}`, e);
     }
   })();
 }
@@ -183,7 +181,7 @@ export async function hydrateAppData(user?: User) {
 
   const currentUser = user ?? store.currentUser;
   if (!currentUser) {
-    appLogger.error('api.hydrate', 'hydrateAppData called without user context');
+    logger.error('api.hydrate', 'hydrateAppData called without user context');
     if (hydrateGeneration === generation) store.setIsLoading(false);
     return;
   }
@@ -211,7 +209,7 @@ export async function hydrateAppData(user?: User) {
         }
       } catch (e) {
         errors.push('profiles');
-        appLogger.error('api.hydrate', 'Failed to hydrate profiles', e);
+        logger.error('api.hydrate', 'Failed to hydrate profiles', e);
       }
     })();
 

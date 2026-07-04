@@ -7,7 +7,7 @@ import { AuthLayout } from '@/components/auth/auth-layout';
 import { Button } from '@/components/ui/button';
 import { Mail, AlertCircle } from 'lucide-react';
 import { getCSRFToken } from '@/lib/api';
-import { appLogger } from '@/lib/logger';
+import { logger } from '@/lib/logger';
 import { toast } from 'sonner';
 import { useTranslation } from '@/hooks/useTranslation';
 
@@ -48,7 +48,7 @@ function VerifyEmailPendingContent() {
       toast.success(t('verifyEmail.resent'));
       setCooldown(60);
     } catch (error) {
-      appLogger.error('verify-email.resend', 'Email resend failed', error);
+      logger.error('verify-email.resend', 'Email resend failed', error);
       toast.error(t('forgotPassword.error'));
     } finally {
       setSending(false);

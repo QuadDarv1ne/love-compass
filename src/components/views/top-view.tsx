@@ -13,7 +13,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { useAppStore, type User } from '@/lib/store';
 import { fetchWithTimeout } from '@/lib/api';
 import { OnlineIndicator } from './shared';
-import { appLogger } from '@/lib/logger';
+import { logger } from '@/lib/logger';
 import { toast } from 'sonner';
 import { useTranslation } from '@/hooks/useTranslation';
 
@@ -286,15 +286,15 @@ export function TopView() {
         const errorMessage = err.message || 'UNKNOWN_ERROR';
 
         if (errorMessage === 'SESSION_EXPIRED') {
-          appLogger.warn('top-view.leaderboard', 'Session expired during leaderboard fetch');
+          logger.warn('top-view.leaderboard', 'Session expired during leaderboard fetch');
           // Don't clear data - let user continue browsing
         } else if (errorMessage === 'RATE_LIMITED') {
-          appLogger.warn('top-view.leaderboard', 'Rate limited on leaderboard');
+          logger.warn('top-view.leaderboard', 'Rate limited on leaderboard');
           toast.error(t('top.rateLimited'), {
             description: t('top.rateLimitedDesc'),
           });
         } else {
-          appLogger.error('top-view.leaderboard', 'Failed to fetch leaderboard', err);
+          logger.error('top-view.leaderboard', 'Failed to fetch leaderboard', err);
           toast.error(t('top.loadError'), {
             description: t('top.loadErrorDesc'),
           });

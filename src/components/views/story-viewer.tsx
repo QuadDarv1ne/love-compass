@@ -7,9 +7,9 @@ import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { patchWithCSRF } from '@/lib/api';
-import { useAppStore, type Moment, type MomentComment } from '@/lib/store';
+import { type Moment, type MomentComment } from '@/lib/store';
 import { OnlineIndicator } from './shared';
-import { appLogger } from '@/lib/logger';
+import { logger } from '@/lib/logger';
 import { MOMENTS as MOMENTS_CONST, ANIMATION, REACTION_EMOJIS } from '@/lib/constants';
 import { useTranslation } from '@/hooks/useTranslation';
 import { timeAgo } from './moments-utils';
@@ -160,7 +160,7 @@ export function StoryViewer({
         }
       }
     } catch (error) {
-      appLogger.error('story-viewer.syncReaction', 'Failed to sync reaction', error);
+      logger.error('story-viewer.syncReaction', 'Failed to sync reaction', error);
       toast.error(t('moments.reactionError'));
       setLocalMoments((prev) =>
         prev.map((m) => {
@@ -193,7 +193,7 @@ export function StoryViewer({
     patchWithCSRF('/api/moments', { id: currentMoment.id, action: 'comment', content }).then(() => {
       toast.success(t('moments.commentAdded'));
     }).catch((error) => {
-      appLogger.error('story-viewer.syncComment', 'Failed to sync comment', error);
+      logger.error('story-viewer.syncComment', 'Failed to sync comment', error);
       toast.error(t('moments.commentError'));
       setLocalMoments((prev) =>
         prev.map((m) => {

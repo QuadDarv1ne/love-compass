@@ -2,7 +2,7 @@
 
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { RefreshCw, AlertTriangle } from 'lucide-react';
-import { appLogger } from '@/lib/logger';
+import { logger } from '@/lib/logger';
 import { useAppStore } from '@/lib/store';
 import { createTranslatorForLanguage } from '@/lib/i18n';
 
@@ -29,7 +29,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    appLogger.error('ErrorBoundary', 'Uncaught error', { error: { message: error.message, stack: error.stack }, componentStack: errorInfo.componentStack });
+    logger.error('ErrorBoundary', 'Uncaught error', { error: { message: error.message, stack: error.stack }, componentStack: errorInfo.componentStack });
     const lang = useAppStore.getState().language || 'ru';
     this.setState({ language: lang, error });
   }

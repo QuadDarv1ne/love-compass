@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { AvatarPicker } from '@/components/views/shared';
 import { validatePasswordStrength } from '@/lib/auth/password-strength';
 import { getCSRFToken } from '@/lib/api';
-import { appLogger } from '@/lib/logger';
+import { logger } from '@/lib/logger';
 import { toast } from 'sonner';
 import { Eye, EyeOff } from 'lucide-react';
 import { AVATAR_BASE_URL } from '@/lib/constants';
@@ -102,7 +102,7 @@ export default function RegisterPage() {
       toast.success(t('register.success'));
       router.push(`/verify-email-pending?email=${encodeURIComponent(form.email)}`);
     } catch (error) {
-      appLogger.error('register.submit', 'Registration failed', error);
+      logger.error('register.submit', 'Registration failed', error);
       toast.error(t('register.serverError'));
     } finally {
       setLoading(false);

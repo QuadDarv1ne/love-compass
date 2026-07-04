@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { validatePasswordStrength } from '@/lib/auth/password-strength';
 import { getCSRFToken } from '@/lib/api';
-import { appLogger } from '@/lib/logger';
+import { logger } from '@/lib/logger';
 import { toast } from 'sonner';
 import { Eye, EyeOff } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -71,7 +71,7 @@ function ResetPasswordContent() {
       toast.success(t('resetPassword.success'));
       router.push('/login');
     } catch (error) {
-      appLogger.error('reset-password.submit', 'Reset password request failed', error);
+      logger.error('reset-password.submit', 'Reset password request failed', error);
       toast.error(t('resetPassword.error'));
     } finally {
       setLoading(false);

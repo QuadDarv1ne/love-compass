@@ -14,7 +14,7 @@ export interface UploadResult {
 export interface UploadOptions {
   uploadDir: string;
   urlPrefix: string;
-  allowedMimeTypes: string[];
+  allowedMimeTypes: readonly string[];
   maxSize: number;
   userId?: string; // Included in filename for ownership validation
 }

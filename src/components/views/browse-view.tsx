@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { fetchWithCSRF, deleteWithCSRF, fetchWithTimeout } from '@/lib/api';
-import { appLogger } from '@/lib/logger';
+import { logger } from '@/lib/logger';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { useAppStore, type User } from '@/lib/store';
@@ -86,7 +86,7 @@ export function BrowseView() {
           setSuperLikeRemaining(data.remaining);
         }
       } catch (error) {
-        appLogger.warn('browse-view.superlike-status', 'Failed to load super-like status', error);
+        logger.warn('browse-view.superlike-status', 'Failed to load super-like status', error);
         setSuperLikeRemaining(0);
       }
     };
@@ -120,7 +120,7 @@ export function BrowseView() {
           setProfilesCursor(body.nextCursor ?? null);
         }
       } catch (error) {
-        appLogger.error('browse-view.recommended', 'Failed to fetch recommendations', error);
+        logger.error('browse-view.recommended', 'Failed to fetch recommendations', error);
       }
     })();
     return () => { cancelled = true; };
@@ -170,7 +170,7 @@ export function BrowseView() {
       }
       setProfilesCursor(body.nextCursor ?? null);
     } catch (error) {
-      appLogger.error('browse-view.loadMore', 'Failed to load more profiles', error);
+      logger.error('browse-view.loadMore', 'Failed to load more profiles', error);
     } finally {
       setLoadingMore(false);
     }
@@ -223,7 +223,7 @@ export function BrowseView() {
       setLastSwipedProfile(null);
       setLastSwipeAction(null);
       toast.error(t('browse.likeError'), { description: t('common.retry') });
-      appLogger.error('browse-view.like', 'Like failed', error);
+      logger.error('browse-view.like', 'Like failed', error);
     }
   }, [currentUser, addLikedUserId, setMatchAnimationPartner, setShowMatchAnimation, removeProfile, t]);
 
@@ -250,7 +250,7 @@ export function BrowseView() {
       setLastSwipedProfile(null);
       setLastSwipeAction(null);
       toast.error(t('browse.dislikeError'), { description: t('common.retry') });
-      appLogger.error('browse-view.dislike', 'Dislike failed', error);
+      logger.error('browse-view.dislike', 'Dislike failed', error);
     }
   }, [currentUser, addDislikedUserId, removeProfile, t]);
 
@@ -297,7 +297,7 @@ export function BrowseView() {
       setLastSwipedProfile(null);
       setLastSwipeAction(null);
       toast.error(t('browse.superLikeError'), { description: t('common.retry') });
-      appLogger.error('browse-view.superLike', 'Super Like failed', error);
+      logger.error('browse-view.superLike', 'Super Like failed', error);
     }
   }, [currentUser, addSuperLikedUserId, addLikedUserId, setMatchAnimationPartner, setShowMatchAnimation, removeProfile, t]);
 
@@ -321,7 +321,7 @@ export function BrowseView() {
         }
       } catch (error) {
         toast.error(t('browse.undoLikeError'), { description: t('common.retry') });
-        appLogger.error('browse-view.undo', 'Undo like failed', error);
+        logger.error('browse-view.undo', 'Undo like failed', error);
         // Don't re-add profile to list if API failed - keep it removed
         setLastSwipedProfile(null);
         setLastSwipeAction(null);
@@ -335,7 +335,7 @@ export function BrowseView() {
         await deleteWithCSRF(`/api/dislike?toUserId=${lastSwipedProfile.id}`, {});
       } catch (error) {
         toast.error(t('browse.undoDislikeError'), { description: t('common.retry') });
-        appLogger.error('browse-view.undo', 'Undo dislike failed', error);
+        logger.error('browse-view.undo', 'Undo dislike failed', error);
         // Don't re-add profile to list if API failed - keep it removed
         setLastSwipedProfile(null);
         setLastSwipeAction(null);
@@ -376,8 +376,6 @@ export function BrowseView() {
   }, [lastSwipedProfile, lastSwipeAction, t]);
 
   // Drag handlers for touch swipe
-  const handleDragStart = () => {};
-
   const handleDrag = (_: unknown, info: { offset: { x: number } }) => {
     setDragX(info.offset.x);
   };
@@ -530,7 +528,6 @@ export function BrowseView() {
           drag={swipeDir === null ? 'x' : false}
           dragConstraints={{ left: 0, right: 0 }}
           dragElastic={0.9}
-          onDragStart={handleDragStart}
           onDrag={handleDrag}
           onDragEnd={(_, info) => handleDragEnd(currentProfile, _, info)}
           whileDrag={{ cursor: 'grabbing', boxShadow: '0 30px 60px rgba(0,0,0,0.3)' }}
@@ -644,7 +641,7 @@ export function BrowseView() {
                 useAppStore.getState().blockUser(detailProfile.id);
                 toast.success(t('browse.blockedUser', { name: detailProfile.name }), { description: t('browse.blockedDescription') });
               } catch (error) {
-                appLogger.error('browse-view.block', 'Failed to block user via API', error);
+                logger.error('browse-view.block', 'Failed to block user via API', error);
                 toast.error(t('browse.blockError'), { description: t('common.retry') });
               }
             }}
@@ -657,7 +654,7 @@ export function BrowseView() {
                 // Only show success after API succeeds
                 toast.info(t('browse.reportSent', { name: detailProfile.name }), { description: t('browse.reportSentDesc') });
               } catch (error) {
-                appLogger.error('browse-view.report', 'Failed to submit report via API', error);
+                logger.error('browse-view.report', 'Failed to submit report via API', error);
                 toast.error(t('browse.reportError'), { description: t('common.retry') });
               }
             }}

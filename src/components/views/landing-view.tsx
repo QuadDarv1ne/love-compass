@@ -9,7 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAppStore } from '@/lib/store';
-import { appLogger } from '@/lib/logger';
+import { logger } from '@/lib/logger';
 import { AVATAR_BASE_URL } from '@/lib/constants';
 import { FloatingHearts } from './shared';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -84,11 +84,11 @@ export function LandingView() {
         useAppStore.getState().checkAuth();
       } else {
         const errData = await loginRes.json().catch(() => ({}));
-        appLogger.error('landing-view.demo', 'Demo login rejected', { status: loginRes.status, error: errData.error });
+        logger.error('landing-view.demo', 'Demo login rejected', { status: loginRes.status, error: errData.error });
         toast.error(errData.error || t('landing.demoLoginError'));
       }
     } catch (error) {
-      appLogger.error('landing-view.demo', 'Demo login failed', error);
+      logger.error('landing-view.demo', 'Demo login failed', error);
       toast.error(t('landing.demoLoginError'));
     }
     setLoading(false);
