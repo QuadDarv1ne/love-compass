@@ -52,6 +52,7 @@ import { TOTP } from '@/lib/constants';
 import { fetchWithCSRF, deleteWithCSRF } from '@/lib/api';
 import { AvatarUpload } from '@/components/ui/avatar-upload';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 import { LOCALE_FLAGS, LOCALE_NAMES, SUPPORTED_LOCALES, type Locale } from '@/lib/i18n';
 
 const QRCode = dynamic(() => import('qrcode.react').then((m) => ({ default: m.QRCodeCanvas })), { ssr: false });
@@ -258,6 +259,7 @@ function TwoFASetupDialog({
 export function SettingsView() {
   const { setTheme, theme, resolvedTheme } = useTheme();
   const { t } = useTranslation();
+  const confirm = useConfirm();
   const {
     currentUser,
     refreshUser,
@@ -765,10 +767,14 @@ export function SettingsView() {
                 <Button
                   variant="outline"
                   className="w-full justify-start gap-2 border-orange-200 dark:border-orange-800 text-orange-600 dark:text-orange-300 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-xl"
-                  onClick={() => {
-                    const confirmed = window.confirm(
-                      t('settings.clearConfirm')
-                    );
+                  onClick={async () => {
+                    const confirmed = await confirm({
+                      title: t('settings.clearCache'),
+                      message: t('settings.clearConfirm'),
+                      confirmLabel: t('common.confirm'),
+                      cancelLabel: t('common.cancel'),
+                      variant: 'destructive',
+                    });
                     if (!confirmed) return;
 
                     clearAllData();
@@ -786,9 +792,13 @@ export function SettingsView() {
                   variant="outline"
                   className="w-full justify-start gap-2 border-destructive/40 text-destructive hover:bg-destructive/10 rounded-xl"
                   onClick={async () => {
-                    const confirmed = window.confirm(
-                      t('settings.deleteConfirm')
-                    );
+                    const confirmed = await confirm({
+                      title: t('settings.deleteAccount'),
+                      message: t('settings.deleteConfirm'),
+                      confirmLabel: t('common.confirm'),
+                      cancelLabel: t('common.cancel'),
+                      variant: 'destructive',
+                    });
                     if (!confirmed) return;
 
                     try {

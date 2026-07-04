@@ -54,7 +54,7 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (data.needsEmailVerification) {
-        router.push(`/verify-email-pending?email=${encodeURIComponent(data.email)}`);
+        router.push(`/verify-email-pending?token=${encodeURIComponent(data.tempToken)}`);
         return;
       }
 

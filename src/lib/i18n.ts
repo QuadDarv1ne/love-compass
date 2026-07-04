@@ -134,6 +134,8 @@ const ru: Dict = {
   'resetPassword.loading': 'Загрузка...',
   'common.loading': 'Загрузка...',
   'common.technicalDetails': 'Технические детали',
+  'common.confirm': 'Подтвердить',
+  'common.cancel': 'Отмена',
   'verifyEmail.title': 'Подтвердите email',
   'verifyEmail.subtitle': 'Мы отправили письмо для подтверждения',
   'verifyEmail.sentTo': 'Мы отправили письмо на {email}',
@@ -567,6 +569,17 @@ const ru: Dict = {
   'admin.activeToday': 'Активны сегодня',
   'admin.totalMatches': 'Всего мэтчей',
   'admin.totalMessages': 'Всего сообщений',
+  'admin.genderDistribution': 'Распределение по полу',
+  'admin.male': 'Мужчины',
+  'admin.female': 'Женщины',
+  'admin.other': 'Другие',
+  'admin.activityOverview': 'Обзор активности',
+  'admin.newToday': 'Новые сегодня',
+  'admin.newWeek': 'Новые за неделю',
+  'admin.active': 'Активные',
+  'admin.matches': 'Мэтчи',
+  'admin.messages': 'Сообщения',
+  'admin.noUsersFound': 'Пользователи не найдены',
 
   // Common errors
   'error.server': 'Ошибка сервера',
@@ -594,6 +607,9 @@ const ru: Dict = {
   'error.passwordChanged': 'Пароль изменён',
   'error.passwordChangeError': 'Ошибка сервера',
   'error.emailResend': 'Укажите корректный email',
+  'error.pageTitle': 'Что-то пошло не так',
+  'error.pageMessage': 'Произошла непредвиденная ошибка. Попробуйте обновить страницу.',
+  'error.tryAgain': 'Попробовать снова',
 };
 
 const en: Dict = {
@@ -687,6 +703,8 @@ const en: Dict = {
   'resetPassword.loading': 'Loading...',
   'common.loading': 'Loading...',
   'common.technicalDetails': 'Technical details',
+  'common.confirm': 'Confirm',
+  'common.cancel': 'Cancel',
   'verifyEmail.title': 'Verify your email',
   'verifyEmail.subtitle': 'We sent you a verification email',
   'verifyEmail.sentTo': 'We sent an email to {email}',
@@ -1109,6 +1127,17 @@ const en: Dict = {
   'admin.activeToday': 'Active today',
   'admin.totalMatches': 'Total matches',
   'admin.totalMessages': 'Total messages',
+  'admin.genderDistribution': 'Gender distribution',
+  'admin.male': 'Male',
+  'admin.female': 'Female',
+  'admin.other': 'Other',
+  'admin.activityOverview': 'Activity overview',
+  'admin.newToday': 'New today',
+  'admin.newWeek': 'New week',
+  'admin.active': 'Active',
+  'admin.matches': 'Matches',
+  'admin.messages': 'Messages',
+  'admin.noUsersFound': 'No users found',
 
   'error.server': 'Server error',
   'error.validation': 'Validation error',
@@ -1135,6 +1164,9 @@ const en: Dict = {
   'error.passwordChanged': 'Password changed',
   'error.passwordChangeError': 'Server error',
   'error.emailResend': 'Please provide a valid email',
+  'error.pageTitle': 'Something went wrong',
+  'error.pageMessage': 'An unexpected error occurred. Please try refreshing the page.',
+  'error.tryAgain': 'Try again',
 };
 
 const es: Dict = {
@@ -1227,6 +1259,8 @@ const es: Dict = {
   'resetPassword.loading': 'Cargando...',
   'common.loading': 'Cargando...',
   'common.technicalDetails': 'Detalles técnicos',
+  'common.confirm': 'Confirmar',
+  'common.cancel': 'Cancelar',
   'verifyEmail.title': 'Verifica tu correo',
   'verifyEmail.subtitle': 'Te hemos enviado un correo de verificación',
   'verifyEmail.sentTo': 'Hemos enviado un correo a {email}',
@@ -1646,6 +1680,17 @@ const es: Dict = {
   'admin.activeToday': 'Activos hoy',
   'admin.totalMatches': 'Total de matches',
   'admin.totalMessages': 'Total de mensajes',
+  'admin.genderDistribution': 'Distribución por género',
+  'admin.male': 'Hombres',
+  'admin.female': 'Mujeres',
+  'admin.other': 'Otros',
+  'admin.activityOverview': 'Resumen de actividad',
+  'admin.newToday': 'Nuevos hoy',
+  'admin.newWeek': 'Nuevos esta semana',
+  'admin.active': 'Activos',
+  'admin.matches': 'Matches',
+  'admin.messages': 'Mensajes',
+  'admin.noUsersFound': 'No se encontraron usuarios',
 
   'error.server': 'Error del servidor',
   'error.validation': 'Error de validación',
@@ -1672,6 +1717,9 @@ const es: Dict = {
   'error.passwordChanged': 'Contraseña cambiada',
   'error.passwordChangeError': 'Error del servidor',
   'error.emailResend': 'Proporciona un correo válido',
+  'error.pageTitle': 'Algo salió mal',
+  'error.pageMessage': 'Ocurrió un error inesperado. Intenta actualizar la página.',
+  'error.tryAgain': 'Intentar de nuevo',
 };
 
 const zh: Dict = {
@@ -1765,6 +1813,8 @@ const zh: Dict = {
   'resetPassword.loading': '加载中...',
   'common.loading': '加载中...',
   'common.technicalDetails': '技术详情',
+  'common.confirm': '确认',
+  'common.cancel': '取消',
   'verifyEmail.title': '验证邮箱',
   'verifyEmail.subtitle': '我们已向您发送验证邮件',
   'verifyEmail.sentTo': '我们已向 {email} 发送邮件',
@@ -2187,6 +2237,17 @@ const zh: Dict = {
   'admin.activeToday': '今日活跃',
   'admin.totalMatches': '匹配总数',
   'admin.totalMessages': '消息总数',
+  'admin.genderDistribution': '性别分布',
+  'admin.male': '男性',
+  'admin.female': '女性',
+  'admin.other': '其他',
+  'admin.activityOverview': '活动概览',
+  'admin.newToday': '今日新增',
+  'admin.newWeek': '本周新增',
+  'admin.active': '活跃',
+  'admin.matches': '匹配',
+  'admin.messages': '消息',
+  'admin.noUsersFound': '未找到用户',
 
   'error.server': '服务器错误',
   'error.validation': '验证错误',
@@ -2213,6 +2274,9 @@ const zh: Dict = {
   'error.passwordChanged': '密码已修改',
   'error.passwordChangeError': '服务器错误',
   'error.emailResend': '请提供有效的邮箱地址',
+  'error.pageTitle': '出了点问题',
+  'error.pageMessage': '发生了意外错误，请尝试刷新页面。',
+  'error.tryAgain': '重试',
 };
 
 export const dictionaries: Record<Locale, Dict> = { ru, en, zh, es };

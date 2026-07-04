@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, lazy, Suspense } from 'react';
+import { useEffect, useMemo, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useShallow } from 'zustand/react/shallow';
 import {
@@ -73,21 +73,21 @@ export default function HomePage() {
   const matchCount = matches.length;
 
   // Primary nav items (bottom bar + sidebar top)
-  const navItems = [
+  const navItems = useMemo(() => [
     { view: 'browse' as const, icon: Search, label: t('nav.browse'), badge: undefined as number | undefined },
     { view: 'moments' as const, icon: Camera, label: t('nav.moments'), badge: undefined as number | undefined },
     { view: 'matches' as const, icon: Heart, label: t('nav.matches'), badge: matchCount },
     { view: 'top' as const, icon: Trophy, label: t('nav.top'), badge: undefined as number | undefined },
     { view: 'profile' as const, icon: User, label: t('nav.profile'), badge: undefined as number | undefined },
-  ];
+  ], [matchCount, t]);
 
   // Secondary nav items (sidebar only)
-  const secondaryNavItems = [
+  const secondaryNavItems = useMemo(() => [
     { view: 'likedYou' as const, icon: Eye, label: t('nav.likedYou'), badge: likedYouCount },
     { view: 'achievements' as const, icon: Trophy, label: t('nav.achievements'), badge: undefined as number | undefined },
     ...(currentUser?.role === 'admin' ? [{ view: 'admin' as const, icon: Shield, label: t('nav.admin'), badge: undefined as number | undefined }] : []),
     { view: 'settings' as const, icon: SettingsIcon, label: t('nav.settings'), badge: undefined as number | undefined },
-  ];
+  ], [likedYouCount, currentUser?.role, t]);
 
   return (
     <div className="min-h-screen gradient-bg flex flex-col relative">
@@ -231,11 +231,12 @@ export default function HomePage() {
 
 // Skeleton fallback for lazy-loaded views
 function ViewSkeleton() {
+  const { t } = useTranslation();
   return (
     <div className="flex-1 flex items-center justify-center">
       <div className="flex flex-col items-center gap-3">
         <div className="w-8 h-8 rounded-full border-2 border-rose-200 border-t-rose-500 animate-spin" />
-        <p className="text-xs text-muted-foreground">Loading...</p>
+        <p className="text-xs text-muted-foreground">{t('common.loading')}</p>
       </div>
     </div>
   );

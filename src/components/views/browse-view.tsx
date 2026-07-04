@@ -594,12 +594,12 @@ export function BrowseView() {
         {/* Action Buttons */}
         <div className="flex items-center gap-5 mt-6 z-10">
           <motion.div whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.9 }}>
-            <Button onClick={() => handleDislike(currentProfile)} size="lg" className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-card border-2 border-gray-200 dark:border-rose-800 hover:border-red-300 hover:bg-red-50 dark:hover:bg-rose-900/20 text-gray-400 hover:text-red-500 shadow-lg transition-all">
+            <Button onClick={() => handleDislike(currentProfile)} size="lg" aria-label={t('browse.dislike')} className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-card border-2 border-gray-200 dark:border-rose-800 hover:border-red-300 hover:bg-red-50 dark:hover:bg-rose-900/20 text-gray-400 hover:text-red-500 shadow-lg transition-all">
               <X className="w-7 h-7 md:w-8 md:h-8" />
             </Button>
           </motion.div>
           <motion.div whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.9 }}>
-            <Button onClick={() => handleLike(currentProfile)} size="lg" className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-br from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white shadow-xl shadow-rose-200 dark:shadow-rose-900/30 transition-all">
+            <Button onClick={() => handleLike(currentProfile)} size="lg" aria-label={t('browse.like')} className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-br from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white shadow-xl shadow-rose-200 dark:shadow-rose-900/30 transition-all">
               <Heart className="w-8 h-8 md:w-10 md:h-10 fill-white" />
             </Button>
           </motion.div>
@@ -608,6 +608,7 @@ export function BrowseView() {
               onClick={() => handleSuperLike(currentProfile)}
               size="lg"
               disabled={superLikeRemaining <= 0}
+              aria-label={t('browse.superLike')}
               className="relative w-14 h-14 md:w-16 md:h-16 rounded-full bg-card border-2 border-blue-200 dark:border-blue-800 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-500 hover:text-blue-600 shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Star className="w-7 h-7 md:w-8 md:h-8" />

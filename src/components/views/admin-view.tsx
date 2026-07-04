@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/select';
 import { useAppStore, type PlatformStats, type AdminUser } from '@/lib/store';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 
 function StatCard({ icon: Icon, label, value, color }: { icon: React.ElementType; label: string; value: string | number; color: string }) {
   return (
@@ -45,6 +46,7 @@ function StatCard({ icon: Icon, label, value, color }: { icon: React.ElementType
 }
 
 function GenderChart({ stats }: { stats: PlatformStats }) {
+  const { t } = useTranslation();
   const total = stats.maleCount + stats.femaleCount + stats.otherCount || 1;
   const malePct = (stats.maleCount / total) * 100;
   const femalePct = (stats.femaleCount / total) * 100;
@@ -54,23 +56,23 @@ function GenderChart({ stats }: { stats: PlatformStats }) {
     <Card className="border-rose-100 dark:border-rose-900/50 shadow-md rounded-2xl bg-card">
       <CardContent className="p-4">
         <h3 className="text-sm font-semibold text-rose-600 dark:text-rose-400 mb-3 flex items-center gap-2">
-          <Users className="w-4 h-4" /> Gender distribution
+          <Users className="w-4 h-4" /> {t('admin.genderDistribution')}
         </h3>
         <div className="h-4 rounded-full bg-rose-100 dark:bg-rose-900/30 flex overflow-hidden">
           {malePct > 0 && (
-            <div className="h-full bg-blue-400 transition-all duration-500" style={{ width: `${malePct}%` }} title={`Male: ${stats.maleCount}`} />
+            <div className="h-full bg-blue-400 transition-all duration-500" style={{ width: `${malePct}%` }} title={`${t('admin.male')}: ${stats.maleCount}`} />
           )}
           {femalePct > 0 && (
-            <div className="h-full bg-rose-400 transition-all duration-500" style={{ width: `${femalePct}%` }} title={`Female: ${stats.femaleCount}`} />
+            <div className="h-full bg-rose-400 transition-all duration-500" style={{ width: `${femalePct}%` }} title={`${t('admin.female')}: ${stats.femaleCount}`} />
           )}
           {otherPct > 0 && (
-            <div className="h-full bg-purple-400 transition-all duration-500" style={{ width: `${otherPct}%` }} title={`Other: ${stats.otherCount}`} />
+            <div className="h-full bg-purple-400 transition-all duration-500" style={{ width: `${otherPct}%` }} title={`${t('admin.other')}: ${stats.otherCount}`} />
           )}
         </div>
         <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-400 inline-block" /> Male: {stats.maleCount}</span>
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-rose-400 inline-block" /> Female: {stats.femaleCount}</span>
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-purple-400 inline-block" /> Other: {stats.otherCount}</span>
+          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-400 inline-block" /> {t('admin.male')}: {stats.maleCount}</span>
+          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-rose-400 inline-block" /> {t('admin.female')}: {stats.femaleCount}</span>
+          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-purple-400 inline-block" /> {t('admin.other')}: {stats.otherCount}</span>
         </div>
       </CardContent>
     </Card>
@@ -78,20 +80,21 @@ function GenderChart({ stats }: { stats: PlatformStats }) {
 }
 
 function ActivityBars({ stats }: { stats: PlatformStats }) {
+  const { t } = useTranslation();
   const maxVal = Math.max(stats.newUsersToday, stats.newUsersThisWeek, stats.activeUsers, stats.totalMatches, stats.totalMessages, 1);
   const items = [
-    { label: 'New today', value: stats.newUsersToday, color: 'bg-emerald-400' },
-    { label: 'New week', value: stats.newUsersThisWeek, color: 'bg-teal-400' },
-    { label: 'Active', value: stats.activeUsers, color: 'bg-blue-400' },
-    { label: 'Matches', value: stats.totalMatches, color: 'bg-rose-400' },
-    { label: 'Messages', value: stats.totalMessages, color: 'bg-violet-400' },
+    { label: t('admin.newToday'), value: stats.newUsersToday, color: 'bg-emerald-400' },
+    { label: t('admin.newWeek'), value: stats.newUsersThisWeek, color: 'bg-teal-400' },
+    { label: t('admin.active'), value: stats.activeUsers, color: 'bg-blue-400' },
+    { label: t('admin.matches'), value: stats.totalMatches, color: 'bg-rose-400' },
+    { label: t('admin.messages'), value: stats.totalMessages, color: 'bg-violet-400' },
   ];
 
   return (
     <Card className="border-rose-100 dark:border-rose-900/50 shadow-md rounded-2xl bg-card">
       <CardContent className="p-4">
         <h3 className="text-sm font-semibold text-rose-600 dark:text-rose-400 mb-3 flex items-center gap-2">
-          <TrendingUp className="w-4 h-4" /> Activity overview
+          <TrendingUp className="w-4 h-4" /> {t('admin.activityOverview')}
         </h3>
         <div className="space-y-2">
           {items.map((item) => (
@@ -111,6 +114,7 @@ function ActivityBars({ stats }: { stats: PlatformStats }) {
 
 export function AdminView() {
   const { t } = useTranslation();
+  const confirm = useConfirm();
   const {
     adminUsers, adminStats, adminLoading, adminTotal, adminPage, adminLimit,
     adminFilterGender, adminSearchQuery,
@@ -213,7 +217,7 @@ export function AdminView() {
           {!adminLoading && adminUsers.length === 0 && (
             <div className="text-center py-12">
               <Users className="w-12 h-12 text-rose-200 dark:text-rose-800 mx-auto mb-3" />
-              <p className="text-muted-foreground text-sm">No users found</p>
+              <p className="text-muted-foreground text-sm">{t('admin.noUsersFound')}</p>
             </div>
           )}
 
@@ -263,7 +267,16 @@ export function AdminView() {
                       <motion.button
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
-                        onClick={() => { if (confirm(t('admin.deleteUserConfirm'))) deleteUser(user.id); }}
+                        onClick={async () => {
+                          const confirmed = await confirm({
+                            title: t('admin.deleteUser'),
+                            message: t('admin.deleteUserConfirm'),
+                            confirmLabel: t('common.confirm'),
+                            cancelLabel: t('common.cancel'),
+                            variant: 'destructive',
+                          });
+                          if (confirmed) deleteUser(user.id);
+                        }}
                         className="p-1.5 rounded-lg text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                         title={t('admin.deleteUser')}
                       >

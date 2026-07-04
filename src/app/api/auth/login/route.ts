@@ -17,7 +17,7 @@ import { LOGIN_LIMITS, TOTP } from '@/lib/constants';
 
 const loginSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(1),
+  password: z.string().min(1).max(128),
 });
 
 export async function POST(request: Request) {
@@ -96,8 +96,9 @@ export async function POST(request: Request) {
 
     // Check email verification
     if (!user.emailVerified) {
+      const tempToken = await signTempToken({ userId: user.id }, TOTP.TEMP_TOKEN_TTL_MINUTES);
       return NextResponse.json(
-        { needsEmailVerification: true, email: user.email },
+        { needsEmailVerification: true, tempToken },
         { status: 403 }
       );
     }

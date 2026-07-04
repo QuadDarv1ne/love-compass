@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { Heart, RefreshCw } from 'lucide-react';
 import { logger } from '@/lib/logger';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export default function Error({
   error,
@@ -11,6 +12,8 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const { t } = useTranslation();
+
   useEffect(() => {
     logger.error('route-error', 'Unhandled route error', {
       message: error.message,
@@ -27,10 +30,10 @@ export default function Error({
         </div>
         <div className="space-y-2">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Что-то пошло не так
+            {t('error.pageTitle')}
           </h1>
           <p className="text-gray-500 dark:text-gray-400">
-            Произошла непредвиденная ошибка. Попробуйте обновить страницу.
+            {t('error.pageMessage')}
           </p>
         </div>
         <button
@@ -38,7 +41,7 @@ export default function Error({
           className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-pink-500 px-6 py-3 text-sm font-semibold text-white hover:from-rose-600 hover:to-pink-600 transition-all shadow-lg"
         >
           <RefreshCw className="w-4 h-4" />
-          Попробовать снова
+          {t('error.tryAgain')}
         </button>
       </div>
     </div>

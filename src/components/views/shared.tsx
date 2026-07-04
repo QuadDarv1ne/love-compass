@@ -52,8 +52,7 @@ export const viewTransitionVariants: Variants = {
 };
 
 export function OnlineIndicator({ userId, size = 'sm' }: { userId: string; size?: 'sm' | 'md' }) {
-  const onlineUserIds = useAppStore(useShallow((s) => s.onlineUserIds));
-  const isOnline = onlineUserIds.includes(userId);
+  const isOnline = useAppStore((s) => s.onlineUserIds.includes(userId));
   if (!isOnline) return null;
   const dotSize = size === 'sm' ? 'w-2.5 h-2.5' : 'w-3 h-3';
   return (

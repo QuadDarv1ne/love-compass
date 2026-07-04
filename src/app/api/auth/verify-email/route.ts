@@ -8,13 +8,15 @@ import {
 import { setSessionCookie } from '@/lib/auth/session';
 import { sendVerificationEmail } from '@/lib/email';
 import { generateRandomToken, hashToken, getClientIp } from '@/lib/auth/crypto';
+import { verifyTempToken } from '@/lib/auth/jwt';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';
 import { RATE_LIMITS, TIME, TOKEN } from '@/lib/constants';
 
-const resendEmailSchema = z.object({
-  email: z.string().email('Invalid email format'),
-});
+const resendEmailSchema = z.union([
+  z.object({ email: z.string().email('Invalid email format') }),
+  z.object({ token: z.string().min(1) }),
+]);
 
 export async function GET(request: Request) {
   try {
@@ -92,12 +94,26 @@ export async function POST(request: Request) {
 
     if (!result.success) {
       return NextResponse.json(
-        { error: 'Please provide a valid email' },
+        { error: 'Please provide a valid email or token' },
         { status: 400 }
       );
     }
 
-    const emailLower = result.data.email.toLowerCase();
+    let emailLower: string;
+
+    if ('token' in result.data) {
+      const payload = await verifyTempToken(result.data.token);
+      if (!payload?.userId) {
+        return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 });
+      }
+      const user = await db.user.findUnique({ id: payload.userId });
+      if (!user) {
+        return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      }
+      emailLower = user.email.toLowerCase();
+    } else {
+      emailLower = result.data.email.toLowerCase();
+    }
 
     // Rate limit: 3 per hour
     const rateLimit = await checkRateLimit(`verify:${emailLower}`, RATE_LIMITS.VERIFY_EMAIL.MAX, RATE_LIMITS.VERIFY_EMAIL.WINDOW);
@@ -112,7 +128,7 @@ export async function POST(request: Request) {
 
     if (!user || user.emailVerified) {
       // Don't reveal if email exists or is verified
-    return NextResponse.json({ success: true, email: result.data.email });
+      return NextResponse.json({ success: true });
     }
 
     // Server-side cooldown: prevent resend if last request was within cooldown window

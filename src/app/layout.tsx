@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
 import { ErrorBoundary } from "@/components/error-boundary";
+import { ConfirmProvider } from "@/components/ui/confirm-dialog";
 import { SUPPORTED_LOCALES, type Locale } from "@/lib/i18n";
 import "./globals.css";
 
@@ -64,11 +65,13 @@ export default async function RootLayout({
         className="antialiased bg-background text-foreground"
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <ErrorBoundary>
-            <Suspense fallback={null}>
-              {children}
-            </Suspense>
-          </ErrorBoundary>
+          <ConfirmProvider>
+            <ErrorBoundary>
+              <Suspense fallback={null}>
+                {children}
+              </Suspense>
+            </ErrorBoundary>
+          </ConfirmProvider>
           <Toaster />
         </ThemeProvider>
       </body>

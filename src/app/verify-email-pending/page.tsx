@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { AuthLayout } from '@/components/auth/auth-layout';
@@ -14,9 +14,37 @@ import { useTranslation } from '@/hooks/useTranslation';
 function VerifyEmailPendingContent() {
   const { t } = useTranslation();
   const searchParams = useSearchParams();
-  const email = searchParams.get('email') || '';
+  const token = searchParams.get('token') || '';
+  const [email, setEmail] = useState('');
   const [cooldown, setCooldown] = useState(0);
   const [sending, setSending] = useState(false);
+  const [resolving, setResolving] = useState(true);
+
+  const resolveEmail = useCallback(async () => {
+    if (!token) {
+      setResolving(false);
+      return;
+    }
+    try {
+      const res = await fetch('/api/auth/resolve-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setEmail(data.email);
+      }
+    } catch (error) {
+      logger.error('verify-email.resolve', 'Failed to resolve email', error);
+    } finally {
+      setResolving(false);
+    }
+  }, [token]);
+
+  useEffect(() => {
+    resolveEmail();
+  }, [resolveEmail]);
 
   useEffect(() => {
     if (cooldown > 0) {
@@ -35,7 +63,7 @@ function VerifyEmailPendingContent() {
           'Content-Type': 'application/json',
           'x-csrf-token': csrfToken,
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ token }),
       });
 
       const data = await res.json();
@@ -55,6 +83,16 @@ function VerifyEmailPendingContent() {
     }
   };
 
+  if (resolving) {
+    return (
+      <AuthLayout title={t('verifyEmail.title')} subtitle={t('verifyEmail.subtitle')}>
+        <div className="text-center py-8">
+          <div className="w-8 h-8 border-2 border-rose-500 border-t-transparent rounded-full animate-spin mx-auto" />
+        </div>
+      </AuthLayout>
+    );
+  }
+
   return (
     <AuthLayout
       title={t('verifyEmail.title')}
@@ -69,7 +107,7 @@ function VerifyEmailPendingContent() {
 
         <div>
           <p className="text-gray-600 dark:text-gray-300">
-            {t('verifyEmail.sentTo', { email })}
+            {t('verifyEmail.sentTo', { email: email || '***' })}
           </p>
           <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">
             {t('verifyEmail.checkInbox')}
@@ -84,7 +122,7 @@ function VerifyEmailPendingContent() {
         <div className="space-y-3">
           <Button
             onClick={handleResend}
-            disabled={cooldown > 0 || sending || !email}
+            disabled={cooldown > 0 || sending || !token}
             className="w-full"
             variant="outline"
           >
