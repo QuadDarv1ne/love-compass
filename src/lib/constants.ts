@@ -10,11 +10,6 @@ export const PAGINATION = {
 
 export const SUPER_LIKE_DAILY_LIMIT = 3;
 
-export const LIKE_RATE_LIMIT = {
-  MAX_LIKES: 30,
-  WINDOW_SECONDS: 600,
-} as const;
-
 export const LOGIN_LIMITS = {
   MAX_ATTEMPTS: 20,
   LOCKOUT_WINDOW: 15 * 60,
@@ -113,12 +108,16 @@ export const RATE_LIMITS = {
   TOTP_SETUP: { MAX: 3, WINDOW: 3600 },
   TOTP_VERIFY: { MAX: 5, WINDOW: 300 },
   TOTP_REPLAY: { MAX: 1, WINDOW: 300 },
-  MESSAGE: { MAX: 10, WINDOW: 60 },
+  LIKE: { MAX: 30, WINDOW: 600 },
   DISLIKE: { MAX: 30, WINDOW: 600 },
+  MESSAGE: { MAX: 30, WINDOW: 60 },
   BLOCK: { MAX: 10, WINDOW: 3600 },
   MOMENT: { MAX: 20, WINDOW: 3600 },
   PROFILES: { MAX: 30, WINDOW: 60 },
   ADMIN: { MAX: 20, WINDOW: 60 },
+  CSRF_TOKEN: { MAX: 30, WINDOW: 60 },
+  DEMO_LOGIN: { MAX: 10, WINDOW: 300 },
+  VERIFY_EMAIL_RESEND: { MAX: 3, WINDOW: 300 },
 } as const;
 
 export const TOTP = {

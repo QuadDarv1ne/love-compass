@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { createRateLimiter } from '@/lib/rate-limit';
-import { RATE_LIMITS, LOGIN_LIMITS, REGISTRATION_LIMITS } from '@/lib/constants';
+import { LOGIN_LIMITS, REGISTRATION_LIMITS } from '@/lib/constants';
+import { RATE_LIMITS } from '@/lib/constants';
 import { logger } from '@/lib/logger';
 
 function validateOrigin(request: NextRequest): string | NextResponse {
@@ -43,13 +44,29 @@ const rateLimiters = {
   login: createRateLimiter({ max: LOGIN_LIMITS.MAX_ATTEMPTS, windowMs: LOGIN_LIMITS.LOCKOUT_WINDOW * 1000 }),
   register: createRateLimiter({ max: REGISTRATION_LIMITS.MAX_PER_HOUR, windowMs: REGISTRATION_LIMITS.WINDOW_SECONDS * 1000 }),
   forgotPassword: createRateLimiter({ max: RATE_LIMITS.FORGOT_PASSWORD.MAX, windowMs: RATE_LIMITS.FORGOT_PASSWORD.WINDOW * 1000 }),
+  demoLogin: createRateLimiter({ max: RATE_LIMITS.DEMO_LOGIN.MAX, windowMs: RATE_LIMITS.DEMO_LOGIN.WINDOW * 1000 }),
+  csrfToken: createRateLimiter({ max: RATE_LIMITS.CSRF_TOKEN.MAX, windowMs: RATE_LIMITS.CSRF_TOKEN.WINDOW * 1000 }),
   heavy: createRateLimiter({ max: 30, windowMs: 60_000 }),         // 30 req/min for write-heavy paths
 };
 
+const IPV4_REGEX = /^(\d{1,3}\.){3}\d{1,3}$/;
+
+function isValidIP(ip: string): boolean {
+  if (IPV4_REGEX.test(ip)) {
+    return ip.split('.').map(Number).every((p) => p >= 0 && p <= 255);
+  }
+  return false;
+}
+
 function getClientIp(request: NextRequest): string {
-  return request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
-    || request.headers.get('x-real-ip')
-    || '127.0.0.1';
+  const forwarded = request.headers.get('x-forwarded-for');
+  if (forwarded) {
+    const firstIP = forwarded.split(',')[0]?.trim();
+    if (firstIP && isValidIP(firstIP)) {
+      return firstIP;
+    }
+  }
+  return request.headers.get('x-real-ip') || '127.0.0.1';
 }
 
 function applyRateLimit(request: NextRequest, limiter: ReturnType<typeof createRateLimiter>): Response | null {
@@ -175,6 +192,18 @@ export async function middleware(request: NextRequest) {
     if (forgotLimit) {
       logRequest(method, pathname, 429, Date.now() - startTime, ip);
       return forgotLimit;
+    }
+  } else if (pathname === '/api/auth/demo-login') {
+    const demoLimit = applyRateLimit(request, rateLimiters.demoLogin);
+    if (demoLimit) {
+      logRequest(method, pathname, 429, Date.now() - startTime, ip);
+      return demoLimit;
+    }
+  } else if (pathname === '/api/auth/csrf-token') {
+    const csrfLimit = applyRateLimit(request, rateLimiters.csrfToken);
+    if (csrfLimit) {
+      logRequest(method, pathname, 429, Date.now() - startTime, ip);
+      return csrfLimit;
     }
   }
 

@@ -112,7 +112,7 @@ function TwoFAVerifyContent() {
                   id="backupCode"
                   value={backupCode}
                   onChange={(e) => setBackupCode(e.target.value.toUpperCase())}
-                  placeholder="XXXXXXXX"
+                  placeholder={t('twoFA.backupLabel')}
                   maxLength={8}
                   className="text-center tracking-widest"
                   required

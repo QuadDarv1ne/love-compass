@@ -188,6 +188,7 @@ model Moment {
 
   @@index([userId])
   @@index([createdAt])
+  @@index([userId, createdAt])
 }
 
 model MomentComment {

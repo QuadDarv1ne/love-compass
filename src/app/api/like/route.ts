@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { requireAuthWithCSRF, isZodError } from '@/lib/auth/guard';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';
-import { SUPER_LIKE_DAILY_LIMIT, LIKE_RATE_LIMIT } from '@/lib/constants';
+import { SUPER_LIKE_DAILY_LIMIT, RATE_LIMITS } from '@/lib/constants';
 
 const likeSchema = z.object({
   toUserId: z.string().min(1),
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
     }
 
     // Rate limit likes to prevent spam
-    const rateLimit = await checkRateLimit(`like:${fromUserId}`, LIKE_RATE_LIMIT.MAX_LIKES, LIKE_RATE_LIMIT.WINDOW_SECONDS);
+    const rateLimit = await checkRateLimit(`like:${fromUserId}`, RATE_LIMITS.LIKE.MAX, RATE_LIMITS.LIKE.WINDOW);
     if (!rateLimit.allowed) {
       return NextResponse.json({ error: 'Too many likes, try again later' }, { status: 429 });
     }

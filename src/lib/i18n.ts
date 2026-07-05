@@ -610,6 +610,10 @@ const ru: Dict = {
   'error.pageTitle': 'Что-то пошло не так',
   'error.pageMessage': 'Произошла непредвиденная ошибка. Попробуйте обновить страницу.',
   'error.tryAgain': 'Попробовать снова',
+
+  'notFound.title': 'Страница не найдена',
+  'notFound.description': 'Эта страница не существует или была перемещена',
+  'notFound.homeLink': 'На главную',
 };
 
 const en: Dict = {
@@ -1167,6 +1171,10 @@ const en: Dict = {
   'error.pageTitle': 'Something went wrong',
   'error.pageMessage': 'An unexpected error occurred. Please try refreshing the page.',
   'error.tryAgain': 'Try again',
+
+  'notFound.title': 'Page not found',
+  'notFound.description': 'This page does not exist or has been moved',
+  'notFound.homeLink': 'Go home',
 };
 
 const es: Dict = {
@@ -1720,6 +1728,10 @@ const es: Dict = {
   'error.pageTitle': 'Algo salió mal',
   'error.pageMessage': 'Ocurrió un error inesperado. Intenta actualizar la página.',
   'error.tryAgain': 'Intentar de nuevo',
+
+  'notFound.title': 'Página no encontrada',
+  'notFound.description': 'Esta página no existe o ha sido movida',
+  'notFound.homeLink': 'Ir al inicio',
 };
 
 const zh: Dict = {
@@ -2277,6 +2289,10 @@ const zh: Dict = {
   'error.pageTitle': '出了点问题',
   'error.pageMessage': '发生了意外错误，请尝试刷新页面。',
   'error.tryAgain': '重试',
+
+  'notFound.title': '页面未找到',
+  'notFound.description': '此页面不存在或已被移动',
+  'notFound.homeLink': '返回首页',
 };
 
 export const dictionaries: Record<Locale, Dict> = { ru, en, zh, es };
