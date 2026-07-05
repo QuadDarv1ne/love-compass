@@ -185,9 +185,11 @@ export interface DatabaseAdapter {
   session: {
     create(data: Partial<DbSession>): Promise<DbSession>;
     findUnique(where: { token?: string; id?: string }, includeUser?: boolean): Promise<DbSession | (SessionWithUser) | null>;
+    findMany(where?: Record<string, unknown>, options?: { skip?: number; take?: number; orderBy?: Record<string, unknown>; select?: Record<string, boolean> }): Promise<DbSession[]>;
     update(where: { id: string }, data: Partial<DbSession>): Promise<DbSession>;
     delete(where: { id?: string; token?: string }): Promise<void>;
     deleteMany(where: Record<string, unknown>): Promise<number>;
+    count(where?: Record<string, unknown>): Promise<number>;
   };
 
   like: {

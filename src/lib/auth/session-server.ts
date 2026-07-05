@@ -1,6 +1,7 @@
 import { db, DbUser } from '@/lib/db';
 import { generateRandomToken } from '@/lib/auth/crypto';
 import { SESSION_MAX_AGE } from './session';
+import { SESSION } from '@/lib/constants';
 
 /**
  * Server-only session management functions.
@@ -19,6 +20,22 @@ export async function createSession(
   ipAddress?: string | null
 ) {
   const expiresAt = new Date(Date.now() + SESSION_MAX_AGE * 1000);
+
+  // Enforce max concurrent sessions per user — delete oldest if over limit
+  const sessionCount = await db.session.count({ userId });
+  if (sessionCount >= SESSION.MAX_CONCURRENT_PER_USER) {
+    const oldestSessions = await db.session.findMany({
+      userId,
+      orderBy: { createdAt: 'asc' },
+      take: sessionCount - SESSION.MAX_CONCURRENT_PER_USER + 1,
+      select: { id: true },
+    });
+    if (oldestSessions.length > 0) {
+      await db.session.deleteMany({
+        id: { in: oldestSessions.map((s: { id: string }) => s.id) },
+      });
+    }
+  }
 
   return db.session.create({
     token,

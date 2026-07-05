@@ -212,12 +212,12 @@
   background-clip: text;
 }
 
-/* Gradient background */
+/* Gradient background — matches bg-gradient-to-br from-rose-50 via-white to-pink-50 dark:...to-rose-950 */
 .gradient-bg {
-  background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 25%, #fce7f3 50%, #fbcfe8 75%, #fff1f2 100%);
+  background: linear-gradient(to bottom right, #fff1f2 0%, #ffffff 50%, #fdf2f8 100%);
 }
 .dark .gradient-bg {
-  background: linear-gradient(135deg, #1a0a10 0%, #2d1220 25%, #1a0a10 50%, #2d1220 75%, #1a0a10 100%);
+  background: linear-gradient(to bottom right, #111827 0%, #1f2937 50%, #4c0519 100%);
 }
 
 /* Chat bubble gradient */

@@ -8,7 +8,7 @@ export default function NotFound() {
   const { t } = useTranslation();
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-rose-50 via-white to-pink-50 dark:from-gray-900 dark:via-gray-800 dark:to-rose-950 p-4">
+    <div className="min-h-screen flex items-center justify-center gradient-bg p-4">
       <div className="text-center space-y-6 max-w-md">
         <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-rose-100 dark:bg-rose-900/30">
           <Heart className="w-10 h-10 text-rose-500" />

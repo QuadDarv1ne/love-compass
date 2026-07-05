@@ -174,6 +174,12 @@ export class PrismaAdapter implements DatabaseAdapter {
       return prisma.session.delete({ where: w }).then(() => {});
     },
 
+    findMany: (where?: Record<string, unknown>, options?: { skip?: number; take?: number; orderBy?: Record<string, unknown>; select?: Record<string, boolean> }) =>
+      prisma.session.findMany({ where: where as Prisma.SessionWhereInput, ...options }).then((arr) => arr.map(toDbSession)),
+
+    count: (where?: Record<string, unknown>) =>
+      prisma.session.count({ where: where as Prisma.SessionWhereInput }),
+
     deleteMany: (where: Record<string, unknown>) =>
       prisma.session.deleteMany({ where: where as Prisma.SessionWhereInput }).then((r) => r.count),
   };
@@ -488,6 +494,8 @@ export class PrismaAdapter implements DatabaseAdapter {
             if (where.id) w.id = where.id;
             return tx.session.delete({ where: w }).then(() => {});
           },
+          findMany: (where, options) => tx.session.findMany({ where: where as Prisma.SessionWhereInput, ...(options as Prisma.SessionFindManyArgs) }).then((arr) => arr.map(toDbSession)),
+          count: (where) => tx.session.count({ where: where as Prisma.SessionWhereInput }),
           deleteMany: (where) => tx.session.deleteMany({ where: where as Prisma.SessionWhereInput }).then((r) => r.count),
         },
         like: {

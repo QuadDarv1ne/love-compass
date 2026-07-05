@@ -270,6 +270,25 @@ export class MongoDBAdapter implements DatabaseAdapter {
       await this.db.collection<DbSession>(COLLECTIONS.sessions).deleteOne(query);
     },
 
+    findMany: async (where?: Record<string, unknown>, options?: { skip?: number; take?: number; orderBy?: Record<string, unknown>; select?: Record<string, boolean> }): Promise<DbSession[]> => {
+      let query = this.db.collection<DbSession>(COLLECTIONS.sessions).find(cleanWhere(where || {}));
+      if (options?.orderBy) {
+        query = query.sort(options.orderBy as Record<string, 1 | -1>);
+      }
+      if (options?.skip) {
+        query = query.skip(options.skip);
+      }
+      if (options?.take) {
+        query = query.limit(options.take);
+      }
+      const docs = await query.toArray();
+      return docs.map((doc) => stripId(doc) as DbSession);
+    },
+
+    count: async (where?: Record<string, unknown>): Promise<number> => {
+      return this.db.collection<DbSession>(COLLECTIONS.sessions).countDocuments(cleanWhere(where || {}));
+    },
+
     deleteMany: async (where: Record<string, unknown>): Promise<number> => {
       const result = await this.db.collection<DbSession>(COLLECTIONS.sessions).deleteMany(cleanWhere(where));
       return result.deletedCount;
@@ -849,6 +868,19 @@ class MongoDBAdapterForTransaction extends MongoDBAdapter {
         if (!result) throw new Error('Session not found');
         return stripId(result) as DbSession;
       },
+      findMany: async (where?: Record<string, unknown>, options?: { skip?: number; take?: number; orderBy?: Record<string, unknown>; select?: Record<string, boolean> }): Promise<DbSession[]> => {
+        let query = this._db.collection<DbSession>(COLLECTIONS.sessions).find(cleanWhere(where || {}), { session: this.txSession });
+        if (options?.orderBy) { query = query.sort(options.orderBy as Record<string, 1 | -1>); }
+        if (options?.skip) { query = query.skip(options.skip); }
+        if (options?.take) { query = query.limit(options.take); }
+        const docs = await query.toArray();
+        return docs.map((doc) => stripId(doc) as DbSession);
+      },
+
+      count: async (where?: Record<string, unknown>): Promise<number> => {
+        return this._db.collection<DbSession>(COLLECTIONS.sessions).countDocuments(cleanWhere(where || {}), { session: this.txSession });
+      },
+
       deleteMany: async (where: Record<string, unknown>): Promise<number> => {
         const result = await this._db.collection<DbSession>(COLLECTIONS.sessions).deleteMany(cleanWhere(where), { session: this.txSession });
         return result.deletedCount;
