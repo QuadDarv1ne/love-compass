@@ -92,6 +92,7 @@ const zh= {
   'common.confirm': '确认',
   'common.cancel': '取消',
   'common.close': '关闭',
+  'common.back': '返回',
   'common.previousPage': '上一页',
   'common.nextPage': '下一页',
   'verifyEmail.title': '验证邮箱',
@@ -301,6 +302,7 @@ const zh= {
   'profile.uploadError': '上传失败',
   'profile.deleteError': '删除失败',
   'profile.changePhoto': '更改',
+  'profile.premiumSubscription': '高级订阅',
 
   'likedYou.empty': '还没有人喜欢您',
   'likedYou.emptyDesc': '当有人对您表示兴趣时，您会在这里看到',
@@ -566,6 +568,24 @@ const zh= {
   'notFound.title': '页面未找到',
   'notFound.description': '此页面不存在或已被移动',
   'notFound.homeLink': '返回首页',
+
+  // Payment
+  'payment.title': '订阅支付',
+  'payment.selectPlan': '选择计划',
+  'payment.scanQR': '扫描二维码',
+  'payment.scanQRDesc': '打开您的银行应用扫描二维码通过SBP支付',
+  'payment.expiresIn': '{minutes}分钟后过期',
+  'payment.checkPayment': '检查支付',
+  'payment.processing': '处理中...',
+  'payment.checkingStatus': '正在检查支付状态...',
+  'payment.success': '支付成功！',
+  'payment.successDesc': '订阅已激活。感谢您的购买！',
+  'payment.error': '支付错误',
+  'payment.errorDesc': '无法处理支付。请重试。',
+  'payment.retry': '重试',
+  'payment.createError': '无法创建支付',
+  'payment.pending': '支付待处理',
+  'payment.securePayment': '通过SBP安全支付',
 };
 
 export default zh;

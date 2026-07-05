@@ -96,6 +96,7 @@ const ru= {
   'common.confirm': 'Подтвердить',
   'common.cancel': 'Отмена',
   'common.close': 'Закрыть',
+  'common.back': 'Назад',
   'common.previousPage': 'Предыдущая страница',
   'common.nextPage': 'Следующая страница',
   'verifyEmail.title': 'Подтвердите email',
@@ -310,6 +311,7 @@ const ru= {
   'profile.uploadError': 'Ошибка при загрузке',
   'profile.deleteError': 'Ошибка при удалении',
   'profile.changePhoto': 'Изменить',
+  'profile.premiumSubscription': 'Премиум подписка',
 
   // Liked You
   'likedYou.empty': 'Пока никто не лайкнул',
@@ -508,6 +510,24 @@ const ru= {
   'settings.accountDeletedDesc': 'Все ваши данные были удалены',
   'settings.deleteError': 'Ошибка при удалении',
   'settings.saveError': 'Не удалось сохранить настройку',
+
+  // Payment
+  'payment.title': 'Оплата подписки',
+  'payment.selectPlan': 'Выберите тарифный план',
+  'payment.scanQR': 'Отсканируйте QR-код',
+  'payment.scanQRDesc': 'Откройте приложение банка и отсканируйте код для оплаты через СБП',
+  'payment.expiresIn': 'Истекает через {minutes} мин',
+  'payment.checkPayment': 'Проверить оплату',
+  'payment.processing': 'Обработка...',
+  'payment.checkingStatus': 'Проверяем статус платежа...',
+  'payment.success': 'Оплата прошла успешно!',
+  'payment.successDesc': 'Подписка активирована. Спасибо за покупку!',
+  'payment.error': 'Ошибка оплаты',
+  'payment.errorDesc': 'Не удалось обработать платёж. Попробуйте ещё раз.',
+  'payment.retry': 'Повторить',
+  'payment.createError': 'Не удалось создать платёж',
+  'payment.pending': 'Ожидание оплаты',
+  'payment.securePayment': 'Безопасная оплата через СБП',
 
   // About
   'settings.about': 'О приложении',

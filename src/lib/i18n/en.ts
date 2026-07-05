@@ -92,6 +92,7 @@ const en= {
   'common.confirm': 'Confirm',
   'common.cancel': 'Cancel',
   'common.close': 'Close',
+  'common.back': 'Back',
   'common.previousPage': 'Previous page',
   'common.nextPage': 'Next page',
   'verifyEmail.title': 'Verify your email',
@@ -302,6 +303,7 @@ const en= {
   'profile.uploadError': 'Upload error',
   'profile.deleteError': 'Delete error',
   'profile.changePhoto': 'Change',
+  'profile.premiumSubscription': 'Premium Subscription',
 
   'likedYou.empty': 'No one has liked you yet',
   'likedYou.emptyDesc': 'When someone shows interest, you will see it here',
@@ -567,6 +569,24 @@ const en= {
   'notFound.title': 'Page not found',
   'notFound.description': 'This page does not exist or has been moved',
   'notFound.homeLink': 'Go home',
+
+  // Payment
+  'payment.title': 'Subscription Payment',
+  'payment.selectPlan': 'Choose a plan',
+  'payment.scanQR': 'Scan QR Code',
+  'payment.scanQRDesc': 'Open your banking app and scan the code to pay via SBP',
+  'payment.expiresIn': 'Expires in {minutes} min',
+  'payment.checkPayment': 'Check Payment',
+  'payment.processing': 'Processing...',
+  'payment.checkingStatus': 'Checking payment status...',
+  'payment.success': 'Payment Successful!',
+  'payment.successDesc': 'Subscription activated. Thank you for your purchase!',
+  'payment.error': 'Payment Error',
+  'payment.errorDesc': 'Failed to process payment. Please try again.',
+  'payment.retry': 'Retry',
+  'payment.createError': 'Failed to create payment',
+  'payment.pending': 'Payment Pending',
+  'payment.securePayment': 'Secure payment via SBP',
 };
 
 export default en;

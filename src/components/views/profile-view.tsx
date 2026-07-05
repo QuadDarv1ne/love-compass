@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import { useShallow } from 'zustand/react/shallow';
 import { toast } from 'sonner';
 import {
-  Heart, X, Star, LogOut, Edit3, MapPin, Zap, MessageSquare, Camera, Trash2, BadgeCheck,
+  Heart, X, Star, LogOut, Edit3, MapPin, Zap, MessageSquare, Camera, Trash2, BadgeCheck, Crown,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,6 +27,7 @@ import {
 import { useAppStore } from '@/lib/store';
 import { logger } from '@/lib/logger';
 import { useTranslation } from '@/hooks/useTranslation';
+import { PaymentModal } from '@/components/payment/payment-modal';
 
 export function ProfileView() {
   const { t } = useTranslation();
@@ -49,6 +50,7 @@ export function ProfileView() {
   const [interests, setInterests] = useState('');
   const [lookingFor, setLookingFor] = useState('all');
   const [uploading, setUploading] = useState(false);
+  const [showPayment, setShowPayment] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Sync form values with currentUser when editing
@@ -365,7 +367,17 @@ export function ProfileView() {
             </CardContent>
           )}
         </Card>
-        <Button onClick={logout} variant="outline" className="w-full border-rose-200 dark:border-rose-800 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 hover:text-rose-600 py-5 rounded-xl">
+
+        {/* Premium Subscription Button */}
+        <Button
+          onClick={() => setShowPayment(true)}
+          className="w-full bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 text-white py-5 rounded-xl mt-4 shadow-lg"
+        >
+          <Crown className="w-5 h-5 mr-2" />
+          {t('profile.premiumSubscription')}
+        </Button>
+
+        <Button onClick={logout} variant="outline" className="w-full border-rose-200 dark:border-rose-800 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 hover:text-rose-600 py-5 rounded-xl mt-3">
           <LogOut className="w-4 h-4 mr-2" />{t('profile.logoutButton')}
         </Button>
 
@@ -403,6 +415,9 @@ export function ProfileView() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Payment Modal */}
+        <PaymentModal isOpen={showPayment} onClose={() => setShowPayment(false)} />
       </div>
     </div>
   );
