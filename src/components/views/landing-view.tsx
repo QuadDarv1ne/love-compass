@@ -4,7 +4,7 @@ import React from 'react';
 import { SafeImage } from '@/components/ui/safe-image';
 import { motion } from 'framer-motion';
 import {
-  Heart, Compass, MessageCircle, Shield,
+  Heart, Compass, MessageCircle, Shield, Github, MessageCircle as MessageCircleIcon, Briefcase,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -237,6 +237,35 @@ export function LandingView() {
         <p className="text-xs text-muted-foreground mt-1">
           {t('footer.author')}
         </p>
+        <div className="flex items-center justify-center gap-4 mt-3">
+          <a
+            href="https://github.com/QuadDarv1ne"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-muted-foreground hover:text-rose-500 transition-colors"
+            aria-label="GitHub"
+          >
+            <Github className="w-4 h-4" />
+          </a>
+          <a
+            href="https://vk.com/maestro7it"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-muted-foreground hover:text-rose-500 transition-colors"
+            aria-label="VK"
+          >
+            <MessageCircleIcon className="w-4 h-4" />
+          </a>
+          <a
+            href="https://kwork.ru/user/dupley_mi"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-muted-foreground hover:text-rose-500 transition-colors"
+            aria-label="Kwork"
+          >
+            <Briefcase className="w-4 h-4" />
+          </a>
+        </div>
       </motion.footer>
     </div>
   );
