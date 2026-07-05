@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Smile } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from '@/hooks/useTranslation';
 import { ANIMATION, EMOJI } from '@/lib/constants';
 
 const POPULAR_EMOJIS = [
@@ -14,6 +15,7 @@ const POPULAR_EMOJIS = [
 ];
 
 export function EmojiPicker({ onSelect }: { onSelect: (emoji: string) => void }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
   return (
@@ -24,6 +26,7 @@ export function EmojiPicker({ onSelect }: { onSelect: (emoji: string) => void })
         size="icon"
         onClick={() => setOpen(!open)}
         className="text-amber-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/30 w-10 h-10 md:w-11 md:h-11 rounded-full flex-shrink-0"
+        aria-label={t('chat.openEmojiPicker')}
       >
         <Smile className="w-5 h-5" />
       </Button>

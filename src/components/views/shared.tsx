@@ -113,6 +113,7 @@ export function DarkModeToggle() {
       size="icon"
       onClick={cycleTheme}
       title={tooltipLabel}
+      aria-label={tooltipLabel}
       className="text-rose-500 hover:text-rose-600 hover:bg-rose-100 dark:hover:bg-rose-900/30 rounded-full"
     >
       {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}

@@ -106,6 +106,7 @@ export function AvatarUpload({ currentAvatar, userId: _userId, userName }: Avata
             onClick={handleClick}
             className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
             disabled={uploading}
+            aria-label={t('profile.changePhoto')}
           >
             <Camera className="w-6 h-6 text-white" />
           </button>

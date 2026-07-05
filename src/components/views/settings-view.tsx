@@ -53,6 +53,7 @@ import { fetchWithCSRF, deleteWithCSRF } from '@/lib/api';
 import { AvatarUpload } from '@/components/ui/avatar-upload';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useConfirm } from '@/components/ui/confirm-dialog';
+import { formatFullDate } from '@/lib/date-utils';
 import { LOCALE_FLAGS, LOCALE_NAMES, SUPPORTED_LOCALES, type Locale } from '@/lib/i18n';
 
 const QRCode = dynamic(() => import('qrcode.react').then((m) => ({ default: m.QRCodeCanvas })), { ssr: false });
@@ -379,18 +380,7 @@ export function SettingsView() {
     }
   };
 
-  const formatCreatedDate = (dateStr?: string) => {
-    if (!dateStr) return '—';
-    try {
-      return new Intl.DateTimeFormat(language === 'zh' ? 'zh-CN' : language === 'en' ? 'en-US' : 'ru-RU', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-      }).format(new Date(dateStr));
-    } catch {
-      return dateStr;
-    }
-  };
+  const fmtCreatedDate = (dateStr?: string) => dateStr ? formatFullDate(dateStr, language) : '—';
 
   const currentTheme = theme ?? 'system';
   const actualTheme = resolvedTheme ?? 'light';
@@ -743,7 +733,7 @@ export function SettingsView() {
                 <div className="min-w-0">
                   <p className="text-xs text-muted-foreground">{t('settings.memberSince')}</p>
                   <p className="text-sm font-medium">
-                    {formatCreatedDate(currentUser?.createdAt)}
+                    {fmtCreatedDate(currentUser?.createdAt)}
                   </p>
                 </div>
               </div>

@@ -118,6 +118,7 @@ export const RATE_LIMITS = {
   CSRF_TOKEN: { MAX: 30, WINDOW: 60 },
   DEMO_LOGIN: { MAX: 10, WINDOW: 300 },
   VERIFY_EMAIL_RESEND: { MAX: 3, WINDOW: 300 },
+  RESET_PASSWORD: { MAX: 5, WINDOW: 3600 },
 } as const;
 
 export const TOTP = {

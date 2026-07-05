@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, Crown, TrendingUp, UserPlus, MapPin, Sparkles } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -249,6 +249,8 @@ function RankedListRow({
     </motion.div>
   );
 }
+
+const MemoizedRankedListRow = memo(RankedListRow);
 
 export function TopView() {
   const currentUser = useAppStore(useShallow((s) => s.currentUser));
@@ -603,7 +605,7 @@ function LeaderboardContent({
               <div className="p-2 space-y-1">
                 <AnimatePresence mode="popLayout">
                   {rest.map((ranked, idx) => (
-                    <RankedListRow
+                    <MemoizedRankedListRow
                       key={`${sortKey}-${ranked.id}`}
                       ranked={ranked}
                       rank={idx + 4}

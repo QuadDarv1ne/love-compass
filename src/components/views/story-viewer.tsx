@@ -345,6 +345,7 @@ export function StoryViewer({
                   whileTap={{ scale: 0.85 }}
                   onClick={handleComment}
                   className="absolute right-1.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white/30 flex items-center justify-center text-white"
+                  aria-label={t('moments.sendComment')}
                 >
                   <Send className="w-3.5 h-3.5" />
                 </motion.button>

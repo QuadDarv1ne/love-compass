@@ -30,7 +30,7 @@ export async function GET() {
       remaining: Math.max(0, SUPER_LIKE_DAILY_LIMIT - count),
       limit: SUPER_LIKE_DAILY_LIMIT,
       resetsAt: endOfDay.toISOString(),
-    });
+    }, { headers: { 'Cache-Control': 'private, max-age=300, stale-while-revalidate=600' } });
   } catch (error) {
     logger.error('/api/superlike/status', 'Failed to fetch super like status', error);
     return NextResponse.json({ error: 'Failed to fetch super like status' }, { status: 500 });

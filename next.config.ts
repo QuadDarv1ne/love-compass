@@ -17,6 +17,9 @@ const cspValue = [
 const nextConfig: NextConfig = {
   output: "standalone",
   reactStrictMode: true,
+  compiler: {
+    removeConsole: !isDev,
+  },
   images: {
     deviceSizes: [375, 640, 768, 1024, 1280, 1536],
     formats: ['image/webp'],

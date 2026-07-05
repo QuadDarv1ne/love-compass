@@ -35,7 +35,7 @@ export async function GET(request: Request) {
     if (!rateLimit.allowed) {
       return NextResponse.json(
         { error: 'Too many requests, try again later' },
-        { status: 429 }
+        { status: 429, headers: { 'Cache-Control': 'no-store' } }
       );
     }
 
@@ -75,7 +75,7 @@ export async function GET(request: Request) {
           total: totalUsers,
           totalPages: Math.ceil(totalUsers / limit),
         },
-      });
+      }, { headers: { 'Cache-Control': 'public, max-age=30, stale-while-revalidate=120' } });
     }
 
     // For 'popular' and 'active' sorts we need score-based ranking.
@@ -148,7 +148,7 @@ export async function GET(request: Request) {
         total: cappedTotal,
         totalPages: Math.ceil(cappedTotal / limit),
       },
-    });
+    }, { headers: { 'Cache-Control': 'public, max-age=30, stale-while-revalidate=120' } });
   } catch (error) {
     if (isZodError(error)) {
       return NextResponse.json({ error: 'Invalid query parameters', details: error.issues }, { status: 400 });

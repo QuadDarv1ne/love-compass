@@ -22,7 +22,7 @@ export async function GET() {
     return NextResponse.json({
       unlocked: achievements.map((a) => a.achievementId),
       details: achievements,
-    });
+    }, { headers: { 'Cache-Control': 'private, max-age=60, stale-while-revalidate=300' } });
   } catch (error) {
     logger.error('/api/achievements', 'GET error', error);
     return NextResponse.json({ error: 'Failed to fetch achievements' }, { status: 500 });

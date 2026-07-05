@@ -262,6 +262,7 @@ export function ProfileView() {
                   size="icon"
                   className="bg-white/20 backdrop-blur-sm hover:bg-red-500/40 text-white rounded-full disabled:opacity-50"
                   title={t('profile.deleteAvatar')}
+                  aria-label={t('profile.deleteAvatar')}
                 >
                   <Trash2 className="w-5 h-5" />
                 </Button>
@@ -273,6 +274,7 @@ export function ProfileView() {
                 size="icon"
                 className="bg-white/20 backdrop-blur-sm hover:bg-white/40 text-white rounded-full disabled:opacity-50"
                 title={t('profile.uploadPhoto')}
+                aria-label={t('profile.uploadPhoto')}
               >
                 {uploading ? (
                   <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
@@ -282,7 +284,7 @@ export function ProfileView() {
                   <Camera className="w-5 h-5" />
                 )}
               </Button>
-              <Button onClick={() => editing ? stopEditing() : startEditing()} variant="ghost" size="icon" className="bg-white/20 backdrop-blur-sm hover:bg-white/40 text-white rounded-full">
+              <Button onClick={() => editing ? stopEditing() : startEditing()} variant="ghost" size="icon" className="bg-white/20 backdrop-blur-sm hover:bg-white/40 text-white rounded-full" title={t('profile.edit')} aria-label={t('profile.edit')}>
                 <Edit3 className="w-5 h-5" />
               </Button>
             </div>

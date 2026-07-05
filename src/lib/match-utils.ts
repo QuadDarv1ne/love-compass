@@ -1,4 +1,5 @@
 import type { User, MatchWithUsers } from '@/lib/store';
+import { formatChatDate, formatTime } from '@/lib/date-utils';
 
 export function getPartner(match: MatchWithUsers, currentUser: User | null): User | null {
   if (!match.user1 || !match.user2) return null;
@@ -17,17 +18,12 @@ export function getLastMessage(match: MatchWithUsers, currentUser: User | null, 
 
 export function formatMessageDate(dateStr: string, language: string, yesterdayLabel?: string): string {
   if (!dateStr) return '';
-  const date = new Date(dateStr);
   const today = new Date();
+  const date = new Date(dateStr);
   if (date.toDateString() === today.toDateString()) {
-    return date.toLocaleTimeString(language || 'ru', { hour: '2-digit', minute: '2-digit' });
+    return formatTime(dateStr, language || 'ru');
   }
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
-  if (date.toDateString() === yesterday.toDateString()) {
-    return yesterdayLabel || date.toLocaleTimeString(language || 'ru', { hour: '2-digit', minute: '2-digit' });
-  }
-  return date.toLocaleDateString(language || 'ru', { day: 'numeric', month: 'short' });
+  return formatChatDate(dateStr, language || 'ru', undefined, yesterdayLabel);
 }
 
 export function filterValidMatches(matches: MatchWithUsers[]): MatchWithUsers[] {

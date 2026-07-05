@@ -380,6 +380,20 @@ export function BrowseView() {
     setDragX(info.offset.x);
   };
 
+  const handleSwipeKeyDown = (e: React.KeyboardEvent) => {
+    if (!currentProfile) return;
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      handleLike(currentProfile);
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      handleDislike(currentProfile);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      handleSuperLike(currentProfile);
+    }
+  };
+
   const handleDragEnd = (profile: User, _e: unknown, info: { offset: { x: number } }) => {
     const dragDistance = Math.abs(info.offset.x);
 
@@ -443,12 +457,13 @@ export function BrowseView() {
                 onClick={handleUndo}
                 className="text-amber-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/30"
                 title={t('browse.undo')}
+                aria-label={t('browse.undo')}
               >
                 <Undo2 className="w-5 h-5" />
               </Button>
             </motion.div>
           )}
-          <Button variant="ghost" size="sm" onClick={() => setShowFilters(!showFilters)} className="relative text-rose-500 hover:text-rose-600 hover:bg-rose-100 dark:hover:bg-rose-900/30">
+          <Button variant="ghost" size="sm" onClick={() => setShowFilters(!showFilters)} className="relative text-rose-500 hover:text-rose-600 hover:bg-rose-100 dark:hover:bg-rose-900/30" aria-label={t('browse.filter')}>
             <SlidersHorizontal className="w-4 h-4" />
             {activeFilterCount > 0 && (
               <span className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white text-[10px] rounded-full flex items-center justify-center">{activeFilterCount}</span>
@@ -532,6 +547,10 @@ export function BrowseView() {
           onDragEnd={(_, info) => handleDragEnd(currentProfile, _, info)}
           whileDrag={{ cursor: 'grabbing', boxShadow: '0 30px 60px rgba(0,0,0,0.3)' }}
           className="w-full max-w-sm md:max-w-md relative touch-none z-10"
+          tabIndex={0}
+          role="region"
+          aria-label={t('browse.profileCard', { name: currentProfile.name })}
+          onKeyDown={handleSwipeKeyDown}
           style={{
             filter: dragX ? `brightness(${1 - Math.abs(dragX) * 0.0003})` : undefined,
             boxShadow: dragX

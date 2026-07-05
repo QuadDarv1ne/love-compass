@@ -252,6 +252,7 @@ export function AdminView() {
                         onClick={() => toggleUserRole(user.id)}
                         className="p-1.5 rounded-lg text-muted-foreground hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors"
                         title={user.role === 'admin' ? 'Demote to user' : 'Promote to admin'}
+                        aria-label={user.role === 'admin' ? 'Demote to user' : 'Promote to admin'}
                       >
                         <UserCog className="w-4 h-4" />
                       </motion.button>
@@ -261,6 +262,7 @@ export function AdminView() {
                         onClick={() => toggleUserProfileVisible(user.id)}
                         className="p-1.5 rounded-lg text-muted-foreground hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors"
                         title={user.profileVisible ? 'Hide profile' : 'Show profile'}
+                        aria-label={user.profileVisible ? 'Hide profile' : 'Show profile'}
                       >
                         {user.profileVisible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                       </motion.button>
@@ -279,6 +281,7 @@ export function AdminView() {
                         }}
                         className="p-1.5 rounded-lg text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                         title={t('admin.deleteUser')}
+                        aria-label={t('admin.deleteUser')}
                       >
                         <Trash2 className="w-4 h-4" />
                       </motion.button>
@@ -296,6 +299,7 @@ export function AdminView() {
                     onClick={() => setAdminPage(Math.max(1, adminPage - 1))}
                     disabled={adminPage <= 1}
                     className="text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-900/30"
+                    aria-label={t('common.previousPage')}
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </Button>
@@ -308,6 +312,7 @@ export function AdminView() {
                     onClick={() => setAdminPage(Math.min(totalPages, adminPage + 1))}
                     disabled={adminPage >= totalPages}
                     className="text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-900/30"
+                    aria-label={t('common.nextPage')}
                   >
                     <ChevronRight className="w-4 h-4" />
                   </Button>

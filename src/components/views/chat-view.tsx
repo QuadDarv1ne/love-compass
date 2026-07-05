@@ -15,6 +15,7 @@ import { logger } from '@/lib/logger';
 import { AUTO_REPLY, ANIMATION, AVATAR_BASE_URL, CHAT } from '@/lib/constants';
 import { useTranslation } from '@/hooks/useTranslation';
 import { EmojiPicker } from './emoji-picker';
+import { formatTime, formatChatDate } from '@/lib/date-utils';
 
 const IS_DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
 
@@ -319,22 +320,8 @@ export function ChatView() {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
   };
 
-  const formatTime = (dateStr: string) => {
-    const date = new Date(dateStr);
-    const lang = useAppStore.getState().language || 'ru';
-    return date.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' });
-  };
-
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    const lang = useAppStore.getState().language || 'ru';
-    const today = new Date();
-    if (date.toDateString() === today.toDateString()) return t('chat.today');
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    if (date.toDateString() === yesterday.toDateString()) return t('chat.yesterday');
-    return date.toLocaleDateString(lang, { day: 'numeric', month: 'long' });
-  };
+  const fmtTime = (dateStr: string) => formatTime(dateStr, useAppStore.getState().language || 'ru');
+  const fmtDate = (dateStr: string) => formatChatDate(dateStr, useAppStore.getState().language || 'ru', t('chat.today'), t('chat.yesterday'));
 
   // Filter messages by search query
   const filteredMessages = useMemo(() => {
@@ -383,7 +370,7 @@ export function ChatView() {
     <div className="flex-1 flex flex-col h-full">
       {/* Chat Header */}
       <div className="flex items-center gap-3 p-3 md:p-4 border-b border-rose-100 dark:border-rose-900/50 bg-card/80 backdrop-blur-sm">
-        <Button variant="ghost" size="icon" onClick={() => navigateTo('matches')} className="text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-900/30 md:hidden">
+        <Button variant="ghost" size="icon" onClick={() => navigateTo('matches')} className="text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-900/30 md:hidden" aria-label={t('chat.backToMatches')}>
           <ChevronLeft className="w-5 h-5" />
         </Button>
         <div className="relative">
@@ -412,7 +399,7 @@ export function ChatView() {
             <span className="text-green-500">{t('chat.online')}</span>
           ) : (partner.city || t('chat.offline'))}</p>
         </div>
-        <Button variant="ghost" size="icon" onClick={() => navigateTo('matches')} className="text-rose-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/30 hidden md:flex">
+        <Button variant="ghost" size="icon" onClick={() => navigateTo('matches')} className="text-rose-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/30 hidden md:flex" aria-label={t('chat.backToMatches')}>
           <ChevronLeft className="w-5 h-5" />
         </Button>
       </div>
@@ -430,6 +417,7 @@ export function ChatView() {
             <button
               onClick={() => setMessageSearch('')}
               className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-rose-500"
+              aria-label={t('chat.clearSearch')}
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -471,7 +459,7 @@ export function ChatView() {
             {/* Date separator */}
             <div className="flex justify-center">
               <span className="bg-card/80 dark:bg-card text-xs text-muted-foreground px-3 py-1 rounded-full border border-rose-100 dark:border-rose-900/50">
-                {formatDate(group.date)}
+                {fmtDate(group.date)}
               </span>
             </div>
             {group.messages.map((msg) => {
@@ -503,7 +491,7 @@ export function ChatView() {
                       {msg.content}
                     </div>
                     <div className={`text-[10px] text-muted-foreground mt-1 flex items-center gap-1 ${isMine ? 'justify-end' : 'justify-start'}`}>
-                      {formatTime(msg.createdAt)}
+                      {fmtTime(msg.createdAt)}
                       {isMine && (
                         <CheckCheck className="w-3 h-3 text-rose-400" />
                       )}
@@ -554,6 +542,7 @@ export function ChatView() {
               disabled={!newMessage.trim() || sending}
               size="icon"
               className="w-10 h-10 md:w-11 md:h-11 rounded-full bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white shadow-md disabled:opacity-40 flex-shrink-0"
+              aria-label={t('chat.send')}
             >
               <Send className="w-4 h-4 md:w-5 md:h-5" />
             </Button>

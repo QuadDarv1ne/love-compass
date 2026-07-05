@@ -39,8 +39,8 @@ export async function POST(request: Request) {
     // Rate limit: prevent brute-force attacks on reset tokens
     const rateLimit = await checkRateLimit(
       `reset-use:${token.slice(0, 10)}`,
-      RATE_LIMITS.FORGOT_PASSWORD.MAX,
-      RATE_LIMITS.FORGOT_PASSWORD.WINDOW,
+      RATE_LIMITS.RESET_PASSWORD.MAX,
+      RATE_LIMITS.RESET_PASSWORD.WINDOW,
     );
     if (!rateLimit.allowed) {
       return NextResponse.json(

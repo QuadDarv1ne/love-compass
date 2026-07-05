@@ -97,13 +97,13 @@ export async function GET(_request: Request) {
 
     const now = Date.now();
     if (cachedStats && cachedStats.expiresAt > now) {
-      return NextResponse.json({ data: cachedStats.data });
+      return NextResponse.json({ data: cachedStats.data }, { headers: { 'Cache-Control': 'private, max-age=60' } });
     }
 
     const data = await computeStats();
     cachedStats = { data, expiresAt: now + STATS_CACHE_TTL_MS };
 
-    return NextResponse.json({ data });
+    return NextResponse.json({ data }, { headers: { 'Cache-Control': 'private, max-age=60' } });
   } catch (error) {
     logger.error('/api/admin/stats', 'Admin stats error', error);
     return NextResponse.json({ error: 'Failed to fetch stats' }, { status: 500 });

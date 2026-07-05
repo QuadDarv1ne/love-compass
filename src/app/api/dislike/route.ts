@@ -80,7 +80,7 @@ export async function GET() {
     const dislikes = await db.dislike.findMany({ fromUserId: user.id });
     const dislikedIds = dislikes.map((d) => d.toUserId);
 
-    return NextResponse.json({ data: dislikedIds });
+    return NextResponse.json({ data: dislikedIds }, { headers: { 'Cache-Control': 'private, max-age=30, stale-while-revalidate=120' } });
   } catch (error) {
     logger.error('/api/dislike', 'Failed to fetch dislikes', error);
     return NextResponse.json({ error: 'Failed to fetch dislikes' }, { status: 500 });

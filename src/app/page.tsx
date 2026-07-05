@@ -13,7 +13,6 @@ import { Separator } from '@/components/ui/separator';
 import { useTranslation } from '@/hooks/useTranslation';
 
 // Dynamic imports for route-level code splitting
-const LandingView = lazy(() => import('@/components/views/landing-view').then((m) => ({ default: m.LandingView })));
 const BrowseView = lazy(() => import('@/components/views/browse-view').then((m) => ({ default: m.BrowseView })));
 const MatchesView = lazy(() => import('@/components/views/matches-view').then((m) => ({ default: m.MatchesView })));
 const ChatListView = lazy(() => import('@/components/views/matches-view').then((m) => ({ default: m.ChatListView })));
@@ -25,6 +24,9 @@ const TopView = lazy(() => import('@/components/views/top-view').then((m) => ({ 
 const SettingsView = lazy(() => import('@/components/views/settings-view').then((m) => ({ default: m.SettingsView })));
 const AchievementsView = lazy(() => import('@/components/views/achievements-view').then((m) => ({ default: m.AchievementsView })));
 const AdminView = lazy(() => import('@/components/views/admin-view').then((m) => ({ default: m.AdminView })));
+
+// LandingView is imported directly (not lazy) since it's the initial view
+import { LandingView } from '@/components/views/landing-view';
 
 export default function HomePage() {
   const { currentView, matches, likedYouCount, viewDirection, authStatus, checkAuth, showMatchAnimation, currentUser } = useAppStore(
