@@ -58,6 +58,7 @@ export default async function RootLayout({
     <html lang={lang} suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.json" />
+        <link rel="preconnect" href="https://api.dicebear.com" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </head>

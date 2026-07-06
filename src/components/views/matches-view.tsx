@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { memo, useState, useEffect } from 'react';
 import { SafeImage } from '@/components/ui/safe-image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useShallow } from 'zustand/react/shallow';
@@ -9,11 +9,45 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { SkeletonMatchCard } from '@/components/ui/skeleton';
-import { useAppStore, type MatchWithUsers } from '@/lib/store';
+import { useAppStore, type MatchWithUsers, type User } from '@/lib/store';
 import { getPartner, getLastMessage, filterValidMatches, formatMessageDate } from '@/lib/match-utils';
 import { OnlineIndicator } from './shared';
 import { AVATAR_BASE_URL } from '@/lib/constants';
 import { useTranslation } from '@/hooks/useTranslation';
+
+const MatchCard = memo(function MatchCard({ match, currentUser, unreadMatchIds, onOpen, transitionDelay, t: translate }: {
+  match: MatchWithUsers;
+  currentUser: User | null;
+  unreadMatchIds: string[];
+  onOpen: (match: MatchWithUsers) => void;
+  transitionDelay?: number;
+  t: (key: string, params?: Record<string, string | number>) => string;
+}) {
+  const partner = getPartner(match, currentUser);
+  if (!partner) return null;
+  const isUnread = unreadMatchIds.includes(match.id);
+  const lastMsg = getLastMessage(match, currentUser, translate('matches.youPrefix')) || translate('matches.startChat');
+  return (
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: transitionDelay }}>
+      <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => onOpen(match)} className="cursor-pointer">
+        <Card className="overflow-hidden border-rose-100 dark:border-rose-900/50 shadow-md hover:shadow-xl transition-shadow rounded-2xl bg-card">
+          <div className="relative aspect-square">
+            <SafeImage src={partner.avatar || `${AVATAR_BASE_URL}?seed=Default`} alt={partner.name} fill sizes="(max-width: 768px) 50vw, 250px" className="object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+            <OnlineIndicator userId={partner.id} size="md" />
+            {isUnread && (
+              <span className="absolute top-2 right-2 w-3 h-3 bg-red-500 rounded-full border border-white dark:border-card" />
+            )}
+            <div className="absolute bottom-0 left-0 right-0 p-3">
+              <h3 className="text-white font-semibold text-sm truncate">{partner.name}, {partner.age}</h3>
+              <p className="text-white/70 text-xs truncate">{lastMsg}</p>
+            </div>
+          </div>
+        </Card>
+      </motion.div>
+    </motion.div>
+  );
+});
 
 export function MatchesView() {
   const { t } = useTranslation();
@@ -95,35 +129,17 @@ export function MatchesView() {
       <h2 className="text-xl font-bold text-rose-700 dark:text-rose-300 mb-4 md:mb-6">{t('matches.yourMatches')}</h2>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
         <AnimatePresence>
-          {validMatches.map((match, idx) => {
-            const partner = getPartner(match, currentUser);
-            // Safety guard — should never be null after filter, but prevent crash
-            if (!partner) return null;
-            const isUnread = unreadMatchIds.includes(match.id);
-            const lastMsg = getLastMessage(match, currentUser, t('matches.youPrefix')) || t('matches.startChat');
-            return (
-              <motion.div key={match.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }}>
-                <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => openChat(match)} className="cursor-pointer">
-                  <Card className="overflow-hidden border-rose-100 dark:border-rose-900/50 shadow-md hover:shadow-xl transition-shadow rounded-2xl bg-card">
-                    <div className="relative aspect-square">
-                      <SafeImage src={partner.avatar || `${AVATAR_BASE_URL}?seed=Default`} alt={partner.name} fill sizes="(max-width: 768px) 50vw, 250px" className="object-cover" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                      {/* Online indicator */}
-                      <OnlineIndicator userId={partner.id} size="md" />
-                      {/* Unread dot */}
-                      {isUnread && (
-                        <span className="absolute top-2 right-2 w-3 h-3 bg-red-500 rounded-full border border-white dark:border-card" />
-                      )}
-                      <div className="absolute bottom-0 left-0 right-0 p-3">
-                        <h3 className="text-white font-semibold text-sm truncate">{partner.name}, {partner.age}</h3>
-                        <p className="text-white/70 text-xs truncate">{lastMsg}</p>
-                      </div>
-                    </div>
-                  </Card>
-                </motion.div>
-              </motion.div>
-            );
-          })}
+          {validMatches.map((match, idx) => (
+            <MatchCard
+              key={match.id}
+              match={match}
+              currentUser={currentUser}
+              unreadMatchIds={unreadMatchIds}
+              onOpen={openChat}
+              transitionDelay={idx * 0.05}
+              t={t}
+            />
+          ))}
         </AnimatePresence>
       </div>
     </div>
