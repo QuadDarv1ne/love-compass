@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useTranslation } from '@/hooks/useTranslation';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -65,7 +66,7 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
       setQrData(data.qrCode);
       setPaymentId(data.paymentId);
     } catch (error) {
-      console.error('Payment error:', error);
+      logger.error('PaymentModal', 'create payment error', error);
       setPaymentStep('error');
       toast.error(t('payment.createError'));
     }
@@ -88,7 +89,7 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
         toast.info(t('payment.pending'));
       }
     } catch (error) {
-      console.error('Check payment error:', error);
+      logger.error('PaymentModal', 'check payment error', error);
       setPaymentStep('error');
     }
   };

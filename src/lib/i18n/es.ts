@@ -186,6 +186,7 @@ const es= {
   'browse.reportSentDesc': 'Revisaremos tu denuncia',
   'browse.reportError': 'Error al enviar denuncia',
   'browse.loadMore': 'Cargar más',
+  'browse.profileCard': 'Perfil de {name}. Usa las flechas: izquierda para saltar, derecha para like, arriba para super like',
   'matches.newWithName': '¡Nuevo match con {name}!',
   'common.retry': 'Inténtalo de nuevo',
   'common.someDataNotLoaded': 'Algunos datos no se cargaron',

@@ -188,6 +188,7 @@ const zh= {
   'browse.reportSentDesc': '我们将审核您的举报',
   'browse.reportError': '发送举报失败',
   'browse.loadMore': '加载更多',
+  'browse.profileCard': '{name}的个人资料。使用方向键：左键跳过，右键喜欢，上键超级喜欢',
   'matches.newWithName': '与 {name} 的新匹配！',
   'common.retry': '请重试',
   'common.someDataNotLoaded': '部分数据加载失败',
