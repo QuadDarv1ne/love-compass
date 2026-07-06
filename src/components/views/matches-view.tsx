@@ -106,7 +106,7 @@ export function MatchesView() {
                 <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => openChat(match)} className="cursor-pointer">
                   <Card className="overflow-hidden border-rose-100 dark:border-rose-900/50 shadow-md hover:shadow-xl transition-shadow rounded-2xl bg-card">
                     <div className="relative aspect-square">
-                      <SafeImage src={partner.avatar || `${AVATAR_BASE_URL}?seed=Default`} alt={partner.name} fill className="object-cover" />
+                      <SafeImage src={partner.avatar || `${AVATAR_BASE_URL}?seed=Default`} alt={partner.name} fill sizes="(max-width: 768px) 50vw, 250px" className="object-cover" />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                       {/* Online indicator */}
                       <OnlineIndicator userId={partner.id} size="md" />

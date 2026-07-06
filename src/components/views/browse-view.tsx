@@ -519,6 +519,7 @@ export function BrowseView() {
                     src={filteredProfiles[1]!.avatar || `${AVATAR_BASE_URL}?seed=Default`}
                     alt=""
                     fill
+                    sizes="(max-width: 768px) 100vw, 450px"
                     className="object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
@@ -560,7 +561,7 @@ export function BrowseView() {
         >
           <Card className="overflow-hidden border-0 shadow-2xl rounded-3xl bg-card">
             <div className="relative aspect-[3/4] overflow-hidden rounded-3xl">
-              <SafeImage src={currentProfile.avatar || `${AVATAR_BASE_URL}?seed=Default`} alt={currentProfile.name} fill className="object-cover" priority />
+              <SafeImage src={currentProfile.avatar || `${AVATAR_BASE_URL}?seed=Default`} alt={currentProfile.name} fill sizes="(max-width: 768px) 100vw, 450px" className="object-cover" priority />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
               {/* Swipe labels during drag */}
               {dragX > SWIPE.LABEL_THRESHOLD && (

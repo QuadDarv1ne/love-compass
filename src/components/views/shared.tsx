@@ -177,7 +177,7 @@ export function AvatarPicker({ selected, onSelect }: { selected: string; onSelec
               selected === avatar ? 'border-rose-500 ring-2 ring-rose-300 scale-105' : 'border-rose-200 hover:border-rose-300'
             }`}
           >
-            <SafeImage src={avatar} alt="avatar" fill className="object-cover" />
+            <SafeImage src={avatar} alt="avatar" fill sizes="96px" className="object-cover" />
             {selected === avatar && (
               <div className="absolute inset-0 bg-rose-500/20 flex items-center justify-center">
                 <Heart className="w-5 h-5 text-white fill-white drop-shadow" />

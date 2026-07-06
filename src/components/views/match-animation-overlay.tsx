@@ -100,13 +100,13 @@ export function MatchAnimationOverlay() {
           className="flex justify-center items-center gap-4 mb-8"
         >
           <div className="relative w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden border-4 border-white shadow-lg">
-            <SafeImage src={currentUser.avatar || `${AVATAR_BASE_URL}?seed=Default`} alt={currentUser.name} fill className="object-cover" />
+            <SafeImage src={currentUser.avatar || `${AVATAR_BASE_URL}?seed=Default`} alt={currentUser.name} fill sizes="96px" className="object-cover" />
           </div>
           <div className="match-pulse">
             <Heart className="w-10 h-10 fill-white text-white" />
           </div>
           <div className="relative w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden border-4 border-white shadow-lg">
-            <SafeImage src={matchAnimationPartner.avatar || `${AVATAR_BASE_URL}?seed=Default`} alt={matchAnimationPartner.name} fill className="object-cover" />
+            <SafeImage src={matchAnimationPartner.avatar || `${AVATAR_BASE_URL}?seed=Default`} alt={matchAnimationPartner.name} fill sizes="96px" className="object-cover" />
           </div>
         </motion.div>
 
