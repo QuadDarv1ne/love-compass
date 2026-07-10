@@ -5,8 +5,8 @@ meta:
     version: 20
 
 build:
-  additionalCommands: mkdir -p db && npx prisma generate && npx prisma db push && npm run build && cp -r .next/static .next/standalone/.next/static && cp -r public .next/standalone/public
+  additionalCommands: echo 'DATABASE_URL=file:./db/custom.db' > .env && echo 'JWT_SECRET=amvera-production-secret-change-me' >> .env && mkdir -p db && npx prisma generate && npx prisma db push && npm run build && cp -r .next/static .next/standalone/.next/static && cp -r public .next/standalone/public && cp .env .next/standalone/.env
 
 run:
-  command: npm run start
+  command: NODE_ENV=production DATABASE_URL=file:./db/custom.db JWT_SECRET=amvera-production-secret-change-me node .next/standalone/server.js
   containerPort: 3000
