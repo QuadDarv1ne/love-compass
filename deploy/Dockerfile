@@ -11,7 +11,7 @@ FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN bun run build
+RUN mkdir -p db && npx prisma generate && npx prisma db push && bun run build
 
 # Stage 3: Production runner
 FROM base AS runner

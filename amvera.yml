@@ -5,7 +5,7 @@ meta:
     version: 20
 
 build:
-  additionalCommands: npm run build && cp -r .next/static .next/standalone/.next/static && cp -r public .next/standalone/public
+  additionalCommands: mkdir -p db && npx prisma generate && npx prisma db push && npm run build && cp -r .next/static .next/standalone/.next/static && cp -r public .next/standalone/public
 
 run:
   command: npm run start
