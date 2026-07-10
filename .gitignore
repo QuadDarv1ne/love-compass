@@ -58,6 +58,9 @@ traefik/acme.json
 # IDE
 .vscode/
 
+# MiMoCode
+.mimocode/
+
 # Uploaded files (keep directory structure)
 /public/uploads/avatars/*
 !/public/uploads/avatars/.gitkeep
