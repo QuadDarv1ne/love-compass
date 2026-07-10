@@ -9,55 +9,54 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useTranslation } from '@/hooks/useTranslation';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
+import { fetchWithCSRF, fetchWithTimeout } from '@/lib/api';
 
 interface PaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const PRICING_PLANS = [
-  {
-    id: 'basic',
-    name: 'Базовый',
-    price: 299,
-    duration: 'месяц',
-    features: ['Неограниченные лайки', 'Просмотр кто лайкнул', '5 суперлайков в день'],
-  },
-  {
-    id: 'premium',
-    name: 'Премиум',
-    price: 799,
-    duration: 'месяц',
-    features: ['Все функции Базового', 'Приоритет в поиске', 'Без рекламы', 'Расширенные фильтры'],
-  },
-  {
-    id: 'yearly',
-    name: 'Годовой',
-    price: 4999,
-    duration: 'год',
-    features: ['Все функции Премиум', 'Экономия 45%', 'Персональный менеджер', 'Эксклюзивные стикеры'],
-  },
-];
-
 export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
   const { t } = useTranslation();
-  const [selectedPlan, setSelectedPlan] = useState(PRICING_PLANS[0]);
+  const [selectedPlanId, setSelectedPlanId] = useState<string>('basic');
   const [paymentStep, setPaymentStep] = useState<'select' | 'qr' | 'processing' | 'success' | 'error'>('select');
   const [qrData, setQrData] = useState<string | null>(null);
   const [paymentId, setPaymentId] = useState<string | null>(null);
 
+  const PRICING_PLANS = [
+    {
+      id: 'basic',
+      name: t('payment.planBasic'),
+      price: 299,
+      duration: t('payment.durationMonth'),
+      features: [t('payment.featureUnlimitedLikes'), t('payment.featureViewLikes'), t('payment.featureSuperLikes5')],
+    },
+    {
+      id: 'premium',
+      name: t('payment.planPremium'),
+      price: 799,
+      duration: t('payment.durationMonth'),
+      features: [t('payment.featureAllBasic'), t('payment.featurePriority'), t('payment.featureNoAds'), t('payment.featureAdvancedFilters')],
+    },
+    {
+      id: 'yearly',
+      name: t('payment.planYearly'),
+      price: 4999,
+      duration: t('payment.durationYear'),
+      features: [t('payment.featureAllPremium'), t('payment.featureSave45'), t('payment.featureManager'), t('payment.featureStickers')],
+    },
+  ];
+
+  const selectedPlan = PRICING_PLANS.find((p) => p.id === selectedPlanId) ?? PRICING_PLANS[0];
+
   const handleSelectPlan = async (plan: typeof PRICING_PLANS[0]) => {
-    setSelectedPlan(plan);
+    setSelectedPlanId(plan.id);
     setPaymentStep('qr');
 
     try {
-      const res = await fetch('/api/payment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          amount: plan.price,
-          description: `Love Compass ${plan.name} (${plan.duration})`,
-        }),
+      const res = await fetchWithCSRF('/api/payment', {
+        amount: plan.price,
+        description: `Love Compass ${plan.name} (${plan.duration})`,
       });
 
       const data = await res.json();
@@ -76,9 +75,9 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
     if (!paymentId) return;
 
     setPaymentStep('processing');
-    
+
     try {
-      const res = await fetch(`/api/payment?paymentId=${paymentId}`);
+      const res = await fetchWithTimeout(`/api/payment?paymentId=${paymentId}`);
       const data = await res.json();
 
       if (data.status === 'completed') {

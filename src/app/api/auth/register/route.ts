@@ -11,7 +11,7 @@ import { REGISTRATION_LIMITS, VALIDATION, TOKEN } from '@/lib/constants';
 
 const registerSchema = z.object({
   email: z.string().email('Invalid email format'),
-  password: z.string().min(8, 'Minimum 8 characters'),
+  password: z.string().min(VALIDATION.PASSWORD_MIN_LENGTH).max(VALIDATION.PASSWORD_MAX_LENGTH),
   name: z.string().min(1).max(VALIDATION.NAME_MAX_LENGTH),
   age: z.coerce.number().min(VALIDATION.AGE_MIN).max(VALIDATION.AGE_MAX),
   gender: z.enum(['male', 'female', 'other']),

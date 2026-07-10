@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import {
@@ -259,6 +259,8 @@ function MomentFeedCard({
     </Card>
   );
 }
+
+const MemoizedMomentFeedCard = memo(MomentFeedCard);
 
 export function MomentsView() {
   const { currentUser, moments: storeMoments, setMoments: setStoreMoments, addMoment: addStoreMoment } = useAppStore(
@@ -631,7 +633,7 @@ export function MomentsView() {
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ delay: idx * ANIMATION.STAGGER_FAST, duration: ANIMATION.FEED_CARD_DURATION }}
               >
-                <MomentFeedCard
+                <MemoizedMomentFeedCard
                   moment={moment}
                   liked={likedMomentIds.has(moment.id)}
                   likeCount={moment.likes}

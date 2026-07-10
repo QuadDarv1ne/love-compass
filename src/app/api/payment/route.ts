@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { requireAuth } from '@/lib/auth/guard';
+import { requireAuth, requireAuthWithCSRF, isZodError } from '@/lib/auth/guard';
+import { logger } from '@/lib/logger';
 import { z } from 'zod';
 
 const paymentSchema = z.object({
@@ -9,7 +10,7 @@ const paymentSchema = z.object({
 });
 
 export async function POST(req: Request) {
-  const auth = await requireAuth();
+  const auth = await requireAuthWithCSRF(req);
   if (auth instanceof NextResponse) return auth;
 
   try {
@@ -46,12 +47,13 @@ export async function POST(req: Request) {
       status: 'pending',
     });
   } catch (error) {
-    if (error instanceof z.ZodError) {
+    if (isZodError(error)) {
       return NextResponse.json(
         { error: 'Invalid payment data', details: error.issues },
         { status: 400 }
       );
     }
+    logger.error('/api/payment', 'Failed to create payment', error);
     return NextResponse.json(
       { error: 'Failed to create payment' },
       { status: 500 }

@@ -75,7 +75,7 @@ function VerifyEmailContent() {
             <div className="flex justify-center">
               <CheckCircle className="w-16 h-16 text-green-500" />
             </div>
-            <p className="text-gray-600 dark:text-gray-300">
+            <p className="text-foreground">
               {t('verifyEmail.emailConfirmed', { email })}
             </p>
             <Link href="/">
@@ -89,7 +89,7 @@ function VerifyEmailContent() {
             <div className="flex justify-center">
               <XCircle className="w-16 h-16 text-rose-500" />
             </div>
-            <p className="text-gray-600 dark:text-gray-300">
+            <p className="text-foreground">
               {t('verifyEmail.linkInvalid')}
             </p>
             <div className="space-y-2">

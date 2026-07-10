@@ -1,3 +1,5 @@
+import { DEFAULT_LOCALE } from '@/lib/constants';
+
 export type Locale = 'ru' | 'en' | 'zh' | 'es';
 
 export const SUPPORTED_LOCALES: Locale[] = ['ru', 'en', 'zh', 'es'];
@@ -17,7 +19,7 @@ export const LOCALE_FLAGS: Record<Locale, string> = {
 };
 
 export function detectBrowserLocale(): Locale {
-  if (typeof navigator === 'undefined') return 'ru';
+  if (typeof navigator === 'undefined') return DEFAULT_LOCALE;
   const langs = navigator.languages ?? [navigator.language];
   for (const lang of langs) {
     const code = lang.split('-')[0]!.toLowerCase();
@@ -26,7 +28,7 @@ export function detectBrowserLocale(): Locale {
     if (code === 'en') return 'en';
     if (code === 'ru') return 'ru';
   }
-  return 'ru';
+  return DEFAULT_LOCALE;
 }
 
 type Dict = Record<string, string | Record<string, string>>;
@@ -55,6 +57,6 @@ export function createTranslator(locale: Locale): (key: string, params?: Record<
 }
 
 export function createTranslatorForLanguage(language: string): (key: string, params?: Record<string, string | number>) => string {
-  const locale: Locale = SUPPORTED_LOCALES.includes(language as Locale) ? (language as Locale) : 'ru';
+  const locale: Locale = SUPPORTED_LOCALES.includes(language as Locale) ? (language as Locale) : DEFAULT_LOCALE;
   return createTranslator(locale);
 }

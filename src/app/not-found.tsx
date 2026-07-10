@@ -17,10 +17,10 @@ export default function NotFound() {
           <h1 className="text-6xl font-bold bg-gradient-to-r from-rose-500 to-pink-500 bg-clip-text text-transparent">
             404
           </h1>
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+          <h2 className="text-xl font-semibold text-foreground">
             {t('notFound.title')}
           </h2>
-          <p className="text-gray-500 dark:text-gray-400">
+          <p className="text-muted-foreground">
             {t('notFound.description')}
           </p>
         </div>

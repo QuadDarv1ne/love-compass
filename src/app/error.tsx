@@ -29,10 +29,10 @@ export default function Error({
           <Heart className="w-10 h-10 text-rose-500" />
         </div>
         <div className="space-y-2">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-2xl font-bold text-foreground">
             {t('error.pageTitle')}
           </h1>
-          <p className="text-gray-500 dark:text-gray-400">
+          <p className="text-muted-foreground">
             {t('error.pageMessage')}
           </p>
         </div>

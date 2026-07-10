@@ -1,3 +1,5 @@
+export const DEFAULT_LOCALE = 'ru' as const;
+
 export const PAGINATION = {
   PROFILES_DEFAULT_LIMIT: 20,
   PROFILES_MAX_LIMIT: 100,
@@ -56,6 +58,7 @@ export const VALIDATION = {
   REPORT_REASON_MAX_LENGTH: 500,
   REPORT_DETAILS_MAX_LENGTH: 2000,
   PASSWORD_MIN_LENGTH: 8,
+  PASSWORD_MAX_LENGTH: 128,
 } as const;
 
 export const FILTER = {

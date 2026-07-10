@@ -1,7 +1,7 @@
 import { Heart } from 'lucide-react';
 import Skeleton from '@/components/ui/skeleton';
 
-export default function LoginLoading() {
+export default function VerifyEmailLoading() {
   return (
     <div className="min-h-screen flex items-center justify-center gradient-bg p-4">
       <div className="w-full max-w-md">
@@ -12,19 +12,13 @@ export default function LoginLoading() {
               Love Compass
             </span>
           </div>
-          <Skeleton className="h-7 w-32 mx-auto mt-3" />
-          <Skeleton className="h-4 w-48 mx-auto mt-2" />
+          <Skeleton className="h-7 w-48 mx-auto mt-3" />
+          <Skeleton className="h-4 w-64 mx-auto mt-2" />
         </div>
-        <div className="bg-card rounded-2xl shadow-xl p-6 border border-border space-y-4">
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-16" />
-            <Skeleton className="h-10 w-full" />
-          </div>
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-20" />
-            <Skeleton className="h-10 w-full" />
-          </div>
-          <Skeleton className="h-10 w-full rounded-xl" />
+        <div className="bg-card rounded-2xl shadow-xl p-6 border border-border flex flex-col items-center gap-4">
+          <Skeleton className="w-16 h-16 rounded-full" />
+          <Skeleton className="h-4 w-48" />
+          <Skeleton className="h-10 w-32 rounded-xl" />
         </div>
       </div>
     </div>

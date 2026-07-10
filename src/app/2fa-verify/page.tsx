@@ -107,7 +107,7 @@ function TwoFAVerifyContent() {
             <div>
               <Label htmlFor="backupCode">{t('twoFA.backupLabel')}</Label>
               <div className="flex items-center gap-2 mt-1">
-                <KeyRound className="w-4 h-4 text-gray-400" />
+                <KeyRound className="w-4 h-4 text-muted-foreground" />
                 <Input
                   id="backupCode"
                   value={backupCode}
@@ -138,7 +138,7 @@ function TwoFAVerifyContent() {
         )}
       </form>
 
-      <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-4">
+      <p className="text-center text-sm text-muted-foreground mt-4">
         <Link href="/login" className="text-rose-500 hover:text-rose-600">
           {t('twoFA.backToLogin')}
         </Link>

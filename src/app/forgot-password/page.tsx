@@ -60,7 +60,7 @@ export default function ForgotPasswordPage() {
           <div className="flex justify-center">
             <Mail className="w-12 h-12 text-rose-500" />
           </div>
-          <p className="text-gray-600 dark:text-gray-300">
+          <p className="text-foreground">
             {t('forgotPassword.sentDesc', { email })}
           </p>
           <Link href="/login">
@@ -88,7 +88,7 @@ export default function ForgotPasswordPage() {
         </form>
       )}
 
-      <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-4">
+      <p className="text-center text-sm text-muted-foreground mt-4">
         {t('forgotPassword.rememberPassword')}{' '}
         <Link href="/login" className="text-rose-500 hover:text-rose-600">
           {t('forgotPassword.login')}

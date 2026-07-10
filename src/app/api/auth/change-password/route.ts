@@ -6,11 +6,11 @@ import { requireAuthWithCSRF } from '@/lib/auth/guard';
 import { invalidateAllUserSessions } from '@/lib/auth/session-server';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';
-import { RATE_LIMITS } from '@/lib/constants';
+import { RATE_LIMITS, VALIDATION } from '@/lib/constants';
 
 const changePasswordSchema = z.object({
-  currentPassword: z.string().min(1),
-  newPassword: z.string().min(8, 'Minimum 8 characters'),
+  currentPassword: z.string().min(1).max(VALIDATION.PASSWORD_MAX_LENGTH),
+  newPassword: z.string().min(VALIDATION.PASSWORD_MIN_LENGTH).max(VALIDATION.PASSWORD_MAX_LENGTH),
 });
 
 export async function POST(request: Request) {

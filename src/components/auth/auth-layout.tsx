@@ -19,18 +19,18 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
               Love Compass
             </span>
           </Link>
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
+          <h1 className="text-2xl font-semibold text-foreground">
             {title}
           </h1>
           {subtitle && (
-            <p className="text-gray-500 dark:text-gray-400 mt-1">
+            <p className="text-muted-foreground mt-1">
               {subtitle}
             </p>
           )}
         </div>
 
         {/* Card */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 border border-gray-100 dark:border-gray-700">
+        <div className="bg-card rounded-2xl shadow-xl p-6 border border-border">
           {children}
         </div>
       </div>

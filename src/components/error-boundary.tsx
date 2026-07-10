@@ -5,6 +5,7 @@ import { RefreshCw, AlertTriangle } from 'lucide-react';
 import { logger } from '@/lib/logger';
 import { useAppStore } from '@/lib/store';
 import { createTranslatorForLanguage } from '@/lib/i18n';
+import { DEFAULT_LOCALE } from '@/lib/constants';
 
 interface Props {
   children: ReactNode;
@@ -21,16 +22,16 @@ export class ErrorBoundary extends Component<Props, State> {
   public state: State = {
     hasError: false,
     error: null,
-    language: 'ru',
+    language: DEFAULT_LOCALE,
   };
 
   public static getDerivedStateFromError(_error: Error): State {
-    return { hasError: true, error: null, language: 'ru' };
+    return { hasError: true, error: null, language: DEFAULT_LOCALE };
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     logger.error('ErrorBoundary', 'Uncaught error', { error: { message: error.message, stack: error.stack }, componentStack: errorInfo.componentStack });
-    const lang = useAppStore.getState().language || 'ru';
+    const lang = useAppStore.getState().language || DEFAULT_LOCALE;
     this.setState({ language: lang, error });
   }
 

@@ -106,10 +106,10 @@ function VerifyEmailPendingContent() {
         </div>
 
         <div>
-          <p className="text-gray-600 dark:text-gray-300">
+          <p className="text-foreground">
             {t('verifyEmail.sentTo', { email: email || '***' })}
           </p>
-          <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">
+          <p className="text-muted-foreground text-sm mt-2">
             {t('verifyEmail.checkInbox')}
           </p>
         </div>

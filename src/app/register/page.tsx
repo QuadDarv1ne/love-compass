@@ -164,7 +164,7 @@ export default function RegisterPage() {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
             >
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
@@ -192,7 +192,7 @@ export default function RegisterPage() {
             <button
               type="button"
               onClick={() => setShowConfirm(!showConfirm)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
             >
               {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
@@ -285,7 +285,7 @@ export default function RegisterPage() {
             id="interests"
             value={form.interests}
             onChange={(e) => updateField('interests', e.target.value)}
-              placeholder={t('register.interestsPlaceholder')}
+            placeholder={t('register.interestsPlaceholder')}
             className="mt-1"
           />
         </div>
@@ -295,7 +295,7 @@ export default function RegisterPage() {
         </Button>
       </form>
 
-      <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-4">
+      <p className="text-center text-sm text-muted-foreground mt-4">
         {t('register.hasAccount')}{' '}
         <Link href="/login" className="text-rose-500 hover:text-rose-600">
           {t('register.login')}

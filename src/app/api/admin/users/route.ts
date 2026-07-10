@@ -64,6 +64,15 @@ export async function GET(request: Request) {
         orderBy,
         skip: (page - 1) * limit,
         take: limit,
+        select: {
+          id: true, email: true, name: true, age: true, gender: true, bio: true,
+          interests: true, avatar: true, photos: true, city: true, lookingFor: true,
+          emailVerified: true, role: true, notificationsEnabled: true,
+          profileVisible: true, showOnlineStatus: true, language: true,
+          showDistance: true, soundEnabled: true, matchNotifications: true,
+          likeNotifications: true, emailNotifications: true, lastSeenAt: true,
+          createdAt: true, updatedAt: true,
+        },
       }),
       db.user.count(where),
     ]);

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { z } from 'zod';
 import { requireAuth, isZodError } from '@/lib/auth/guard';
-import { sanitizeUser } from '@/lib/auth/projections';
+import { sanitizeUser, PUBLIC_USER_SELECT } from '@/lib/auth/projections';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';
 import { SCORING, RATE_LIMITS, LEADERBOARD_MAX_USERS } from '@/lib/constants';
@@ -50,6 +50,7 @@ export async function GET(request: Request) {
           skip,
           take: limit,
           orderBy: { createdAt: 'desc' },
+          select: PUBLIC_USER_SELECT,
         }),
       ]);
 
@@ -109,6 +110,7 @@ export async function GET(request: Request) {
     const rawUsers = await db.user.findMany(where, {
       take: LEADERBOARD_MAX_USERS,
       orderBy: { createdAt: 'desc' },
+      select: PUBLIC_USER_SELECT,
     });
 
     // Compute scores, sort, and paginate in memory.

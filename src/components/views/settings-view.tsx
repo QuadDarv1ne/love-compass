@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import dynamic from 'next/dynamic';
 import { motion } from 'framer-motion';
 import { useShallow } from 'zustand/react/shallow';
@@ -103,6 +103,8 @@ function SettingRow({
     </div>
   );
 }
+
+const MemoizedSettingRow = memo(SettingRow);
 
 /* ─── 2FA Setup Dialog ────────────────────────────────────────── */
 function TwoFASetupDialog({
@@ -477,7 +479,7 @@ export function SettingsView() {
 
               <Separator className="bg-rose-100 dark:bg-rose-900/50 mb-1" />
 
-              <SettingRow
+              <MemoizedSettingRow
                 icon={<Bell className="w-4 h-4" />}
                 label={t('settings.pushNotifications')}
                 description={t('settings.pushNotificationsDesc')}
@@ -485,7 +487,7 @@ export function SettingsView() {
                 onCheckedChange={setNotificationsEnabled}
               />
 
-              <SettingRow
+              <MemoizedSettingRow
                 icon={<Volume2 className="w-4 h-4" />}
                 label={t('settings.sound')}
                 description={t('settings.soundDesc')}
@@ -493,7 +495,7 @@ export function SettingsView() {
                 onCheckedChange={setSoundEnabled}
               />
 
-              <SettingRow
+              <MemoizedSettingRow
                 icon={<HeartHandshake className="w-4 h-4" />}
                 label={t('settings.matchNotif')}
                 description={t('settings.matchNotifDesc')}
@@ -501,7 +503,7 @@ export function SettingsView() {
                 onCheckedChange={setMatchNotif}
               />
 
-              <SettingRow
+              <MemoizedSettingRow
                 icon={<ThumbsUp className="w-4 h-4" />}
                 label={t('settings.likeNotif')}
                 description={t('settings.likeNotifDesc')}
@@ -509,7 +511,7 @@ export function SettingsView() {
                 onCheckedChange={setLikeNotif}
               />
 
-              <SettingRow
+              <MemoizedSettingRow
                 icon={<Mail className="w-4 h-4" />}
                 label={t('settings.emailNotif')}
                 description={t('settings.emailNotifDesc')}
@@ -531,7 +533,7 @@ export function SettingsView() {
 
               <Separator className="bg-rose-100 dark:bg-rose-900/50 mb-1" />
 
-              <SettingRow
+              <MemoizedSettingRow
                 icon={<Eye className="w-4 h-4" />}
                 label={t('settings.showProfile')}
                 description={t('settings.showProfileDesc')}
@@ -539,7 +541,7 @@ export function SettingsView() {
                 onCheckedChange={setProfileVisible}
               />
 
-              <SettingRow
+              <MemoizedSettingRow
                 icon={<Wifi className="w-4 h-4" />}
                 label={t('settings.showOnline')}
                 description={t('settings.showOnlineDesc')}
@@ -547,7 +549,7 @@ export function SettingsView() {
                 onCheckedChange={setShowOnlineStatus}
               />
 
-              <SettingRow
+              <MemoizedSettingRow
                 icon={<MapPin className="w-4 h-4" />}
                 label={t('settings.showDistance')}
                 description={t('settings.showDistanceDesc')}

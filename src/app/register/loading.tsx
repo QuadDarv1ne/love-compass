@@ -15,7 +15,7 @@ export default function RegisterLoading() {
           <Skeleton className="h-7 w-40 mx-auto mt-3" />
           <Skeleton className="h-4 w-56 mx-auto mt-2" />
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 border border-gray-100 dark:border-gray-700 space-y-4">
+        <div className="bg-card rounded-2xl shadow-xl p-6 border border-border space-y-4">
           <div className="flex gap-2 justify-center">
             {Array.from({ length: 5 }).map((_, i) => (
               <Skeleton key={i} className="w-12 h-12 rounded-full" />

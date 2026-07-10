@@ -238,7 +238,7 @@ export function AdminView() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="font-semibold text-sm text-foreground truncate">{user.name}</span>
-                        <Badge variant={user.role === 'admin' ? 'default' : 'secondary'} className={`text-[10px] px-1.5 py-0 ${user.role === 'admin' ? 'bg-rose-500 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'}`}>
+                        <Badge variant={user.role === 'admin' ? 'default' : 'secondary'} className={`text-[10px] px-1.5 py-0 ${user.role === 'admin' ? 'bg-rose-500 text-white' : 'bg-muted text-muted-foreground'}`}>
                           {user.role}
                         </Badge>
                         {user.emailVerified && <BadgeCheck className="w-3.5 h-3.5 text-blue-400" />}
@@ -251,8 +251,8 @@ export function AdminView() {
                         whileTap={{ scale: 0.9 }}
                         onClick={() => toggleUserRole(user.id)}
                         className="p-1.5 rounded-lg text-muted-foreground hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors"
-                        title={user.role === 'admin' ? 'Demote to user' : 'Promote to admin'}
-                        aria-label={user.role === 'admin' ? 'Demote to user' : 'Promote to admin'}
+                        title={user.role === 'admin' ? t('admin.demoteToUser') : t('admin.promoteToAdmin')}
+                        aria-label={user.role === 'admin' ? t('admin.demoteToUser') : t('admin.promoteToAdmin')}
                       >
                         <UserCog className="w-4 h-4" />
                       </motion.button>
@@ -261,8 +261,8 @@ export function AdminView() {
                         whileTap={{ scale: 0.9 }}
                         onClick={() => toggleUserProfileVisible(user.id)}
                         className="p-1.5 rounded-lg text-muted-foreground hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors"
-                        title={user.profileVisible ? 'Hide profile' : 'Show profile'}
-                        aria-label={user.profileVisible ? 'Hide profile' : 'Show profile'}
+                        title={user.profileVisible ? t('admin.hideProfile') : t('admin.showProfile')}
+                        aria-label={user.profileVisible ? t('admin.hideProfile') : t('admin.showProfile')}
                       >
                         {user.profileVisible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                       </motion.button>

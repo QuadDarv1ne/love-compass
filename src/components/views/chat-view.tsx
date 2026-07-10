@@ -12,7 +12,7 @@ import { useAppStore, type Message, type MatchWithUsers } from '@/lib/store';
 import { OnlineIndicator, TypingIndicator } from './shared';
 import { fetchWithCSRF, fetchWithTimeout } from '@/lib/api';
 import { logger } from '@/lib/logger';
-import { AUTO_REPLY, ANIMATION, AVATAR_BASE_URL, CHAT } from '@/lib/constants';
+import { AUTO_REPLY, ANIMATION, AVATAR_BASE_URL, CHAT, DEFAULT_LOCALE } from '@/lib/constants';
 import { useTranslation } from '@/hooks/useTranslation';
 import { EmojiPicker } from './emoji-picker';
 import { formatTime, formatChatDate } from '@/lib/date-utils';
@@ -320,8 +320,8 @@ export function ChatView() {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
   };
 
-  const fmtTime = (dateStr: string) => formatTime(dateStr, useAppStore.getState().language || 'ru');
-  const fmtDate = (dateStr: string) => formatChatDate(dateStr, useAppStore.getState().language || 'ru', t('chat.today'), t('chat.yesterday'));
+  const fmtTime = (dateStr: string) => formatTime(dateStr, useAppStore.getState().language || DEFAULT_LOCALE);
+  const fmtDate = (dateStr: string) => formatChatDate(dateStr, useAppStore.getState().language || DEFAULT_LOCALE, t('chat.today'), t('chat.yesterday'));
 
   // Filter messages by search query
   const filteredMessages = useMemo(() => {

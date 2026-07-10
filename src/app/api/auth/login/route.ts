@@ -13,11 +13,11 @@ import { validateCSRFToken } from '@/lib/auth/csrf';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';
 import { sanitizeUser } from '@/lib/auth/projections';
-import { LOGIN_LIMITS, TOTP } from '@/lib/constants';
+import { LOGIN_LIMITS, TOTP, VALIDATION } from '@/lib/constants';
 
 const loginSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(1).max(128),
+  password: z.string().min(1).max(VALIDATION.PASSWORD_MAX_LENGTH),
 });
 
 export async function POST(request: Request) {

@@ -1,5 +1,6 @@
 import type { User, MatchWithUsers } from '@/lib/store';
 import { formatChatDate, formatTime } from '@/lib/date-utils';
+import { DEFAULT_LOCALE } from '@/lib/constants';
 
 export function getPartner(match: MatchWithUsers, currentUser: User | null): User | null {
   if (!match.user1 || !match.user2) return null;
@@ -21,9 +22,9 @@ export function formatMessageDate(dateStr: string, language: string, yesterdayLa
   const today = new Date();
   const date = new Date(dateStr);
   if (date.toDateString() === today.toDateString()) {
-    return formatTime(dateStr, language || 'ru');
+    return formatTime(dateStr, language || DEFAULT_LOCALE);
   }
-  return formatChatDate(dateStr, language || 'ru', undefined, yesterdayLabel);
+  return formatChatDate(dateStr, language || DEFAULT_LOCALE, undefined, yesterdayLabel);
 }
 
 export function filterValidMatches(matches: MatchWithUsers[]): MatchWithUsers[] {

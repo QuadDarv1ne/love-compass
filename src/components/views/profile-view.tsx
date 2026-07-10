@@ -310,7 +310,7 @@ export function ProfileView() {
               {currentUser.bio && (
                 <div>
                   <h4 className="text-sm font-semibold text-rose-600 dark:text-rose-400 mb-1">{t('browse.detailBio')}</h4>
-                  <p className="text-sm text-gray-700 dark:text-gray-300">{currentUser.bio}</p>
+                  <p className="text-sm text-foreground">{currentUser.bio}</p>
                 </div>
               )}
               {currentUser.interests && (

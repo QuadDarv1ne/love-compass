@@ -124,7 +124,7 @@ export default function HomePage() {
                   className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all relative ${
                     currentView === view || (view === 'matches' && currentView === 'chat')
                       ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 shadow-sm'
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 hover:text-rose-600 dark:hover:text-rose-300'
+                      : 'text-muted-foreground hover:bg-rose-50 dark:hover:bg-rose-900/20 hover:text-rose-600 dark:hover:text-rose-300'
                   }`}
                 >
                   <Icon className="w-4 h-4 transition-transform group-hover:scale-110" />
@@ -151,7 +151,7 @@ export default function HomePage() {
                   className={`w-full flex items-center gap-3 px-4 py-2 rounded-xl text-sm font-medium transition-all relative ${
                     currentView === view
                       ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300'
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 hover:text-rose-600 dark:hover:text-rose-300'
+                      : 'text-muted-foreground hover:bg-rose-50 dark:hover:bg-rose-900/20 hover:text-rose-600 dark:hover:text-rose-300'
                   }`}
                 >
                   <Icon className="w-4 h-4" />
@@ -202,7 +202,7 @@ export default function HomePage() {
                 className={`flex flex-col items-center gap-0.5 py-2 px-2 transition-colors relative min-w-0 ${
                   currentView === view
                     ? 'text-rose-600 dark:text-rose-400'
-                    : 'text-gray-400 dark:text-gray-500 hover:text-rose-400'
+                    : 'text-muted-foreground hover:text-rose-400'
                 }`}
               >
                 <Icon className="w-5 h-5" />

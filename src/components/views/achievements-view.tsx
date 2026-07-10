@@ -367,7 +367,7 @@ export function AchievementsView() {
                                   ${
                                     isUnlocked
                                       ? 'bg-gradient-to-br from-rose-500 to-pink-500 shadow-lg shadow-rose-500/25'
-                                      : 'bg-gray-200 dark:bg-gray-800'
+                                      : 'bg-muted'
                                   }
                                 `}
                               >
@@ -375,7 +375,7 @@ export function AchievementsView() {
                                   className={`w-6 h-6 ${
                                     isUnlocked
                                       ? 'text-white'
-                                      : 'text-gray-400 dark:text-gray-500'
+                                      : 'text-muted-foreground'
                                   }`}
                                 />
                               </div>
@@ -387,7 +387,7 @@ export function AchievementsView() {
                                   ${
                                     isUnlocked
                                       ? 'text-rose-700 dark:text-rose-300'
-                                      : 'text-gray-600 dark:text-gray-400'
+                                      : 'text-muted-foreground'
                                   }
                                 `}
                               >
@@ -412,11 +412,11 @@ export function AchievementsView() {
                                     <span className="text-[10px] text-muted-foreground">
                                       {t('achievements.progress')}
                                     </span>
-                                    <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 tabular-nums">
+                                    <span className="text-[10px] font-semibold text-muted-foreground tabular-nums">
                                       {currentVal}/{ach.threshold}
                                     </span>
                                   </div>
-                                  <div className="h-1.5 w-full bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
+                                  <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
                                     <motion.div
                                       className="h-full bg-gradient-to-r from-rose-400 to-pink-400 dark:from-rose-500 dark:to-pink-500 rounded-full"
                                       initial={{ width: 0 }}
@@ -451,7 +451,7 @@ export function AchievementsView() {
           >
             <Card className="border-rose-200 dark:border-rose-800/60 shadow-lg rounded-2xl overflow-hidden">
               <div className="bg-gradient-to-br from-rose-500 via-pink-500 to-fuchsia-500 p-1">
-                <CardContent className="bg-white dark:bg-gray-950 rounded-xl p-5 flex flex-col items-center text-center gap-2">
+                <CardContent className="bg-card rounded-xl p-5 flex flex-col items-center text-center gap-2">
                   <Trophy className="w-10 h-10 text-amber-500" />
                   <h3 className="text-lg font-bold text-rose-700 dark:text-rose-300">
                     {t('achievements.allEarned')}

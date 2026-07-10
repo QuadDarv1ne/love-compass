@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import { SafeImage } from '@/components/ui/safe-image';
 import { motion, type Variants } from 'framer-motion';
 import { useTheme } from 'next-themes';
@@ -51,7 +51,7 @@ export const viewTransitionVariants: Variants = {
   }),
 };
 
-export function OnlineIndicator({ userId, size = 'sm' }: { userId: string; size?: 'sm' | 'md' }) {
+function OnlineIndicator({ userId, size = 'sm' }: { userId: string; size?: 'sm' | 'md' }) {
   const isOnline = useAppStore((s) => s.onlineUserIds.includes(userId));
   if (!isOnline) return null;
   const dotSize = size === 'sm' ? 'w-2.5 h-2.5' : 'w-3 h-3';
@@ -59,6 +59,9 @@ export function OnlineIndicator({ userId, size = 'sm' }: { userId: string; size?
     <span className={`absolute bottom-0 right-0 ${dotSize} bg-green-500 rounded-full border-2 border-white dark:border-card z-10`} />
   );
 }
+
+const MemoizedOnlineIndicator = memo(OnlineIndicator);
+export { MemoizedOnlineIndicator as OnlineIndicator };
 
 export function TypingIndicator() {
   return (

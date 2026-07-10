@@ -123,12 +123,12 @@ function PodiumCard({
 
         {/* Name & info */}
         <h3
-          className={`font-bold text-gray-800 dark:text-gray-100 truncate ${isFirst ? 'text-lg' : 'text-base'}`}
+          className={`font-bold text-foreground truncate ${isFirst ? 'text-lg' : 'text-base'}`}
         >
           {ranked.name}
         </h3>
         {ranked.city && (
-          <p className="text-xs text-gray-600 dark:text-gray-300 truncate flex items-center justify-center gap-1 mt-0.5">
+          <p className="text-xs text-muted-foreground truncate flex items-center justify-center gap-1 mt-0.5">
             <MapPin className="w-3 h-3 flex-shrink-0" />
             {ranked.city}
           </p>
@@ -137,7 +137,7 @@ function PodiumCard({
         {/* Like count */}
         <div className="flex items-center justify-center gap-1 mt-2">
           <Heart className="w-4 h-4 text-rose-500 fill-rose-500" />
-          <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+          <span className="text-sm font-semibold text-foreground">
             {ranked.popularityScore}
           </span>
         </div>
@@ -154,13 +154,15 @@ function PodiumCard({
       <div
         className={`w-full flex items-center justify-center rounded-b-xl bg-gradient-to-t ${gradients[place]} ${borderColors[place]} border-x-2 border-b-2 ${isFirst ? 'h-8' : 'h-6'}`}
       >
-        <span className="text-xs font-bold text-gray-700 dark:text-gray-100">
+        <span className="text-xs font-bold text-foreground">
           {medals[place].label}
         </span>
       </div>
     </motion.div>
   );
 }
+
+const MemoizedPodiumCard = memo(PodiumCard);
 
 function RankedListRow({
   ranked,
@@ -582,7 +584,7 @@ function LeaderboardContent({
                 );
               }
               return (
-                <PodiumCard
+                <MemoizedPodiumCard
                   key={`${sortKey}-${ranked.id}-${place}`}
                   ranked={ranked}
                   place={place}

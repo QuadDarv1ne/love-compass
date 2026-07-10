@@ -82,7 +82,7 @@ export function ProfileDetailModal({
             {profile.bio && (
               <div>
                 <h3 className="text-sm font-semibold text-rose-600 dark:text-rose-400 mb-1">{t('browse.detailBio')}</h3>
-                <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{profile.bio}</p>
+                <p className="text-sm text-foreground leading-relaxed">{profile.bio}</p>
               </div>
             )}
 

@@ -7,11 +7,11 @@ import { hashToken } from '@/lib/auth/crypto';
 import { validateCSRFToken } from '@/lib/auth/csrf';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';
-import { RATE_LIMITS } from '@/lib/constants';
+import { RATE_LIMITS, VALIDATION } from '@/lib/constants';
 
 const resetSchema = z.object({
   token: z.string().min(1),
-  newPassword: z.string().min(1),
+  newPassword: z.string().min(VALIDATION.PASSWORD_MIN_LENGTH).max(VALIDATION.PASSWORD_MAX_LENGTH),
 });
 
 export async function POST(request: Request) {

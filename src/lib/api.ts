@@ -1,6 +1,6 @@
 import { useAppStore, type User, type MatchWithUsers } from '@/lib/store';
 import { logger } from '@/lib/logger';
-import { PAGINATION, ONLINE_PRESENCE, CSRF_TOKEN_TTL, FETCH_TIMEOUT_MS } from '@/lib/constants';
+import { PAGINATION, ONLINE_PRESENCE, CSRF_TOKEN_TTL, FETCH_TIMEOUT_MS, DEFAULT_LOCALE } from '@/lib/constants';
 import { detectBrowserLocale, SUPPORTED_LOCALES, createTranslatorForLanguage, type Locale } from '@/lib/i18n';
 import { toast } from 'sonner';
 
@@ -259,7 +259,7 @@ export async function hydrateAppData(user?: User) {
           notificationsEnabled: (s.notificationsEnabled as boolean) ?? true,
           profileVisible: (s.profileVisible as boolean) ?? true,
           showOnlineStatus: (s.showOnlineStatus as boolean) ?? true,
-          language: (s.language as string) ?? (SUPPORTED_LOCALES.includes(detectBrowserLocale() as Locale) ? detectBrowserLocale() : 'ru'),
+          language: (s.language as string) ?? (SUPPORTED_LOCALES.includes(detectBrowserLocale() as Locale) ? detectBrowserLocale() : DEFAULT_LOCALE),
           showDistance: (s.showDistance as boolean) ?? false,
           soundEnabled: (s.soundEnabled as boolean) ?? true,
           matchNotifications: (s.matchNotifications as boolean) ?? true,
@@ -286,7 +286,7 @@ export async function hydrateAppData(user?: User) {
 
   if (hydrateGeneration !== generation) return;
   if (errors.length > 0) {
-    const lang = useAppStore.getState().language || 'ru';
+    const lang = useAppStore.getState().language || DEFAULT_LOCALE;
     const t = createTranslatorForLanguage(lang);
     toast.warning(t('common.someDataNotLoaded'), {
       description: t('common.failedToLoadWithRetry', { errors: errors.join(', ') }),

@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
 import { createTranslatorForLanguage } from '@/lib/i18n';
+import { DEFAULT_LOCALE } from '@/lib/constants';
 
 // Monotonic counter to prevent stale checkAuth results from overwriting newer ones
 let checkAuthGeneration = 0;
@@ -341,7 +342,7 @@ const clearState = {
   notificationsEnabled: true,
   profileVisible: true,
   showOnlineStatus: true,
-  language: 'ru',
+  language: DEFAULT_LOCALE,
   showDistance: false,
   soundEnabled: true,
   matchNotifications: true,
@@ -583,7 +584,7 @@ export const useAppStore = create<AppState>((set, get) => {
           notificationsEnabled: settings.notificationsEnabled ?? true,
           profileVisible: settings.profileVisible ?? true,
           showOnlineStatus: settings.showOnlineStatus ?? true,
-          language: settings.language ?? 'ru',
+          language: settings.language ?? DEFAULT_LOCALE,
           showDistance: settings.showDistance ?? false,
           soundEnabled: settings.soundEnabled ?? true,
           matchNotifications: settings.matchNotifications ?? true,
