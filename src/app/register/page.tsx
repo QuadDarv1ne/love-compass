@@ -165,6 +165,7 @@ export default function RegisterPage() {
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
             >
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
@@ -193,6 +194,7 @@ export default function RegisterPage() {
               type="button"
               onClick={() => setShowConfirm(!showConfirm)}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              aria-label={showConfirm ? t('auth.hidePassword') : t('auth.showPassword')}
             >
               {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>

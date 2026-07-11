@@ -45,6 +45,8 @@ const ru= {
   'auth.needsEmailVerification': 'Подтвердите email',
   'auth.needs2FA': 'Введите код из приложения',
   'auth.enter2FA': 'Введите 6-значный код',
+  'auth.showPassword': 'Показать пароль',
+  'auth.hidePassword': 'Скрыть пароль',
 
   // Landing
   'landing.title': 'Найди свою любовь',

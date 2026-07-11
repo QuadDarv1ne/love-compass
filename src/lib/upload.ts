@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { existsSync, mkdirSync, writeFileSync, unlinkSync } from 'fs';
+import { access, mkdir, writeFile, unlink } from 'fs/promises';
 import path from 'path';
 import sharp from 'sharp';
 import { logger } from '@/lib/logger';
@@ -83,8 +83,10 @@ export async function validateAndProcessImage(
   }
 
   // Ensure upload directory exists
-  if (!existsSync(options.uploadDir)) {
-    mkdirSync(options.uploadDir, { recursive: true });
+  try {
+    await access(options.uploadDir);
+  } catch {
+    await mkdir(options.uploadDir, { recursive: true });
   }
 
   // Convert to WebP for optimal file size and consistent format
@@ -96,7 +98,7 @@ export async function validateAndProcessImage(
     .webp({ quality: 80 })
     .toBuffer();
 
-  writeFileSync(filePath, optimizedBuffer);
+  await writeFile(filePath, optimizedBuffer);
 
   const outputMetadata = await sharp(optimizedBuffer).metadata();
 
@@ -109,10 +111,11 @@ export async function validateAndProcessImage(
 }
 
 export async function cleanupFile(filePath: string): Promise<void> {
-  if (existsSync(filePath)) {
-    try {
-      unlinkSync(filePath);
-    } catch (err) {
+  try {
+    await access(filePath);
+    await unlink(filePath);
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code !== 'ENOENT') {
       logger.error('upload.cleanupFile', 'Failed to delete file', { filePath, error: err });
     }
   }

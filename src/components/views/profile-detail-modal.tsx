@@ -102,17 +102,17 @@ export function ProfileDetailModal({
 
           <div className="p-4 border-t border-rose-100 dark:border-rose-900/50 flex items-center justify-center gap-5">
             <motion.div whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.9 }}>
-              <Button onClick={() => { onDislike(); onClose(); }} size="lg" className="w-14 h-14 rounded-full bg-card border-2 border-gray-200 dark:border-rose-800 hover:border-red-300 hover:bg-red-50 dark:hover:bg-rose-900/20 text-gray-400 hover:text-red-500 shadow-lg transition-all">
+              <Button onClick={() => { onDislike(); onClose(); }} size="lg" className="w-14 h-14 rounded-full bg-card border-2 border-gray-200 dark:border-rose-800 hover:border-red-300 hover:bg-red-50 dark:hover:bg-rose-900/20 text-gray-400 hover:text-red-500 shadow-lg transition-all" aria-label={t('browse.dislike')}>
                 <X className="w-7 h-7" />
               </Button>
             </motion.div>
             <motion.div whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.9 }}>
-              <Button onClick={() => { onSuperLike(); onClose(); }} size="lg" className="w-14 h-14 rounded-full bg-card border-2 border-blue-200 dark:border-blue-800 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-500 hover:text-blue-600 shadow-lg transition-all">
+              <Button onClick={() => { onSuperLike(); onClose(); }} size="lg" className="w-14 h-14 rounded-full bg-card border-2 border-blue-200 dark:border-blue-800 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-500 hover:text-blue-600 shadow-lg transition-all" aria-label={t('browse.superLike')}>
                 <Star className="w-7 h-7" />
               </Button>
             </motion.div>
             <motion.div whileHover={{ scale: 1.15 }} whileTap={{ scale: 0.9 }}>
-              <Button onClick={() => { onLike(); onClose(); }} size="lg" className="w-16 h-16 rounded-full bg-gradient-to-br from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white shadow-xl shadow-rose-200 dark:shadow-rose-900/30 transition-all">
+              <Button onClick={() => { onLike(); onClose(); }} size="lg" className="w-16 h-16 rounded-full bg-gradient-to-br from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white shadow-xl shadow-rose-200 dark:shadow-rose-900/30 transition-all" aria-label={t('browse.like')}>
                 <Heart className="w-8 h-8 fill-white" />
               </Button>
             </motion.div>

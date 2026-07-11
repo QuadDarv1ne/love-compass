@@ -129,6 +129,7 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
                     size="icon"
                     onClick={handleClose}
                     className="text-muted-foreground hover:text-foreground"
+                    aria-label={t('common.close')}
                   >
                     <XCircle className="w-5 h-5" />
                   </Button>

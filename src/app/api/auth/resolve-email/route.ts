@@ -15,7 +15,7 @@ export async function POST(request: Request) {
   try {
     const { token } = await request.json();
 
-    if (!token || typeof token !== 'string') {
+    if (!token || typeof token !== 'string' || token.length > 128) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 400 });
     }
 

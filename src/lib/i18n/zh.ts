@@ -42,6 +42,8 @@ const zh= {
   'auth.needsEmailVerification': '请验证邮箱',
   'auth.needs2FA': '请输入应用中的验证码',
   'auth.enter2FA': '请输入6位验证码',
+  'auth.showPassword': '显示密码',
+  'auth.hidePassword': '隐藏密码',
 
   'landing.title': '找到你的爱情',
   'landing.subtitle': '与来自世界各地的人相识。成千上万的人已经找到了彼此！',

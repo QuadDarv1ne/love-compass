@@ -42,6 +42,8 @@ const en= {
   'auth.needsEmailVerification': 'Verify your email',
   'auth.needs2FA': 'Enter code from your app',
   'auth.enter2FA': 'Enter 6-digit code',
+  'auth.showPassword': 'Show password',
+  'auth.hidePassword': 'Hide password',
 
   'landing.title': 'Find your love',
   'landing.subtitle': 'Meet people from all over the world. Hundreds of thousands have already found each other!',

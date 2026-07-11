@@ -41,6 +41,8 @@ const es= {
   'auth.needsEmailVerification': 'Verifica tu correo electrónico',
   'auth.needs2FA': 'Introduce el código de tu aplicación',
   'auth.enter2FA': 'Introduce el código de 6 dígitos',
+  'auth.showPassword': 'Mostrar contraseña',
+  'auth.hidePassword': 'Ocultar contraseña',
 
   'landing.title': 'Encuentra tu amor',
   'landing.subtitle': 'Conoce a personas de todo el mundo. ¡Cientos de miles ya se han encontrado!',
