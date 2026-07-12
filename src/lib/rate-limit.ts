@@ -30,7 +30,9 @@ let stores = new Map<string, Map<string, number[]>>();
  * Reset all rate limit stores — used in tests between cases.
  */
 export function resetAllStores(): void {
-  stores = new Map();
+  for (const store of stores.values()) {
+    store.clear();
+  }
 }
 
 function pruneEntry(id: string, cutoff: number, store: Map<string, number[]>): number[] {
