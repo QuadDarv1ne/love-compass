@@ -115,6 +115,11 @@ const PROTECTED_PATHS = [
   '/api/superlike',
   '/api/profile/photos',
   '/api/profile/avatar',
+  '/api/auth/2fa/enable',
+  '/api/auth/2fa/setup',
+  '/api/auth/2fa/disable',
+  '/api/auth/change-password',
+  '/api/payment',
 ];
 
 // Paths that require admin role

@@ -191,7 +191,7 @@ export const SWIPE_EXT = {
 
 export const PORT = {
   MAX_ATTEMPTS: 20,
-  MAX_PORT: 65536,
+  MAX_PORT: 65535,
   DEFAULT: 3000,
   START: 3000,
 } as const;

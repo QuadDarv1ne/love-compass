@@ -8,6 +8,11 @@ import { ConfirmProvider } from "@/components/ui/confirm-dialog";
 import { SUPPORTED_LOCALES, type Locale } from "@/lib/i18n";
 import "./globals.css";
 
+const SITE_NAMES: Record<string, { title: string; template: string; description: string }> = {
+  ru: { title: "Love Compass — Найди свою любовь", template: "%s | Love Compass", description: "Международная платформа знакомств. Компас, который ведёт к любви." },
+  en: { title: "Love Compass — Find Your Match", template: "%s | Love Compass", description: "International dating platform. The compass that leads to love." },
+};
+
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
@@ -18,33 +23,34 @@ export const viewport: Viewport = {
   ],
 };
 
-export const metadata: Metadata = {
-  title: {
-    default: "Love Compass — Find Your Match",
-    template: "%s | Love Compass",
-  },
-  description: "International dating platform. The compass that leads to love.",
-  keywords: ["dating", "love", "relationships", "match", "meet", "dating app"],
-  authors: [{ name: "Love Compass" }],
-  icons: {
-    icon: "/logo.png",
-  },
-  openGraph: {
-    title: "Love Compass — International Dating Platform",
-    description: "The compass that leads to love. Meet people from all over the world!",
-    type: "website",
-    siteName: "Love Compass",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Love Compass — International Dating Platform",
-    description: "The compass that leads to love. Meet people from all over the world!",
-  },
-  robots: {
-    index: true,
-    follow: true,
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  let lang = "ru";
+  try {
+    const cookieStore = await cookies();
+    const langCookie = cookieStore.get("language")?.value;
+    if (SUPPORTED_LOCALES.includes(langCookie as Locale)) lang = langCookie!;
+  } catch {}
+  const site = (SITE_NAMES[lang] ?? SITE_NAMES.en)!;
+  return {
+    title: { default: site.title, template: site.template },
+    description: site.description,
+    keywords: ["dating", "love", "relationships", "match", "meet", "dating app"],
+    authors: [{ name: "Love Compass" }],
+    icons: { icon: "/logo.png" },
+    openGraph: {
+      title: site.title,
+      description: site.description,
+      type: "website",
+      siteName: "Love Compass",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: site.title,
+      description: site.description,
+    },
+    robots: { index: true, follow: true },
+  };
+}
 
 export default async function RootLayout({
   children,
@@ -61,6 +67,7 @@ export default async function RootLayout({
         <link rel="preconnect" href="https://api.dicebear.com" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <script dangerouslySetInnerHTML={{ __html: `try{let t=localStorage.getItem("theme")||"system",d=t==="dark"||(t==="system"&&window.matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d)}catch(e){}` }} />
       </head>
       <body
         className="antialiased bg-background text-foreground"

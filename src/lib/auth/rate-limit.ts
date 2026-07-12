@@ -41,7 +41,7 @@ export async function checkRateLimit(
       return { allowed: true, remaining: maxAttempts - 1 };
     }
 
-    if (existing.resetAt < now) {
+    if (existing.resetAt <= now) {
       // Delete expired entry before creating new one to prevent stale records
       await tx.rateLimit.deleteMany({ key });
       await tx.rateLimit.create({ key, count: 1, resetAt });
