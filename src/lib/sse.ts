@@ -28,7 +28,7 @@ function createPubSub(): PubSub {
     publish(event: string, data: unknown): void {
       const set = listeners.get(event);
       if (!set || set.size === 0) return;
-      logger.info('sse.publish', `Publishing event: ${event}`, { data });
+      logger.info('sse.publish', `Publishing event: ${event}`, { eventType: event.split(':')[0] });
       set.forEach((listener) => {
         try {
           listener(data);

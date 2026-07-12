@@ -620,6 +620,7 @@ export const useAppStore = create<AppState>((set, get) => {
   setAdminPage: (page) => set({ adminPage: page }),
 
   fetchAdminData: async () => {
+    const generation = ++checkAuthGeneration;
     set({ adminLoading: true });
     try {
       const { adminFilterGender, adminSearchQuery, adminPage, adminLimit } = get();
@@ -635,6 +636,7 @@ export const useAppStore = create<AppState>((set, get) => {
         fetch('/api/admin/stats'),
       ]);
       if (usersRes.ok) {
+        if (checkAuthGeneration !== generation) return;
         const { data, total } = await usersRes.json();
         set({ adminUsers: data ?? [], adminTotal: total ?? 0 });
       } else {
@@ -642,10 +644,12 @@ export const useAppStore = create<AppState>((set, get) => {
         toast.error(t('error.server'));
       }
       if (statsRes.ok) {
+        if (checkAuthGeneration !== generation) return;
         const { data } = await statsRes.json();
         set({ adminStats: data ?? null });
       }
     } catch (error) {
+      if (checkAuthGeneration !== generation) return;
       logger.error('store.fetchAdminData', 'Failed to fetch admin data', error);
       const t = createTranslatorForLanguage(get().language);
       toast.error(t('error.server'));
@@ -682,6 +686,7 @@ export const useAppStore = create<AppState>((set, get) => {
           adminSelectedUser: state.adminSelectedUser?.id === userId ? null : state.adminSelectedUser,
           adminTotal: Math.max(0, state.adminTotal - 1),
         }));
+        get().fetchAdminData();
         const t = createTranslatorForLanguage(get().language);
         toast.success(t('admin.userDeleted'));
       } else {

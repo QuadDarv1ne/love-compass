@@ -8,7 +8,7 @@ interface LogEntry {
   data?: unknown;
 }
 
-const IS_DEV = process.env.NODE_ENV !== 'production';
+const IS_DEV = process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test';
 
 const LEVEL_PRIORITY: Record<LogLevel, number> = { error: 0, warn: 1, info: 2 };
 

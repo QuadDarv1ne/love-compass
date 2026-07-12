@@ -24,12 +24,14 @@ export async function createSession(
   // Enforce max concurrent sessions per user — delete oldest if over limit
   const sessionCount = await db.session.count({ userId });
   if (sessionCount >= SESSION.MAX_CONCURRENT_PER_USER) {
-    const oldestSessions = await db.session.findMany({
-      userId,
-      orderBy: { createdAt: 'asc' },
-      take: sessionCount - SESSION.MAX_CONCURRENT_PER_USER + 1,
-      select: { id: true },
-    });
+    const oldestSessions = await db.session.findMany(
+      { userId },
+      {
+        orderBy: { createdAt: 'asc' as const },
+        take: sessionCount - SESSION.MAX_CONCURRENT_PER_USER + 1,
+        select: { id: true },
+      }
+    );
     if (oldestSessions.length > 0) {
       await db.session.deleteMany({
         id: { in: oldestSessions.map((s: { id: string }) => s.id) },
