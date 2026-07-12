@@ -22,7 +22,7 @@ function VerifyEmailContent() {
     const abortController = new AbortController();
     let cancelled = false;
 
-    fetch(`/api/auth/verify-email?token=${token}`, { signal: abortController.signal })
+    fetch(`/api/auth/verify-email?token=${encodeURIComponent(token)}`, { signal: abortController.signal })
       .then(async (res) => {
         const data = await res.json();
         if (!cancelled) {

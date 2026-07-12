@@ -3,6 +3,7 @@ import { DEFAULT_LOCALE } from './constants';
 function resolveLocale(lang: string): string {
   if (lang === 'zh') return 'zh-CN';
   if (lang === 'en') return 'en-US';
+  if (lang === 'es') return 'es-ES';
   return 'ru-RU';
 }
 

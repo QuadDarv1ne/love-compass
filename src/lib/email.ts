@@ -34,7 +34,7 @@ export async function sendVerificationEmail(
   email: string,
   token: string
 ): Promise<void> {
-  const verificationUrl = `${appUrl}/verify-email?token=${token}`;
+  const verificationUrl = `${appUrl}/verify-email?token=${encodeURIComponent(token)}`;
 
   if (isDev || !resend) {
     if (isDev) {
@@ -68,7 +68,7 @@ export async function sendPasswordResetEmail(
   email: string,
   token: string
 ): Promise<void> {
-  const resetUrl = `${appUrl}/reset-password?token=${token}`;
+  const resetUrl = `${appUrl}/reset-password?token=${encodeURIComponent(token)}`;
 
   if (isDev || !resend) {
     if (isDev) {

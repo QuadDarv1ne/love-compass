@@ -69,10 +69,11 @@ export function createRateLimiter(config: RateLimitConfig) {
         store.set(id, recent);
       }
 
+      const oldestTimestamp = recent.length > 0 ? (recent[0] ?? timestamp) : timestamp;
       return {
         allowed,
         remaining: Math.max(0, max - recent.length),
-        reset: Math.ceil((cutoff + windowMs) / 1000),
+        reset: Math.ceil((oldestTimestamp + windowMs) / 1000),
       };
     },
 

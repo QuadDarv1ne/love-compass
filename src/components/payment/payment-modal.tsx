@@ -177,6 +177,14 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
                   </div>
                 )}
 
+                {/* Step 2: QR Code (loading) */}
+                {paymentStep === 'qr' && !qrData && (
+                  <div className="text-center py-12 space-y-4">
+                    <Loader2 className="w-16 h-16 text-rose-500 animate-spin mx-auto" />
+                    <h3 className="text-xl font-bold">{t('payment.processing')}</h3>
+                  </div>
+                )}
+
                 {/* Step 2: QR Code */}
                 {paymentStep === 'qr' && qrData && (
                   <div className="space-y-6">

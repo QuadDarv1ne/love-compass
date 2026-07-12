@@ -90,7 +90,8 @@ export async function validateAndProcessImage(
   }
 
   // Convert to WebP for optimal file size and consistent format
-  const userIdPrefix = options.userId ? `${options.userId}-` : '';
+  const safeUserId = options.userId?.replace(/[^a-zA-Z0-9_-]/g, '');
+  const userIdPrefix = safeUserId ? `${safeUserId}-` : '';
   const filename = `${userIdPrefix}image-${randomUUID()}.webp`;
   const filePath = path.join(options.uploadDir, filename);
 
@@ -112,7 +113,6 @@ export async function validateAndProcessImage(
 
 export async function cleanupFile(filePath: string): Promise<void> {
   try {
-    await access(filePath);
     await unlink(filePath);
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code !== 'ENOENT') {
