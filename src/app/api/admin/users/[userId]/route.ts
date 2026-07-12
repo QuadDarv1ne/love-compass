@@ -21,6 +21,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
 
     const safeUser = sanitizeUser(user);
 
+    const userMatches = await db.match.findMany({ OR: [{ user1Id: userId }, { user2Id: userId }] });
+    const userMatchIds = userMatches.map(m => m.id);
+
     const [
       likesSent,
       likesReceived,
@@ -42,12 +45,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
       db.match.count({ OR: [{ user1Id: userId }, { user2Id: userId }] }),
       db.message.count({ senderId: userId }),
       // Count messages received: all messages in user's matches where sender is not the user
-      (async () => {
-        const matches = await db.match.findMany({ OR: [{ user1Id: userId }, { user2Id: userId }] });
-        if (matches.length === 0) return 0;
-        const matchIds = matches.map(m => m.id);
-        return db.message.count({ matchId: { in: matchIds }, senderId: { not: userId } });
-      })(),
+      userMatchIds.length > 0
+        ? db.message.count({ matchId: { in: userMatchIds }, senderId: { not: userId } })
+        : Promise.resolve(0),
       db.moment.count({ userId }),
       db.momentComment.count({ userId }),
       db.momentReaction.count({ userId }),
@@ -56,7 +56,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ user
       db.report.count({ reportedId: userId }),
       db.report.count({ reporterId: userId }),
       db.userAchievement.count({ userId }),
-      db.message.findFirst({ senderId: userId }, { orderBy: { createdAt: 'desc' } }),
+      userMatchIds.length > 0
+        ? db.message.findFirst({ matchId: { in: userMatchIds } }, { orderBy: { createdAt: 'desc' } })
+        : Promise.resolve(null),
     ]);
 
     const lastActivity = lastMessage ? lastMessage.createdAt.toISOString() : safeUser.updatedAt.toISOString();
