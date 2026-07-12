@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { verifyTempToken } from '@/lib/auth/jwt';
 import { db } from '@/lib/db';
+import { checkRateLimit } from '@/lib/auth/rate-limit';
+import { getClientIp } from '@/lib/auth/crypto';
+import { RATE_LIMITS } from '@/lib/constants';
 import { logger } from '@/lib/logger';
 
 function maskEmail(email: string): string {
@@ -13,6 +16,12 @@ function maskEmail(email: string): string {
 
 export async function POST(request: Request) {
   try {
+    const ip = getClientIp(request);
+    const rateLimit = await checkRateLimit(`resolve-email:${ip}`, RATE_LIMITS.RESOLVE_EMAIL.MAX, RATE_LIMITS.RESOLVE_EMAIL.WINDOW);
+    if (!rateLimit.allowed) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+    }
+
     const { token } = await request.json();
 
     if (!token || typeof token !== 'string' || token.length > 128) {

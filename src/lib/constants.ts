@@ -62,7 +62,7 @@ export const VALIDATION = {
 } as const;
 
 export const FILTER = {
-  AGE_DEFAULT_MIN: 0,
+  AGE_DEFAULT_MIN: 18,
   AGE_DEFAULT_MAX: 99,
 } as const;
 
@@ -122,6 +122,7 @@ export const RATE_LIMITS = {
   DEMO_LOGIN: { MAX: 10, WINDOW: 300 },
   VERIFY_EMAIL_RESEND: { MAX: 3, WINDOW: 300 },
   RESET_PASSWORD: { MAX: 5, WINDOW: 3600 },
+  RESOLVE_EMAIL: { MAX: 10, WINDOW: 60 },
 } as const;
 
 export const TOTP = {
@@ -210,8 +211,7 @@ export const TIME = {
   MS_PER_MINUTE: 60000,
   MINUTES_PER_HOUR: 60,
   HOURS_PER_DAY: 24,
-  RESEND_COOLDOWN_SECONDS: 60,
-  RESEND_COOLDOWN_INTERVAL_MS: 1000,
+  RESEND_COOLDOWN_MS: 60000,
 } as const;
 
 export const ONLINE_PRESENCE = {

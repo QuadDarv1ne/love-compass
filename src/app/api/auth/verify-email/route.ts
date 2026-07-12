@@ -132,7 +132,7 @@ export async function POST(request: Request) {
     }
 
     // Server-side cooldown: prevent resend if last request was within cooldown window
-    const cooldownMs = TIME.RESEND_COOLDOWN_SECONDS * TIME.RESEND_COOLDOWN_INTERVAL_MS;
+    const cooldownMs = TIME.RESEND_COOLDOWN_MS;
     if (user.lastEmailVerificationSentAt) {
       const nextAllowedAt = new Date(user.lastEmailVerificationSentAt.getTime() + cooldownMs);
       if (new Date() < nextAllowedAt) {
