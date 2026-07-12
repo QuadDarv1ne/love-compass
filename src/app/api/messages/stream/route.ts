@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { getUserFromRequest } from '@/lib/auth/session-server';
+import { requireAuth } from '@/lib/auth/guard';
 import { messageBus } from '@/lib/sse';
 import { logger } from '@/lib/logger';
 
@@ -8,10 +8,9 @@ const HEARTBEAT_INTERVAL_MS = 30_000;
 const CLIENT_TIMEOUT_MS = 120_000;
 
 export async function GET(request: Request) {
-  const user = await getUserFromRequest();
-  if (!user) {
-    return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
-  }
+  const auth = await requireAuth();
+  if (auth instanceof NextResponse) return auth;
+  const user = auth.user;
 
   const { searchParams } = new URL(request.url);
   const matchId = searchParams.get('matchId');

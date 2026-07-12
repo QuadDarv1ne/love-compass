@@ -16,6 +16,6 @@ export async function GET() {
     });
   } catch (error) {
     logger.error('/api/auth/session', 'Session check error', error);
-    return NextResponse.json(null, { status: 200 });
+    return NextResponse.json(null, { status: 500 });
   }
 }

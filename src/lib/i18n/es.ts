@@ -93,6 +93,7 @@ const es= {
   'common.confirm': 'Confirmar',
   'common.cancel': 'Cancelar',
   'common.close': 'Cerrar',
+  'common.back': 'Volver',
   'common.previousPage': 'Página anterior',
   'common.nextPage': 'Página siguiente',
   'verifyEmail.title': 'Verifica tu correo',
@@ -300,6 +301,7 @@ const es= {
   'profile.uploadError': 'Error al subir',
   'profile.deleteError': 'Error al eliminar',
   'profile.changePhoto': 'Cambiar',
+  'profile.premiumSubscription': 'Suscripción Premium',
 
   'likedYou.empty': 'A nadie le has gustado todavía',
   'likedYou.emptyDesc': 'Cuando alguien muestre interés, lo verás aquí',

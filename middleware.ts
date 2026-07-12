@@ -154,15 +154,18 @@ export async function middleware(request: NextRequest) {
       return originResult;
     }
     const origin = originResult || '*';
+    const headers: Record<string, string> = {
+      'Access-Control-Allow-Origin': origin,
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, x-csrf-token, Authorization',
+      'Access-Control-Max-Age': '86400',
+    };
+    if (origin !== '*') {
+      headers['Access-Control-Allow-Credentials'] = 'true';
+    }
     return new NextResponse(null, {
       status: 204,
-      headers: {
-        'Access-Control-Allow-Origin': origin,
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, x-csrf-token, Authorization',
-        'Access-Control-Allow-Credentials': 'true',
-        'Access-Control-Max-Age': '86400',
-      },
+      headers,
     });
   }
 
@@ -217,6 +220,13 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // Validate origin for all requests (including public auth paths)
+  const originResult = validateOrigin(request);
+  if (originResult instanceof NextResponse) {
+    logRequest(method, pathname, 403, Date.now() - startTime, ip);
+    return originResult;
+  }
+
   // Check if this is a public auth path
   const isPublicAuthPath = PUBLIC_AUTH_PATHS.some(
     (path) => pathname === path || pathname.startsWith(path + '/')
@@ -242,13 +252,6 @@ export async function middleware(request: NextRequest) {
       { error: 'Authentication required' },
       { status: 401 }
     );
-  }
-
-  // Security: Validate origin header in production
-  const originResult = validateOrigin(request);
-  if (originResult instanceof NextResponse) {
-    logRequest(method, pathname, 403, Date.now() - startTime, ip);
-    return originResult;
   }
 
   // Security headers are already set globally via next.config.ts headers()
