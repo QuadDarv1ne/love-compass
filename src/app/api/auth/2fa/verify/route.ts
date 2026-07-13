@@ -109,9 +109,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Code already used. Please sign in again' }, { status: 429 });
     }
 
-    // Reset login attempts after successful 2FA verification
-    await db.rateLimit.deleteMany({ key: { startsWith: `login:${user.email.toLowerCase()}` } });
-
     // Create session
     const sessionToken = generateSessionToken();
     const userAgent = request.headers.get('user-agent');

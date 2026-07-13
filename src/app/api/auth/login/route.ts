@@ -40,9 +40,10 @@ export async function POST(request: Request) {
     const { email, password } = result.data;
     const emailLower = email.toLowerCase();
 
-    // Rate limiting per email
+    // Rate limiting per IP+email (prevents multi-IP DOS on account lockout)
+    const ip = getClientIp(request);
     const rateLimit = await checkRateLimit(
-      `login:${emailLower}`,
+      `login:${ip}:${emailLower}`,
       LOGIN_LIMITS.MAX_ATTEMPTS,
       LOGIN_LIMITS.LOCKOUT_WINDOW
     );

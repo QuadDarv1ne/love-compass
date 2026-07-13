@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import { db } from '@/lib/db';
 import { requireAdmin, requireAdminWithCSRF, isZodError } from '@/lib/auth/guard';
 import { sanitizeUser } from '@/lib/auth/projections';
+import { deleteUserCascade } from '@/lib/delete-user';
 import { z } from 'zod';
 import { logger } from '@/lib/logger';
 
@@ -149,55 +150,8 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ u
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Delete all related data in a transaction to avoid FK constraint violations
     await db.transaction(async (tx) => {
-      // Messages in user's matches (bulk delete using match IDs)
-      const matches = await tx.match.findMany(
-        { OR: [{ user1Id: userId }, { user2Id: userId }] }
-      );
-      const matchIds = matches.map(m => m.id);
-      if (matchIds.length > 0) {
-        await tx.message.deleteMany({ matchId: { in: matchIds } });
-      }
-      await tx.match.deleteMany({ OR: [{ user1Id: userId }, { user2Id: userId }] });
-
-      // Direct likes
-      await tx.like.deleteMany({ OR: [{ fromUserId: userId }, { toUserId: userId }] });
-
-      // Blocks
-      await tx.block.deleteMany({ OR: [{ blockerId: userId }, { blockedId: userId }] });
-
-      // Reports
-      await tx.report.deleteMany({ OR: [{ reporterId: userId }, { reportedId: userId }] });
-
-      // Moments: collect IDs for bulk deletion of related data
-      const moments = await tx.moment.findMany(
-        { userId }
-      );
-      const momentIds = moments.map(m => m.id);
-      if (momentIds.length > 0) {
-        await tx.momentComment.deleteMany({ momentId: { in: momentIds } });
-        await tx.momentReaction.deleteMany({ momentId: { in: momentIds } });
-        await tx.momentLike.deleteMany({ momentId: { in: momentIds } });
-      }
-      await tx.moment.deleteMany({ userId });
-
-      // Remaining moment comments/reactions by this user on others' moments
-      await tx.momentComment.deleteMany({ userId });
-      await tx.momentReaction.deleteMany({ userId });
-
-      // Achievements
-      await tx.userAchievement.deleteMany({ userId });
-
-      // Sessions
-      await tx.session.deleteMany({ userId });
-
-      // Rate limits
-      await tx.rateLimit.deleteMany({ key: { startsWith: `login:${user.email.toLowerCase()}` } });
-      await tx.rateLimit.deleteMany({ key: { startsWith: `verify:${user.email.toLowerCase()}` } });
-
-      // Finally delete the user
-      await tx.user.delete({ id: userId });
+      await deleteUserCascade(tx, { id: userId, email: user.email });
     });
 
     return NextResponse.json({ success: true });

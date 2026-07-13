@@ -24,7 +24,7 @@ interface RateLimitResult {
   reset: number;
 }
 
-let stores = new Map<string, Map<string, number[]>>();
+const stores = new Map<string, Map<string, number[]>>();
 
 /**
  * Reset all rate limit stores — used in tests between cases.

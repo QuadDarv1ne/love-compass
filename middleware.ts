@@ -4,6 +4,7 @@ import { createRateLimiter } from '@/lib/rate-limit';
 import { LOGIN_LIMITS, REGISTRATION_LIMITS } from '@/lib/constants';
 import { RATE_LIMITS } from '@/lib/constants';
 import { logger } from '@/lib/logger';
+import { isValidIP } from '@/lib/ip';
 
 function validateOrigin(request: NextRequest): string | NextResponse {
   const origin = request.headers.get('origin');
@@ -48,15 +49,6 @@ const rateLimiters = {
   csrfToken: createRateLimiter({ max: RATE_LIMITS.CSRF_TOKEN.MAX, windowMs: RATE_LIMITS.CSRF_TOKEN.WINDOW * 1000 }),
   heavy: createRateLimiter({ max: 30, windowMs: 60_000 }),         // 30 req/min for write-heavy paths
 };
-
-const IPV4_REGEX = /^(\d{1,3}\.){3}\d{1,3}$/;
-
-function isValidIP(ip: string): boolean {
-  if (IPV4_REGEX.test(ip)) {
-    return ip.split('.').map(Number).every((p) => p >= 0 && p <= 255);
-  }
-  return false;
-}
 
 function getClientIp(request: NextRequest): string {
   const forwarded = request.headers.get('x-forwarded-for');

@@ -1,5 +1,5 @@
 import { db, DbUser } from '@/lib/db';
-import { generateRandomToken } from '@/lib/auth/crypto';
+import { generateRandomToken, hashToken } from '@/lib/auth/crypto';
 import { SESSION_MAX_AGE } from './session';
 import { SESSION } from '@/lib/constants';
 
@@ -7,6 +7,10 @@ import { SESSION } from '@/lib/constants';
  * Server-only session management functions.
  * These depend on the database adapter and Node.js modules,
  * so they must NOT be imported from Edge Runtime middleware.
+ *
+ * Session tokens are stored as SHA-256 hashes in the database,
+ * preventing session hijacking in case of a DB breach.
+ * The raw token is only exposed via the HTTP-only cookie.
  */
 
 export function generateSessionToken(): string {
@@ -20,6 +24,7 @@ export async function createSession(
   ipAddress?: string | null
 ) {
   const expiresAt = new Date(Date.now() + SESSION_MAX_AGE * 1000);
+  const tokenHash = hashToken(token);
 
   // Enforce max concurrent sessions per user — delete oldest if over limit
   const sessionCount = await db.session.count({ userId });
@@ -40,7 +45,7 @@ export async function createSession(
   }
 
   return db.session.create({
-    token,
+    token: tokenHash,
     userId,
     expiresAt,
     userAgent: userAgent || undefined,
@@ -52,7 +57,8 @@ export async function validateSessionToken(token: string): Promise<{
   session: { id: string; userId: string; expiresAt: Date };
   user: DbUser;
 } | null> {
-  const result = await db.session.findUnique({ token }, true);
+  const tokenHash = hashToken(token);
+  const result = await db.session.findUnique({ token: tokenHash }, true);
 
   if (!result || !('user' in result) || !result.user) {
     return null;
@@ -81,7 +87,8 @@ export async function validateSessionToken(token: string): Promise<{
 }
 
 export async function invalidateSession(token: string): Promise<void> {
-  await db.session.delete({ token });
+  const tokenHash = hashToken(token);
+  await db.session.delete({ token: tokenHash });
 }
 
 export async function invalidateAllUserSessions(userId: string): Promise<void> {
