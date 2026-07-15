@@ -32,6 +32,7 @@ export function StoryViewer({
   const onCloseRef = useRef(onClose);
   const containerRef = useRef<HTMLDivElement>(null);
   const dragStartY = useRef(0);
+  const myReactionsRef = useRef<Set<string>>(new Set());
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -97,27 +98,28 @@ export function StoryViewer({
   };
 
   const toggleLike = async () => {
-    const wasLiked = likedMoments.has(currentMoment.id);
+    const momentId = currentMoment.id;
+    const wasLiked = likedMoments.has(momentId);
     setLikedMoments((prev) => {
       const next = new Set(prev);
-      if (wasLiked) next.delete(currentMoment.id);
-      else next.add(currentMoment.id);
+      if (wasLiked) next.delete(momentId);
+      else next.add(momentId);
       return next;
     });
     try {
-      const res = await patchWithCSRF('/api/moments', { id: currentMoment.id, action: 'like' });
+      const res = await patchWithCSRF('/api/moments', { id: momentId, action: 'like' });
       if (res.ok) {
         const body = await res.json();
         const serverLiked = body?.data?.liked === true;
         setLikedMoments((prev) => {
           const next = new Set(prev);
-          if (serverLiked) next.add(currentMoment.id);
-          else next.delete(currentMoment.id);
+          if (serverLiked) next.add(momentId);
+          else next.delete(momentId);
           return next;
         });
         setLocalMoments((prev) =>
           prev.map((m) => {
-            if (m.id !== currentMoment.id) return m;
+            if (m.id !== momentId) return m;
             return { ...m, likes: body.data.likes };
           })
         );
@@ -125,47 +127,85 @@ export function StoryViewer({
     } catch {
       setLikedMoments((prev) => {
         const next = new Set(prev);
-        if (wasLiked) next.add(currentMoment.id);
-        else next.delete(currentMoment.id);
+        if (wasLiked) next.add(momentId);
+        else next.delete(momentId);
         return next;
       });
     }
   };
 
   const handleReaction = async (emoji: string) => {
+    const momentId = currentMoment.id;
+    const key = `${momentId}:${emoji}`;
+    let wasAdding = false;
+    {
+      const next = new Set(myReactionsRef.current);
+      wasAdding = !next.has(key);
+      if (wasAdding) next.add(key);
+      else next.delete(key);
+      myReactionsRef.current = next;
+    }
     setLocalMoments((prev) =>
       prev.map((m) => {
-        if (m.id !== currentMoment.id) return m;
+        if (m.id !== momentId) return m;
+        const currentCount = m.reactions[emoji] || 0;
         return {
           ...m,
-          reactions: { ...m.reactions, [emoji]: (m.reactions[emoji] || 0) + 1 },
+          reactions: {
+            ...m.reactions,
+            [emoji]: currentCount + (wasAdding ? 1 : -1),
+          },
         };
       })
     );
     try {
-      const res = await patchWithCSRF('/api/moments', { id: currentMoment.id, action: 'react', emoji });
+      const res = await patchWithCSRF('/api/moments', { id: momentId, action: 'react', emoji });
       if (res.ok) {
         const body = await res.json();
         const wasRemoved = body?.data?.removed === true;
-        if (wasRemoved) {
+        if (wasRemoved !== wasAdding) {
+          {
+            const next = new Set(myReactionsRef.current);
+            if (wasRemoved) next.delete(key);
+            else next.add(key);
+            myReactionsRef.current = next;
+          }
           setLocalMoments((prev) =>
             prev.map((m) => {
-              if (m.id !== currentMoment.id) return m;
-              return { ...m, reactions: { ...m.reactions, [emoji]: Math.max((m.reactions[emoji] || 0) - 1, 0) } };
+              if (m.id !== momentId) return m;
+              const currentCount = m.reactions[emoji] || 0;
+              return {
+                ...m,
+                reactions: {
+                  ...m.reactions,
+                  [emoji]: currentCount + (wasRemoved ? -1 : 1),
+                },
+              };
             })
           );
-          toast.success(t('moments.reactionRemoved', { emoji }));
-        } else {
-          toast.success(t('moments.reactionAdded', { emoji }));
         }
+        toast.success(wasRemoved ? t('moments.reactionRemoved', { emoji }) : t('moments.reactionAdded', { emoji }));
       }
     } catch (error) {
       logger.error('story-viewer.syncReaction', 'Failed to sync reaction', error);
       toast.error(t('moments.reactionError'));
+      {
+        const next = new Set(myReactionsRef.current);
+        if (wasAdding) next.delete(key);
+        else next.add(key);
+        myReactionsRef.current = next;
+      }
       setLocalMoments((prev) =>
         prev.map((m) => {
-          if (m.id !== currentMoment.id) return m;
-          return { ...m, reactions: { ...m.reactions, [emoji]: Math.max((m.reactions[emoji] || 0) - 1, 0) } };
+          if (m.id !== momentId) return m;
+          const currentCount = m.reactions[emoji] || 0;
+          return {
+            ...m,
+            reactions: {
+              ...m.reactions,
+              [emoji]: currentCount + (wasAdding ? -1 : 1),
+            },
+          };
         })
       );
     }

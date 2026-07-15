@@ -4,8 +4,8 @@ import { logger } from '@/lib/logger';
 
 export async function GET() {
   try {
-    await setCSRFTokenCookie();
-    return NextResponse.json({ success: true });
+    const token = await setCSRFTokenCookie();
+    return NextResponse.json({ success: true, csrfToken: token });
   } catch (error) {
     logger.error('/api/auth/csrf-token', 'CSRF token error', error);
     return NextResponse.json(
