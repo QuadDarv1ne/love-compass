@@ -32,6 +32,10 @@ export async function POST(request: Request) {
       );
     }
 
+    if (!request.headers.get('content-type')?.startsWith('application/json')) {
+      return NextResponse.json({ error: 'Content-Type must be application/json' }, { status: 415 });
+    }
+
     // Rate limiting: 5 registrations per IP per hour
     const ip = getClientIp(request);
     const rateLimit = await checkRateLimit(`register:${ip}`, REGISTRATION_LIMITS.MAX_PER_HOUR, REGISTRATION_LIMITS.WINDOW_SECONDS);

@@ -27,6 +27,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'CSRF validation failed' }, { status: 403 });
     }
 
+    if (!request.headers.get('content-type')?.startsWith('application/json')) {
+      return NextResponse.json({ error: 'Content-Type must be application/json' }, { status: 415 });
+    }
+
     const body = await request.json();
     const result = loginSchema.safeParse(body);
 
@@ -102,7 +106,7 @@ export async function POST(request: Request) {
       const tempToken = await signTempToken({ userId: user.id }, TOTP.TEMP_TOKEN_TTL_MINUTES);
       return NextResponse.json(
         { needsEmailVerification: true, tempToken },
-        { status: 403 }
+        { status: 401 }
       );
     }
 

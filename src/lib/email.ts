@@ -43,7 +43,7 @@ export async function sendVerificationEmail(
 
   if (isDev || !resend) {
     if (isDev) {
-      logger.warn('[EMAIL]', `Verification link for ${email}: ${verificationUrl}`);
+      logger.info('[EMAIL]', `Verification email for ${email}: token=${token.slice(0, 8)}...`);
     }
     return;
   }

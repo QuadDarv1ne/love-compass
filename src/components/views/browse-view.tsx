@@ -311,6 +311,9 @@ export function BrowseView() {
     }
     timerIdsRef.current = [];
 
+    // Dismiss match animation if it was already triggered
+    setShowMatchAnimation(false);
+
     // If it was a like or superLike, call API to delete it
     if (lastSwipeAction === 'like' || lastSwipeAction === 'superLike') {
       try {
@@ -373,7 +376,7 @@ export function BrowseView() {
     });
     setLastSwipedProfile(null);
     setLastSwipeAction(null);
-  }, [lastSwipedProfile, lastSwipeAction, t]);
+  }, [lastSwipedProfile, lastSwipeAction, setShowMatchAnimation, t]);
 
   // Drag handlers for touch swipe
   const handleDrag = (_: unknown, info: { offset: { x: number } }) => {

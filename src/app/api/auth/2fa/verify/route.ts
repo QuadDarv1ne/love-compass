@@ -56,7 +56,7 @@ export async function POST(request: Request) {
     if (!payload || !payload.userId) {
       return NextResponse.json(
         { error: 'Session expired. Please sign in again' },
-        { status: 400 }
+        { status: 401 }
       );
     }
 
@@ -106,7 +106,7 @@ export async function POST(request: Request) {
     // Prevent temp token reuse: block this token for the next 5 minutes
     const replayLimit = await checkRateLimit(`2fa-used:${tempToken.slice(0, 10)}`, RATE_LIMITS.TOTP_REPLAY.MAX, RATE_LIMITS.TOTP_REPLAY.WINDOW);
     if (!replayLimit.allowed) {
-      return NextResponse.json({ error: 'Code already used. Please sign in again' }, { status: 429 });
+      return NextResponse.json({ error: 'Code already used. Please sign in again' }, { status: 400 });
     }
 
     // Create session

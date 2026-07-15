@@ -18,7 +18,7 @@ export async function setCSRFTokenCookie(): Promise<string> {
     secure: isProduction,
     sameSite: 'strict',
     path: '/',
-    maxAge: 60 * 60 * 24, // 1 day
+    maxAge: 300, // 5 minutes — matches client-side CSRF_TOKEN_TTL refresh window
   });
 
   return token;

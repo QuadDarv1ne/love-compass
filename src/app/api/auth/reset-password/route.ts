@@ -91,7 +91,7 @@ export async function POST(request: Request) {
     if (!resetResult) {
       return NextResponse.json(
         { error: 'Invalid or expired token' },
-        { status: 400 }
+        { status: 401 }
       );
     }
 
