@@ -4,8 +4,9 @@ import { logger } from '@/lib/logger';
 import { createTranslatorForLanguage } from '@/lib/i18n';
 import { DEFAULT_LOCALE } from '@/lib/constants';
 
-// Monotonic counter to prevent stale checkAuth results from overwriting newer ones
+// Monotonic counters to prevent stale results from overwriting newer ones
 let checkAuthGeneration = 0;
+let adminGeneration = 0;
 
 export interface User {
   id: string;
@@ -163,7 +164,7 @@ interface AppState {
   // Search filters
   searchQuery: string;
   sortBy: 'new' | 'name' | 'popular' | 'recommended';
-  filterGender: 'all' | 'male' | 'female';
+  filterGender: 'all' | 'male' | 'female' | 'other';
   filterAgeMin: number;
   filterAgeMax: number;
   filterCity: string;
@@ -242,7 +243,7 @@ interface AppState {
   // Filter actions
   setSearchQuery: (query: string) => void;
   setSortBy: (sort: 'new' | 'name' | 'popular' | 'recommended') => void;
-  setFilterGender: (gender: 'all' | 'male' | 'female') => void;
+  setFilterGender: (gender: 'all' | 'male' | 'female' | 'other') => void;
   setFilterAgeMin: (age: number) => void;
   setFilterAgeMax: (age: number) => void;
   setFilterCity: (city: string) => void;
@@ -251,6 +252,7 @@ interface AppState {
   // Blocked users
   blockUser: (userId: string) => void;
   unblockUser: (userId: string) => void;
+  setBlockedUserIds: (ids: string[]) => void;
 
   // Online & notifications
   setOnlineUserIds: (ids: string[]) => void;
@@ -540,6 +542,7 @@ export const useAppStore = create<AppState>((set, get) => {
   unblockUser: (userId) => set((state) => ({
     blockedUserIds: state.blockedUserIds.filter((id) => id !== userId),
   })),
+  setBlockedUserIds: (ids) => set({ blockedUserIds: ids }),
 
   setOnlineUserIds: (ids) => set({ onlineUserIds: ids }),
   setUnreadMatchIds: (ids) => set({ unreadMatchIds: ids }),
@@ -620,7 +623,7 @@ export const useAppStore = create<AppState>((set, get) => {
   setAdminPage: (page) => set({ adminPage: page }),
 
   fetchAdminData: async () => {
-    const generation = ++checkAuthGeneration;
+    const generation = ++adminGeneration;
     set({ adminLoading: true });
     try {
       const { adminFilterGender, adminSearchQuery, adminPage, adminLimit } = get();

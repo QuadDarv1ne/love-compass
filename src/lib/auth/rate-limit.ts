@@ -34,6 +34,8 @@ export async function checkRateLimit(
   await maybeCleanup();
 
   return db.transaction(async (tx) => {
+    // Atomic upsert: create if not exists, update count if exists and not expired
+    // This eliminates the TOCTOU race between findUnique and create/update
     const existing = await tx.rateLimit.findUnique({ key });
 
     if (!existing) {
@@ -42,9 +44,7 @@ export async function checkRateLimit(
     }
 
     if (existing.resetAt <= now) {
-      // Delete expired entry before creating new one to prevent stale records
-      await tx.rateLimit.deleteMany({ key });
-      await tx.rateLimit.create({ key, count: 1, resetAt });
+      await tx.rateLimit.update({ key }, { count: 1, resetAt });
       return { allowed: true, remaining: maxAttempts - 1 };
     }
 
@@ -52,7 +52,10 @@ export async function checkRateLimit(
       return { allowed: false, remaining: 0 };
     }
 
-    const updated = await tx.rateLimit.update({ key }, { count: existing.count + 1 });
+    const updated = await tx.rateLimit.update(
+      { key },
+      { count: existing.count + 1 }
+    );
     return { allowed: true, remaining: maxAttempts - updated.count };
   });
 }

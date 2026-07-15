@@ -68,12 +68,19 @@ export async function GET(request: Request) {
         }
       });
 
-      request.signal.addEventListener('abort', () => {
+      // Cleanup heartbeat subscriptions on any connection close event
+      const cleanup = () => {
         clearInterval(heartbeatTimer);
         clearTimeout(timeoutTimer);
         unsubscribeMessage();
         unsubscribeTyping();
-      });
+      };
+      request.signal.addEventListener('abort', cleanup);
+      // Also handle the 'close' event for cases where 'abort' is not fired
+      // (e.g., network disconnect without FIN packet on some platforms)
+      if ('onclose' in request.signal) {
+        request.signal.addEventListener('close', cleanup);
+      }
     },
   });
 

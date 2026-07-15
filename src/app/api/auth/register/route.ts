@@ -66,8 +66,18 @@ export async function POST(request: Request) {
     // Check email uniqueness
     const existing = await db.user.findUnique({ email: userData.email.toLowerCase() });
     if (existing) {
-      // Return generic response to prevent email enumeration, but with success status
-      // so client shows the verification message instead of an error
+      // Re-send verification email for existing unverified accounts
+      // to prevent user confusion when they try to register again
+      if (!existing.emailVerified && existing.emailVerificationToken) {
+        const emailVerificationToken = generateRandomToken(TOKEN.BYTE_LENGTH);
+        const hashedEmailToken = hashToken(emailVerificationToken);
+        const emailVerificationExpiry = new Date(Date.now() + TOKEN.VERIFICATION_EXPIRY_MS);
+        await db.user.update(
+          { id: existing.id },
+          { emailVerificationToken: hashedEmailToken, emailVerificationExpiry },
+        );
+        await sendVerificationEmail(existing.email, emailVerificationToken);
+      }
       return NextResponse.json(
         {
           success: true,

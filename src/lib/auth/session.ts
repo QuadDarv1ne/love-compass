@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers';
+import { createHmac } from 'crypto';
 
 export const SESSION_COOKIE_NAME = '__session';
 export const SESSION_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
@@ -8,13 +9,40 @@ export const SESSION_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
  * DB-dependent functions (createSession, validateSessionToken, etc.)
  * are exported from '@/lib/auth/session/server' to avoid pulling
  * Node.js modules into the Edge Runtime middleware.
+ *
+ * The session token is HMAC-signed before being stored in the cookie.
+ * This prevents token forgery even if an attacker can write arbitrary
+ * cookie values (defense in depth beyond httpOnly).
  */
+
+const SESSION_SIGNING_KEY = process.env.SESSION_SECRET || 'dev-secret-change-in-production';
+
+function signToken(token: string): string {
+  const hmac = createHmac('sha256', SESSION_SIGNING_KEY).update(token).digest('hex');
+  return `${token}.${hmac}`;
+}
+
+function verifySignedToken(signed: string): string | null {
+  const dotIndex = signed.lastIndexOf('.');
+  if (dotIndex === -1) return null;
+  const token = signed.slice(0, dotIndex);
+  const sig = signed.slice(dotIndex + 1);
+  const expected = createHmac('sha256', SESSION_SIGNING_KEY).update(token).digest('hex');
+  // Constant-time comparison to prevent timing attacks
+  if (expected.length !== sig.length) return null;
+  let match = 0;
+  for (let i = 0; i < expected.length; i++) {
+    match |= expected.charCodeAt(i) ^ sig.charCodeAt(i);
+  }
+  return match === 0 ? token : null;
+}
 
 export async function setSessionCookie(token: string): Promise<void> {
   const cookieStore = await cookies();
   const isProduction = process.env.NODE_ENV === 'production';
+  const signed = signToken(token);
 
-  cookieStore.set(SESSION_COOKIE_NAME, token, {
+  cookieStore.set(SESSION_COOKIE_NAME, signed, {
     httpOnly: true,
     secure: isProduction,
     sameSite: 'strict',
@@ -40,5 +68,7 @@ export async function deleteSessionCookie(): Promise<void> {
 
 export async function getSessionTokenFromCookie(): Promise<string | null> {
   const cookieStore = await cookies();
-  return cookieStore.get(SESSION_COOKIE_NAME)?.value || null;
+  const signed = cookieStore.get(SESSION_COOKIE_NAME)?.value || null;
+  if (!signed) return null;
+  return verifySignedToken(signed);
 }

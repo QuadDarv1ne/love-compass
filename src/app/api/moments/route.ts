@@ -307,7 +307,7 @@ export async function PATCH(request: Request) {
       } catch (innerError) {
         logger.warn('/api/moments', 'P2002 recovery query failed', innerError);
       }
-      return NextResponse.json({ data: { liked: true, added: true } });
+      return NextResponse.json({ error: 'Conflict, please retry' }, { status: 409 });
     }
     logger.error('/api/moments', 'PATCH error', error);
     return NextResponse.json({ error: 'Failed to update moment' }, { status: 500 });

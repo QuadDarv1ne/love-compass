@@ -2,21 +2,11 @@
  * Shared projections for auth-related responses.
  * Kept here to avoid cross-route imports which Next.js doesn't support in production builds.
  */
-const SENSITIVE_FIELDS: readonly string[] = [
-  'passwordHash',
-  'totpSecret',
-  'totpBackupCodes',
-  'passwordResetToken',
-  'passwordResetExpiry',
-  'emailVerificationToken',
-  'emailVerificationExpiry',
-  'loginAttempts',
-  'lockedUntil',
-];
 
 /**
  * Prisma `select` object that fetches only non-sensitive user fields.
  * Prevents password hashes, TOTP secrets, etc. from being transferred over the DB wire.
+ * This is the PRIMARY defense — only these fields leave the database.
  */
 export const PUBLIC_USER_SELECT = {
   id: true, email: true, name: true, age: true, gender: true, bio: true,
@@ -29,13 +19,31 @@ export const PUBLIC_USER_SELECT = {
 } as const;
 
 /**
- * Strip all sensitive fields from a user object before returning it to the client.
- * Prevents password hash, TOTP secrets, and reset tokens from leaking via API responses.
+ * Public-facing fields that are safe to expose to the client.
+ * Uses an allowlist approach to prevent leaking newly-added sensitive fields.
  */
-export function sanitizeUser<T>(user: T): T {
-  const safe = { ...user } as Record<string, unknown>;
-  for (const field of SENSITIVE_FIELDS) {
-    delete safe[field as string];
+const PUBLIC_FIELDS: readonly string[] = [
+  'id', 'email', 'name', 'age', 'gender', 'bio',
+  'interests', 'avatar', 'photos', 'city', 'lookingFor',
+  'emailVerified', 'role', 'notificationsEnabled',
+  'profileVisible', 'showOnlineStatus', 'language',
+  'showDistance', 'soundEnabled', 'matchNotifications',
+  'likeNotifications', 'emailNotifications', 'lastSeenAt',
+  'createdAt', 'updatedAt',
+];
+
+/**
+ * Strip all sensitive fields from a user object before returning it to the client.
+ * Uses an allowlist approach: only known public fields are preserved.
+ * This prevents newly-added sensitive fields from leaking accidentally.
+ */
+export function sanitizeUser<T extends object>(user: T): T {
+  const safe: Record<string, unknown> = {};
+  const record = user as Record<string, unknown>;
+  for (const field of PUBLIC_FIELDS) {
+    if (field in record) {
+      safe[field] = record[field];
+    }
   }
-  return safe as T;
+  return safe as unknown as T;
 }

@@ -65,6 +65,10 @@ export async function POST(request: Request) {
     if (isZodError(error)) {
       return NextResponse.json({ error: 'Validation failed', details: error.issues }, { status: 400 });
     }
+    // Handle concurrent unique constraint violation — another request created the dislike first
+    if (error instanceof Error && 'code' in error && (error as Error & { code: string }).code === 'P2002') {
+      return NextResponse.json({ success: true }, { status: 200 });
+    }
     logger.error('/api/dislike', 'Failed to create dislike', error);
     return NextResponse.json({ error: 'Failed to create dislike' }, { status: 500 });
   }

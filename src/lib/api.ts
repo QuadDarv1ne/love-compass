@@ -234,7 +234,7 @@ export async function hydrateAppData(user?: User) {
     const blockedPromise = hydrateSection('blocked', '/api/block', generation, (body) => {
       const data = (body as { data?: unknown })?.data;
       const blocks: { blockedId: string }[] = Array.isArray(data) ? data : [];
-      useAppStore.setState({ blockedUserIds: blocks.map((b) => b.blockedId).filter(Boolean) });
+      store.setBlockedUserIds(blocks.map((b) => b.blockedId).filter(Boolean));
     }, errors);
 
     const dislikedPromise = hydrateSection('disliked', '/api/dislike', generation, (body) => {
@@ -244,7 +244,7 @@ export async function hydrateAppData(user?: User) {
 
     const momentsPromise = hydrateSection('moments', '/api/moments', generation, (body) => {
       const data = (body as { data?: unknown })?.data;
-      useAppStore.setState({ moments: Array.isArray(data) ? data : [] });
+      store.setMoments(Array.isArray(data) ? data : []);
     }, errors);
 
     const achievementsPromise = hydrateSection('achievements', '/api/achievements', generation, (body) => {

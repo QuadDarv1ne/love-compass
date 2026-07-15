@@ -13,7 +13,12 @@ const appUrl = process.env.NEXT_PUBLIC_APP_URL || `http://localhost:${PORT.DEFAU
  * Escape URL entities to prevent XSS in email templates.
  */
 function escapeUrl(url: string): string {
-  return url.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
+  return url
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
 }
 
 const isDev = process.env.NODE_ENV !== 'production';

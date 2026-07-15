@@ -3,7 +3,8 @@ import { z } from 'zod';
 import { db } from '@/lib/db';
 import { verifyPassword, hashPassword, validatePasswordStrength } from '@/lib/auth/password';
 import { requireAuthWithCSRF } from '@/lib/auth/guard';
-import { invalidateAllUserSessions } from '@/lib/auth/session-server';
+import { invalidateAllUserSessions, createSession, generateSessionToken } from '@/lib/auth/session-server';
+import { setSessionCookie } from '@/lib/auth/session';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';
 import { RATE_LIMITS, VALIDATION } from '@/lib/constants';
@@ -73,8 +74,12 @@ export async function POST(request: Request) {
       { passwordHash, loginAttempts: 0, lockedUntil: null },
     );
 
-    // Invalidate all sessions after password change
+    // Invalidate all sessions after password change, then create a new one
+    // so the current user isn't silently logged out
     await invalidateAllUserSessions(user.id);
+    const newToken = generateSessionToken();
+    await createSession(newToken, user.id);
+    await setSessionCookie(newToken);
 
     return NextResponse.json({ success: true });
   } catch (error) {
