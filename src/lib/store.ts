@@ -7,6 +7,7 @@ import { DEFAULT_LOCALE } from '@/lib/constants';
 // Monotonic counters to prevent stale results from overwriting newer ones
 let checkAuthGeneration = 0;
 let adminGeneration = 0;
+let refreshUserGeneration = 0;
 
 export interface User {
   id: string;
@@ -467,13 +468,16 @@ export const useAppStore = create<AppState>((set, get) => {
   },
 
   refreshUser: async () => {
+    const generation = ++refreshUserGeneration;
     try {
       const res = await fetch('/api/profile');
       if (res.ok) {
+        if (refreshUserGeneration !== generation) return;
         const user = await res.json();
         set({ currentUser: user });
       }
     } catch (error) {
+      if (refreshUserGeneration !== generation) return;
       logger.error('store.refreshUser', 'refreshUser failed', error);
     }
   },

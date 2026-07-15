@@ -595,7 +595,7 @@ const ru= {
   // Common errors
   'error.server': 'Ошибка сервера',
   'error.validation': 'Ошибка валидации',
-  'error.csrf': 'CSRF validation failed',
+  'error.csrf': 'Ошибка CSRF-валидации',
   'error.forbidden': 'Доступ запрещён',
   'error.authRequired': 'Необходима авторизация',
   'error.emailVerify': 'Подтвердите email',

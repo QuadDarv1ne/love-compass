@@ -8,21 +8,22 @@ const HEARTBEAT_INTERVAL_MS = 30_000;
 const CLIENT_TIMEOUT_MS = 120_000;
 
 export async function GET(request: Request) {
-  const auth = await requireAuth();
-  if (auth instanceof NextResponse) return auth;
-  const user = auth.user;
+  try {
+    const auth = await requireAuth();
+    if (auth instanceof NextResponse) return auth;
+    const user = auth.user;
 
-  const { searchParams } = new URL(request.url);
-  const matchId = searchParams.get('matchId');
+    const { searchParams } = new URL(request.url);
+    const matchId = searchParams.get('matchId');
 
-  if (!matchId) {
-    return NextResponse.json({ error: 'Missing matchId parameter' }, { status: 400 });
-  }
+    if (!matchId) {
+      return NextResponse.json({ error: 'Missing matchId parameter' }, { status: 400 });
+    }
 
-  const match = await db.match.findUnique({ id: matchId });
-  if (!match || (match.user1Id !== user.id && match.user2Id !== user.id)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
-  }
+    const match = await db.match.findUnique({ id: matchId });
+    if (!match || (match.user1Id !== user.id && match.user2Id !== user.id)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    }
 
   const partnerId = match.user1Id === user.id ? match.user2Id : match.user1Id;
 
@@ -94,4 +95,8 @@ export async function GET(request: Request) {
       'X-Accel-Buffering': 'no',
     },
   });
+  } catch (error) {
+    logger.error('sse.stream', 'Failed to establish SSE stream', error);
+    return NextResponse.json({ error: 'Failed to establish stream' }, { status: 500 });
+  }
 }

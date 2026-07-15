@@ -62,26 +62,34 @@ export async function POST(req: Request) {
 }
 
 export async function GET(req: Request) {
-  const auth = await requireAuth();
-  if (auth instanceof NextResponse) return auth;
+  try {
+    const auth = await requireAuth();
+    if (auth instanceof NextResponse) return auth;
 
-  const { searchParams } = new URL(req.url);
-  const paymentId = searchParams.get('paymentId');
+    const { searchParams } = new URL(req.url);
+    const paymentId = searchParams.get('paymentId');
 
-  if (!paymentId) {
+    if (!paymentId) {
+      return NextResponse.json(
+        { error: 'paymentId is required' },
+        { status: 400 }
+      );
+    }
+
+    // In production, check payment status from payment gateway
+    // For demo, return mock status
+    return NextResponse.json({
+      paymentId,
+      status: 'completed',
+      paidAt: new Date().toISOString(),
+      amount: 299,
+      currency: 'RUB',
+    });
+  } catch (error) {
+    logger.error('/api/payment GET', 'Failed to get payment status', error);
     return NextResponse.json(
-      { error: 'paymentId is required' },
-      { status: 400 }
+      { error: 'Failed to get payment status' },
+      { status: 500 }
     );
   }
-
-  // In production, check payment status from payment gateway
-  // For demo, return mock status
-  return NextResponse.json({
-    paymentId,
-    status: 'completed',
-    paidAt: new Date().toISOString(),
-    amount: 299,
-    currency: 'RUB',
-  });
 }
