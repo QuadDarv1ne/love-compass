@@ -7,12 +7,7 @@ const resend = process.env.RESEND_API_KEY
   : null;
 
 const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
-
-const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-if (!appUrl && process.env.NODE_ENV === 'production') {
-  throw new Error('NEXT_PUBLIC_APP_URL is required in production');
-}
-const resolvedAppUrl = appUrl || `http://localhost:${PORT.DEFAULT}`;
+const appUrl = process.env.NEXT_PUBLIC_APP_URL || `http://localhost:${PORT.DEFAULT}`;
 
 /**
  * Escape URL entities to prevent XSS in email templates.
@@ -44,7 +39,7 @@ export async function sendVerificationEmail(
   email: string,
   token: string
 ): Promise<void> {
-  const verificationUrl = `${resolvedAppUrl}/verify-email?token=${encodeURIComponent(token)}`;
+  const verificationUrl = `${appUrl}/verify-email?token=${encodeURIComponent(token)}`;
 
   if (isDev || !resend) {
     if (isDev) {
@@ -78,7 +73,7 @@ export async function sendPasswordResetEmail(
   email: string,
   token: string
 ): Promise<void> {
-  const resetUrl = `${resolvedAppUrl}/reset-password?token=${encodeURIComponent(token)}`;
+  const resetUrl = `${appUrl}/reset-password?token=${encodeURIComponent(token)}`;
 
   if (isDev || !resend) {
     if (isDev) {
