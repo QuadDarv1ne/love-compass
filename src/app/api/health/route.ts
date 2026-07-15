@@ -14,7 +14,11 @@ function isRateLimited(ip: string): boolean {
   const recent = timestamps.filter((t) => now - t < RATE_LIMIT_WINDOW_MS);
   if (recent.length >= RATE_LIMIT_MAX) return true;
   recent.push(now);
-  hits.set(ip, recent);
+  if (recent.length === 0) {
+    hits.delete(ip);
+  } else {
+    hits.set(ip, recent);
+  }
   return false;
 }
 

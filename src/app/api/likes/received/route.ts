@@ -21,14 +21,30 @@ export async function GET() {
 
     const likedUserIds = receivedLikes.map((like) => like.fromUserId);
 
+    // Filter out blocked users (either direction)
+    const blocks = await db.block.findMany({
+      where: {
+        OR: [
+          { blockerId: user.id, blockedId: { in: likedUserIds } },
+          { blockerId: { in: likedUserIds }, blockedId: user.id },
+        ],
+      },
+      select: { blockerId: true, blockedId: true },
+    });
+    const blockedIds = new Set<string>();
+    for (const b of blocks) {
+      blockedIds.add(b.blockerId === user.id ? b.blockedId : b.blockerId);
+    }
+    const visibleUserIds = likedUserIds.filter((id) => !blockedIds.has(id));
+
     // Single query to find which of those users the current user has NOT liked back
     const mutualLikes = await db.like.findMany({
       fromUserId: user.id,
-      toUserId: { in: likedUserIds },
+      toUserId: { in: visibleUserIds },
     });
 
     const mutualUserIds = new Set(mutualLikes.map((like) => like.toUserId));
-    const pendingUserIds = likedUserIds.filter((id) => !mutualUserIds.has(id));
+    const pendingUserIds = visibleUserIds.filter((id) => !mutualUserIds.has(id));
 
     const pendingUsers = await db.user.findMany(
       { id: { in: pendingUserIds } }

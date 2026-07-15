@@ -42,7 +42,7 @@ export async function GET(request: Request) {
       const timeoutTimer = setTimeout(() => {
         controller.enqueue(encoder.encode(`event: close\ndata: timeout\n\n`));
         controller.close();
-        clearInterval(heartbeatTimer);
+        cleanup();
       }, CLIENT_TIMEOUT_MS);
 
       const eventId = `${matchId}`;

@@ -594,10 +594,15 @@ export const useAppStore = create<AppState>((set, get) => {
     }
   },
   saveSettings: async (settings) => {
-    const { putWithCSRF } = await import('@/lib/api');
-    const res = await putWithCSRF('/api/settings', settings);
-    if (!res.ok) {
-      throw new Error('Failed to save settings');
+    try {
+      const { putWithCSRF } = await import('@/lib/api');
+      const res = await putWithCSRF('/api/settings', settings);
+      if (!res.ok) {
+        throw new Error('Failed to save settings');
+      }
+    } catch (error) {
+      logger.error('store.saveSettings', 'Failed to save settings', error);
+      throw error;
     }
   },
 

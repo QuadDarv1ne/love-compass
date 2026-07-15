@@ -39,7 +39,21 @@ export async function checkRateLimit(
     const existing = await tx.rateLimit.findUnique({ key });
 
     if (!existing) {
-      await tx.rateLimit.create({ key, count: 1, resetAt });
+      try {
+        await tx.rateLimit.create({ key, count: 1, resetAt });
+      } catch (e) {
+        // Unique constraint violation — concurrent create, re-read and update
+        const retry = await tx.rateLimit.findUnique({ key });
+        if (!retry) throw e;
+        if (retry.resetAt <= now) {
+          await tx.rateLimit.update({ key }, { count: 1, resetAt });
+        } else if (retry.count < maxAttempts) {
+          await tx.rateLimit.update({ key }, { count: retry.count + 1 });
+        } else {
+          return { allowed: false, remaining: 0 };
+        }
+        return { allowed: true, remaining: maxAttempts - (retry.count + 1) };
+      }
       return { allowed: true, remaining: maxAttempts - 1 };
     }
 

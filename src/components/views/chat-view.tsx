@@ -274,7 +274,7 @@ export function ChatView() {
         } catch (error) {
           logger.error('chat-view.autoReply', 'Failed to send auto-reply', error);
         }
-      }, replyDelay - typingDelay);
+      }, Math.max(0, replyDelay - typingDelay));
     }, typingDelay);
     return () => {
       if (autoReplyTimerRef.current) clearTimeout(autoReplyTimerRef.current);
