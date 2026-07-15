@@ -71,7 +71,7 @@ export async function GET() {
       { blockerId: user.id }
     );
 
-    return NextResponse.json({ data: blocks }, { headers: { 'Cache-Control': 'private, max-age=30, stale-while-revalidate=120' } });
+    return NextResponse.json({ data: blocks }, { headers: { 'Cache-Control': 'private, no-cache, no-store, max-age=0' } });
   } catch (error) {
     logger.error('/api/block', 'Failed to fetch blocked users', error);
     return NextResponse.json({ error: 'Failed to fetch blocked users' }, { status: 500 });

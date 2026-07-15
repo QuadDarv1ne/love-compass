@@ -37,7 +37,7 @@ export async function GET() {
     const pendingLikes = pendingUsers.map(({ id, name, age, gender, bio, interests, avatar, city, lookingFor, createdAt }) => ({
       id, name, age, gender, bio, interests, avatar, city, lookingFor, createdAt,
     }));
-    return NextResponse.json({ data: pendingLikes }, { headers: { 'Cache-Control': 'private, max-age=15, stale-while-revalidate=60' } });
+    return NextResponse.json({ data: pendingLikes }, { headers: { 'Cache-Control': 'private, no-cache, no-store, max-age=0' } });
   } catch (error) {
     logger.error('/api/likes/received', 'Failed to fetch received likes', error);
     return NextResponse.json({ error: 'Failed to fetch received likes' }, { status: 500 });

@@ -9,6 +9,7 @@ import { messageBus } from '@/lib/sse';
 const typingStore = new Map<string, { userId: string; timestamp: number }>();
 const TYPING_EXPIRY_MS = 5_000;
 const CLEANUP_INTERVAL_MS = 15_000;
+const TYPING_MAX_ENTRIES = 10_000;
 
 // Periodic cleanup of stale typing entries
 let cleanupTimer: ReturnType<typeof setInterval> | null = null;
@@ -22,11 +23,15 @@ function ensureCleanup() {
         messageBus.publish(`typing:${key}`, { userId, matchId: key, typing: false });
       }
     }
-    if (typingStore.size === 0 && cleanupTimer) {
-      clearInterval(cleanupTimer);
-      cleanupTimer = null;
-    }
   }, CLEANUP_INTERVAL_MS);
+  cleanupTimer.unref();
+}
+
+function enforceTypingStoreLimit() {
+  if (typingStore.size >= TYPING_MAX_ENTRIES) {
+    const oldest = [...typingStore.entries()].sort((a, b) => a[1].timestamp - b[1].timestamp)[0];
+    if (oldest) typingStore.delete(oldest[0]);
+  }
 }
 
 const typingSchema = z.object({
@@ -47,6 +52,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
+    enforceTypingStoreLimit();
     typingStore.set(matchId, { userId: user.id, timestamp: Date.now() });
     ensureCleanup();
 

@@ -14,7 +14,7 @@ export async function GET() {
       { fromUserId: user.id }
     );
 
-    return NextResponse.json({ data: likes }, { headers: { 'Cache-Control': 'private, max-age=15, stale-while-revalidate=60' } });
+    return NextResponse.json({ data: likes }, { headers: { 'Cache-Control': 'private, no-cache, no-store, max-age=0' } });
   } catch (error) {
     logger.error('/api/likes/sent', 'Failed to fetch sent likes', error);
     return NextResponse.json({ error: 'Failed to fetch sent likes' }, { status: 500 });

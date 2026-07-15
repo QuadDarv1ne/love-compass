@@ -57,6 +57,8 @@ export async function POST(request: Request) {
     const user = await db.user.findUnique({ email: emailLower });
 
     if (!user || !user.passwordHash) {
+      // Constant-time dummy verification to prevent user enumeration via timing
+      await verifyPassword('dummy-timing-guard', '$2b$10$00000000000000000000000u0000000000000000000000000000000');
       return NextResponse.json(
         { error: 'Invalid email or password' },
         { status: 401 }

@@ -318,12 +318,13 @@ export function FilterPanel() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">{t('filter.gender')}</Label>
-              <Select value={filterGender} onValueChange={(v) => setFilterGender(v as 'all' | 'male' | 'female')}>
+              <Select value={filterGender} onValueChange={(v) => setFilterGender(v as 'all' | 'male' | 'female' | 'other')}>
                 <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">{t('filter.genderAll')}</SelectItem>
                   <SelectItem value="male">{t('filter.genderMale')}</SelectItem>
                   <SelectItem value="female">{t('filter.genderFemale')}</SelectItem>
+                  <SelectItem value="other">{t('register.genderOther')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>

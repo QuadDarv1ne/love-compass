@@ -3,8 +3,9 @@ import { z } from 'zod';
 import { requireAuthWithCSRF } from '@/lib/auth/guard';
 import { verifyTOTP } from '@/lib/auth/totp';
 import { db } from '@/lib/db';
+import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';
-import { TOTP } from '@/lib/constants';
+import { TOTP, RATE_LIMITS } from '@/lib/constants';
 
 const disableSchema = z.object({
   token: z.string().length(TOTP.TOKEN_LENGTH),
@@ -16,6 +17,15 @@ export async function POST(request: Request) {
     if (auth instanceof NextResponse) return auth;
 
     const { user } = auth;
+
+    // Rate limit: 5 attempts per 5 minutes per user
+    const rateLimit = await checkRateLimit(`2fa-disable:${user.id}`, RATE_LIMITS.TOTP_VERIFY.MAX, RATE_LIMITS.TOTP_VERIFY.WINDOW);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Too many attempts. Please try again later' },
+        { status: 429 }
+      );
+    }
 
     if (!user.totpEnabled || !user.totpSecret) {
       return NextResponse.json(

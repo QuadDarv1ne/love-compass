@@ -40,7 +40,7 @@ export async function GET() {
       matchNotifications: dbUser.matchNotifications,
       likeNotifications: dbUser.likeNotifications,
       emailNotifications: dbUser.emailNotifications,
-    }, { headers: { 'Cache-Control': 'private, max-age=60, stale-while-revalidate=300' } });
+    }, { headers: { 'Cache-Control': 'private, no-cache, no-store, max-age=0' } });
   } catch (error) {
     logger.error('/api/settings', 'Failed to fetch settings', error);
     return NextResponse.json({ error: 'Failed to fetch settings' }, { status: 500 });

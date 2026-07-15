@@ -6,7 +6,10 @@ import { Toaster } from "@/components/ui/sonner";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { ConfirmProvider } from "@/components/ui/confirm-dialog";
 import { SUPPORTED_LOCALES, type Locale } from "@/lib/i18n";
+import { validateEnv } from "@/lib/env";
 import "./globals.css";
+
+validateEnv();
 
 const SITE_NAMES: Record<string, { title: string; template: string; description: string }> = {
   ru: { title: "Love Compass — Найди свою любовь", template: "%s | Love Compass", description: "Международная платформа знакомств. Компас, который ведёт к любви." },

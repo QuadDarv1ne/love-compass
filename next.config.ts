@@ -18,7 +18,7 @@ const nextConfig: NextConfig = {
   output: "standalone",
   reactStrictMode: true,
   compiler: {
-    removeConsole: !isDev,
+    removeConsole: !isDev ? { exclude: ['error', 'warn', 'info'] } : false,
   },
   images: {
     deviceSizes: [375, 640, 768, 1024, 1280, 1536],
