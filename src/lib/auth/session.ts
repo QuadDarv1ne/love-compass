@@ -57,7 +57,7 @@ export async function setSessionCookie(token: string): Promise<void> {
   cookieStore.set(SESSION_COOKIE_NAME, signed, {
     httpOnly: true,
     secure: isProduction,
-    sameSite: 'strict',
+    sameSite: 'lax',
     path: '/',
     maxAge: SESSION_MAX_AGE,
     partitioned: isProduction,
@@ -71,7 +71,7 @@ export async function deleteSessionCookie(): Promise<void> {
   cookieStore.set(SESSION_COOKIE_NAME, '', {
     httpOnly: true,
     secure: isProduction,
-    sameSite: 'strict',
+    sameSite: 'lax',
     path: '/',
     maxAge: 0,
     partitioned: isProduction,

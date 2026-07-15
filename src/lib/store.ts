@@ -639,7 +639,7 @@ export const useAppStore = create<AppState>((set, get) => {
         fetch('/api/admin/stats'),
       ]);
       if (usersRes.ok) {
-        if (checkAuthGeneration !== generation) return;
+        if (adminGeneration !== generation) return;
         const { data, total } = await usersRes.json();
         set({ adminUsers: data ?? [], adminTotal: total ?? 0 });
       } else {
@@ -647,12 +647,12 @@ export const useAppStore = create<AppState>((set, get) => {
         toast.error(t('error.server'));
       }
       if (statsRes.ok) {
-        if (checkAuthGeneration !== generation) return;
+        if (adminGeneration !== generation) return;
         const { data } = await statsRes.json();
         set({ adminStats: data ?? null });
       }
     } catch (error) {
-      if (checkAuthGeneration !== generation) return;
+      if (adminGeneration !== generation) return;
       logger.error('store.fetchAdminData', 'Failed to fetch admin data', error);
       const t = createTranslatorForLanguage(get().language);
       toast.error(t('error.server'));

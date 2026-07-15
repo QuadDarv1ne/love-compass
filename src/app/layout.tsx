@@ -14,6 +14,8 @@ validateEnv();
 const SITE_NAMES: Record<string, { title: string; template: string; description: string }> = {
   ru: { title: "Love Compass — Найди свою любовь", template: "%s | Love Compass", description: "Международная платформа знакомств. Компас, который ведёт к любви." },
   en: { title: "Love Compass — Find Your Match", template: "%s | Love Compass", description: "International dating platform. The compass that leads to love." },
+  zh: { title: "Love Compass — 找到你的真爱", template: "%s | Love Compass", description: "国际交友平台。引你走向爱情的指南针。" },
+  es: { title: "Love Compass — Encuentra Tu Pareja", template: "%s | Love Compass", description: "Plataforma internacional de citas. La brújula que te lleva al amor." },
 };
 
 export const viewport: Viewport = {

@@ -46,15 +46,11 @@ export async function GET(request: Request) {
   const health: {
     status: string;
     timestamp: string;
-    uptime: number;
-    memory: NodeJS.MemoryUsage;
     version: string;
     database?: string;
   } = {
     status: "ok",
     timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    memory: process.memoryUsage(),
     version: getVersion(),
   };
 

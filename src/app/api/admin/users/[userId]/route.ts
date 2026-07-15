@@ -127,6 +127,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ us
     if (isZodError(error)) {
       return NextResponse.json({ error: 'Invalid request body', details: error.issues }, { status: 400 });
     }
+    logger.error('admin.users.PATCH', 'Failed to update user', error);
     return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
   }
 }
