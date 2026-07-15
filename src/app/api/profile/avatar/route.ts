@@ -26,6 +26,7 @@ export async function POST(request: Request) {
       urlPrefix: '/uploads/avatars/',
       allowedMimeTypes: UPLOAD.ALLOWED_MIME_TYPES,
       maxSize: UPLOAD.MAX_FILE_SIZE,
+      userId: user.id,
     });
 
     const avatarUrl = result.url;

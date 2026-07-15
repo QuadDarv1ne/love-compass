@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface ConfirmOptions {
   title: string;
@@ -26,6 +27,7 @@ interface ConfirmContextValue {
 const ConfirmContext = createContext<ConfirmContextValue | null>(null);
 
 export function ConfirmProvider({ children }: { children: React.ReactNode }) {
+  const { t } = useTranslation();
   const [state, setState] = useState<{
     options: ConfirmOptions;
     resolve: (value: boolean) => void;
@@ -56,13 +58,13 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
               variant="outline"
               onClick={() => handleClose(false)}
             >
-              {state?.options.cancelLabel || 'Отмена'}
+              {state?.options.cancelLabel || t('common.cancel')}
             </Button>
             <Button
               variant={state?.options.variant === 'destructive' ? 'destructive' : 'default'}
               onClick={() => handleClose(true)}
             >
-              {state?.options.confirmLabel || 'Подтвердить'}
+              {state?.options.confirmLabel || t('common.confirm')}
             </Button>
           </DialogFooter>
         </DialogContent>

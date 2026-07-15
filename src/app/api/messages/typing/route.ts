@@ -5,8 +5,8 @@ import { requireAuth, requireAuthWithCSRF, isZodError } from '@/lib/auth/guard';
 import { logger } from '@/lib/logger';
 import { messageBus } from '@/lib/sse';
 
-// In-memory typing store: matchId -> { userId, timestamp }
-const typingStore = new Map<string, { userId: string; timestamp: number }>();
+// In-memory typing store: "matchId:userId" -> { userId, matchId, timestamp }
+const typingStore = new Map<string, { userId: string; matchId: string; timestamp: number }>();
 const TYPING_EXPIRY_MS = 5_000;
 const CLEANUP_INTERVAL_MS = 15_000;
 const TYPING_MAX_ENTRIES = 10_000;
@@ -17,10 +17,10 @@ function ensureCleanup() {
   if (cleanupTimer) return;
   cleanupTimer = setInterval(() => {
     const now = Date.now();
-    for (const [key, { userId, timestamp }] of typingStore) {
+    for (const [key, { userId, matchId, timestamp }] of typingStore) {
       if (now - timestamp > TYPING_EXPIRY_MS) {
         typingStore.delete(key);
-        messageBus.publish(`typing:${key}`, { userId, matchId: key, typing: false });
+        messageBus.publish(`typing:${matchId}`, { userId, matchId, typing: false });
       }
     }
   }, CLEANUP_INTERVAL_MS);
@@ -53,7 +53,8 @@ export async function POST(request: Request) {
     }
 
     enforceTypingStoreLimit();
-    typingStore.set(matchId, { userId: user.id, timestamp: Date.now() });
+    const storeKey = `${matchId}:${user.id}`;
+    typingStore.set(storeKey, { userId: user.id, matchId, timestamp: Date.now() });
     ensureCleanup();
 
     messageBus.publish(`typing:${matchId}`, { userId: user.id, matchId, typing: true });
@@ -89,8 +90,9 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    const typingEntry = typingStore.get(matchId);
     const partnerId = match.user1Id === user.id ? match.user2Id : match.user1Id;
+    const partnerKey = `${matchId}:${partnerId}`;
+    const typingEntry = typingStore.get(partnerKey);
 
     if (typingEntry && typingEntry.userId === partnerId && Date.now() - typingEntry.timestamp < TYPING_EXPIRY_MS) {
       return NextResponse.json({ typing: true });

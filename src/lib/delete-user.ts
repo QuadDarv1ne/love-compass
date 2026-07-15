@@ -22,6 +22,7 @@ export async function deleteUserCascade(
 
   await tx.message.deleteMany({ senderId: id });
   await tx.like.deleteMany({ OR: [{ fromUserId: id }, { toUserId: id }] });
+  await tx.dislike.deleteMany({ OR: [{ fromUserId: id }, { toUserId: id }] });
 
   if (matchIds.length > 0) {
     await tx.match.deleteMany({ id: { in: matchIds } });

@@ -5,6 +5,7 @@ import { requireAuthWithCSRF, isZodError } from '@/lib/auth/guard';
 import { checkRateLimit } from '@/lib/auth/rate-limit';
 import { logger } from '@/lib/logger';
 import { AUTO_REPLY } from '@/lib/constants';
+import { messageBus } from '@/lib/sse';
 
 const autoReplySchema = z.object({
   matchId: z.string().min(1),
@@ -168,6 +169,8 @@ export async function POST(request: Request) {
       ...createdMessage,
       sender: { id: sender.id, name: sender.name, avatar: sender.avatar },
     };
+
+    messageBus.publish(`message:${matchId}`, message);
 
     return NextResponse.json(message, { status: 201 });
   } catch (error) {
